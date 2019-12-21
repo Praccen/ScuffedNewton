@@ -1,7 +1,7 @@
-//#include "../pch.h"
+#include "../pch.h"
 
 #include "Scene.h"
-
+#include "../DataTypes/Entity.h"
 #include "../Utils/Utils.h"
 
 Scene::Scene() {
@@ -13,13 +13,14 @@ Scene::~Scene() {
 }
 
 int Scene::addEntity() {
-	int testId = Utils::sEntityIdCounter;
-	auto pair = m_entities.try_emplace(Utils::sEntityIdCounter);
-	if (pair.second) {
-		// Created a new entity. Return the entity id
-		return testId;
-	}
-	else {
+	int testId = Utils::instance()->GetEntityIdCounter();
+	if (m_entities.count(testId) > 0) {
 		return -1;
 	}
+	else {
+		// Create new entity
+		m_entities[testId];
+ 	}
+
+	return testId;
 }

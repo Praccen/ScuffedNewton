@@ -211,6 +211,7 @@
     <ClCompile Include="Src\Calculations\Intersection.cpp" />
     <ClCompile Include="Src\DataStructures\Octree.cpp" />
     <ClCompile Include="Src\ScuffedNewton.cpp" />
+    <ClCompile Include="Src\Utils\Utils.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,8 +1,7 @@
 #pragma once
 
 #include <unordered_map>
-
-class Entity;
+#include "../DataTypes/Entity.h"
 
 class Scene {
 public:

@@ -7,6 +7,14 @@
 #define SN_NEW new
 #endif
 
-namespace Utils {
-	static int sEntityIdCounter = 0;
-}
+class Utils {
+public:
+	Utils();
+	~Utils();
+
+	static Utils* instance();
+
+	int GetEntityIdCounter(bool increase = false);
+private:
+	int m_entityIdCounter;
+};

@@ -6,7 +6,7 @@
 #include "../Utils/Utils.h"
 
 Entity::Entity() {
-	m_id = Utils::sEntityIdCounter++;
+	m_id = Utils::instance()->GetEntityIdCounter(true);
 	m_boundingBox = SN_NEW BoundingBox();
 	m_hasModel = false;
 	m_allowSimpleCollision = false;

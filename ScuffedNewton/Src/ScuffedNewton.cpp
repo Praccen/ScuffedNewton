@@ -13,3 +13,7 @@ SCUFFEDNEWTON_API const char* testString() {
 SCUFFEDNEWTON_API void update(float dt) {
 
 }
+
+SCUFFEDNEWTON_API int getNewObjectId() {
+	return scene.addEntity();
+}
