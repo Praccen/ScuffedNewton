@@ -89,7 +89,7 @@ private:
 	void clean(Node* currentNode);
 
 public:
-	Octree(Model* boundingBoxModel);
+	Octree(Model* boundingBoxModel = nullptr);
 	~Octree();
 
 	void addEntity(Entity* newEntity);
