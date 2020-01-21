@@ -11,9 +11,13 @@ SCUFFEDNEWTON_API const char* testString() {
 }
 
 SCUFFEDNEWTON_API void update(float dt) {
-
+	scene.update(dt);
 }
 
 SCUFFEDNEWTON_API int getNewObjectId() {
 	return scene.addEntity();
+}
+
+SCUFFEDNEWTON_API void setCollidable(int entityId, bool status) {
+	scene.setCollidable(entityId, status);
 }

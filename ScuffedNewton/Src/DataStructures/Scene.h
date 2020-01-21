@@ -12,6 +12,8 @@ public:
 
 	int addEntity();
 
+	void setCollidable(int entityId, bool status);
+
 	void update(float dt);
 
 private:

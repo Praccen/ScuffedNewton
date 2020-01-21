@@ -20,4 +20,6 @@ extern "C" SCUFFEDNEWTON_API const char* testString();
 extern "C" SCUFFEDNEWTON_API void update(float dt);
 
 extern "C" SCUFFEDNEWTON_API int getNewObjectId();
+
+extern "C" SCUFFEDNEWTON_API void setCollidable(int entityId, bool status);
 // ---------------------

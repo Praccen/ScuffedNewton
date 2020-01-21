@@ -7,11 +7,14 @@ public:
 	Entity();
 	virtual ~Entity();
 
+	void setCollidable(bool status);
+
 	unsigned int getId() const;
 
 	BoundingBox* getBoundingBox() const;
 
 	bool hasModel() const;
+	bool isCollidable() const;
 	bool allowSimpleCollision() const;
 
 private:
@@ -20,4 +23,5 @@ private:
 	BoundingBox* m_boundingBox;
 	bool m_hasModel;
 	bool m_allowSimpleCollision;
+	bool m_collidable;
 };

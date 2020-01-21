@@ -13,6 +13,12 @@ Scene::~Scene() {
 
 }
 
+void Scene::setCollidable(int entityId, bool status) {
+	if (m_entities.count(entityId) > 0) {
+		m_entities[entityId].setCollidable(status);
+	}
+}
+
 int Scene::addEntity() {
 	int testId = Utils::instance()->GetEntityIdCounter();
 	if (m_entities.count(testId) > 0) {
