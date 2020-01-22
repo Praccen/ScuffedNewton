@@ -4,6 +4,12 @@
 
 #include <string>
 
+#ifdef SCUFFEDNEWTON_EXPORTS
+#define SCUFFEDNEWTON_API __declspec(dllexport)
+#else
+#define SCUFFEDNEWTON_API __declspec(dllimport)
+#endif
+
 SCUFFEDNEWTON_API void testVoid() {
 	std::cout << "Test void ran!\n";
 }

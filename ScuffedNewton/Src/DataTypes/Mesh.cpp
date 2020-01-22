@@ -24,14 +24,24 @@ void Mesh::setModelMatrixPointer(glm::mat4* modelMatrix) {
 
 glm::vec3 Mesh::getVertexPosition(int vertexIndex) {
 	if (vertexIndex < m_size / m_vertexSize) {
-		glm::vec3 position;
+		glm::vec3 position(0.0);
 		void* pos = static_cast<void*>(static_cast<char*>(m_data) + (m_vertexSize * vertexIndex) + m_positionOffset);
-		//TODO: Add check for m_positionSize to know what glm::vec3 it should be. Instead of assuming float.
-		position.x = *(float*)pos;
-		pos = static_cast<void*>(static_cast<char*>(pos) + m_positionSize);
-		position.y = *(float*)pos;
-		pos = static_cast<void*>(static_cast<char*>(pos) + m_positionSize);
-		position.z = *(float*)pos;
+
+		if (m_positionSize == sizeof(float)) {
+			position.x = *(float*)pos;
+			pos = static_cast<void*>(static_cast<char*>(pos) + m_positionSize);
+			position.y = *(float*)pos;
+			pos = static_cast<void*>(static_cast<char*>(pos) + m_positionSize);
+			position.z = *(float*)pos;
+		}
+		else if (m_positionSize == sizeof(double)) {
+			position.x = *(double*)pos;
+			pos = static_cast<void*>(static_cast<char*>(pos) + m_positionSize);
+			position.y = *(double*)pos;
+			pos = static_cast<void*>(static_cast<char*>(pos) + m_positionSize);
+			position.z = *(double*)pos;
+		}
+		
 
 		return position;
 	}
