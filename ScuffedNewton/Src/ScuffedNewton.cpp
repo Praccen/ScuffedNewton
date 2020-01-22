@@ -31,6 +31,7 @@ SCUFFEDNEWTON_API void loadMesh(int entityId, void* data, size_t size, size_t ve
 	Entity* e = scene.getEntity(entityId);
 	if (e) {
 		e->getMesh()->loadData(data, size, vertexSize, positionOffset, positionSize);
+		e->setHasModel(true);
 	}
 }
 

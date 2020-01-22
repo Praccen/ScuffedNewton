@@ -9,6 +9,7 @@ public:
 	virtual ~Entity();
 
 	void setCollidable(bool status);
+	void setHasModel(bool status);
 
 	unsigned int getId() const;
 

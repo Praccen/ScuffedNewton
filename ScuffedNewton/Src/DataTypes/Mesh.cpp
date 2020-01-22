@@ -36,3 +36,7 @@ glm::vec3 Mesh::getVertexPosition(int vertexIndex) {
 		return position;
 	}
 }
+
+int Mesh::getNumberOfVertices() {
+	return m_size / m_vertexSize;
+}

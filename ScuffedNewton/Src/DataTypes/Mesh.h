@@ -12,6 +12,8 @@ public:
 
 	glm::vec3 getVertexPosition(int vertexIndex);
 
+	int getNumberOfVertices();
+
 private:
 	void* m_data;
 	size_t m_size;

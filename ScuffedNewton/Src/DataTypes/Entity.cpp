@@ -24,6 +24,10 @@ void Entity::setCollidable(bool status) {
 	m_collidable = status;
 }
 
+void Entity::setHasModel(bool status) {
+	m_hasModel = true;
+}
+
 unsigned int Entity::getId() const {
 	return m_id;
 }
