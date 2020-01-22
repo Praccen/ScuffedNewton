@@ -2,6 +2,7 @@
 
 #include <unordered_map>
 #include "../DataTypes/Entity.h"
+#include "../DataTypes/Mesh.h"
 
 class Octree;
 
@@ -12,7 +13,7 @@ public:
 
 	int addEntity();
 
-	void setCollidable(int entityId, bool status);
+	Entity* getEntity(int entityId);
 
 	void update(float dt);
 

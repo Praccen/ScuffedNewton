@@ -184,6 +184,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Src\DataStructures\Scene.h" />
+    <ClInclude Include="Src\DataTypes\Mesh.h" />
     <ClInclude Include="Src\framework.h" />
     <ClInclude Include="Src\pch.h" />
     <ClInclude Include="Src\DataTypes\BoundingBox.h" />
@@ -198,6 +199,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\DataStructures\Scene.cpp" />
+    <ClCompile Include="Src\DataTypes\Mesh.cpp" />
     <ClCompile Include="Src\dllmain.cpp" />
     <ClCompile Include="Src\pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

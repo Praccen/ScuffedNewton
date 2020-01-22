@@ -1,6 +1,7 @@
 #pragma once
 
 class BoundingBox;
+class Mesh;
 
 class Entity {
 public:
@@ -13,6 +14,8 @@ public:
 
 	BoundingBox* getBoundingBox() const;
 
+	Mesh* getMesh() const;
+
 	bool hasModel() const;
 	bool isCollidable() const;
 	bool allowSimpleCollision() const;
@@ -21,6 +24,7 @@ private:
 	unsigned int m_id;
 
 	BoundingBox* m_boundingBox;
+	Mesh* m_mesh;
 	bool m_hasModel;
 	bool m_allowSimpleCollision;
 	bool m_collidable;
