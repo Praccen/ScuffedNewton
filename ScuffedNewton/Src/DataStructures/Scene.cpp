@@ -10,7 +10,7 @@ Scene::Scene() {
 }
 
 Scene::~Scene() {
-
+	delete m_octree;
 }
 
 int Scene::addEntity() {

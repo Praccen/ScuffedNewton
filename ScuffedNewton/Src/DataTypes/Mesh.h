@@ -7,13 +7,13 @@ public:
 	Mesh();
 	~Mesh();
 
-	void loadData(void** data, size_t size, size_t vertexSize, size_t positionOffset, size_t positionSize);
+	void loadData(void* data, size_t size, size_t vertexSize, size_t positionOffset, size_t positionSize);
 	void setModelMatrixPointer(glm::mat4* modelMatrix);
 
 	glm::vec3 getVertexPosition(int vertexIndex);
 
 private:
-	void** m_data;
+	void* m_data;
 	size_t m_size;
 	size_t m_vertexSize;
 	size_t m_positionOffset;
