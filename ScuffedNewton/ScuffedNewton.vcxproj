@@ -183,6 +183,13 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Src\Components\CollidableComponent.h" />
+    <ClInclude Include="Src\Components\CollisionComponent.h" />
+    <ClInclude Include="Src\Components\Component.h" />
+    <ClInclude Include="Src\Components\Components.h" />
+    <ClInclude Include="Src\Components\MovementComponent.h" />
+    <ClInclude Include="Src\Components\RagdollComponent.h" />
+    <ClInclude Include="Src\Components\SpeedLimitComponent.h" />
     <ClInclude Include="Src\DataStructures\Scene.h" />
     <ClInclude Include="Src\DataTypes\Mesh.h" />
     <ClInclude Include="Src\framework.h" />
@@ -195,9 +202,19 @@
     <ClInclude Include="Src\DataStructures\Octree.h" />
     <ClInclude Include="Src\DataTypes\Sphere.h" />
     <ClInclude Include="Src\ScuffedNewton.h" />
+    <ClInclude Include="Src\Systems\BaseSystem.h" />
+    <ClInclude Include="Src\Systems\CollisionSystem.h" />
+    <ClInclude Include="Src\Systems\MovementPostCollisionSystem.h" />
+    <ClInclude Include="Src\Systems\MovementSystem.h" />
+    <ClInclude Include="Src\Systems\OctreeAddRemoverSystem.h" />
+    <ClInclude Include="Src\Systems\SpeedLimitSystem.h" />
+    <ClInclude Include="Src\Systems\Systems.h" />
+    <ClInclude Include="Src\Systems\UpdateBoundingBoxSystem.h" />
     <ClInclude Include="Src\Utils\Utils.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Src\Components\CollisionComponent.cpp" />
+    <ClCompile Include="Src\Components\RagdollComponent.cpp" />
     <ClCompile Include="Src\DataStructures\Scene.cpp" />
     <ClCompile Include="Src\DataTypes\Mesh.cpp" />
     <ClCompile Include="Src\dllmain.cpp" />
@@ -213,6 +230,13 @@
     <ClCompile Include="Src\Calculations\Intersection.cpp" />
     <ClCompile Include="Src\DataStructures\Octree.cpp" />
     <ClCompile Include="Src\ScuffedNewton.cpp" />
+    <ClCompile Include="Src\Systems\BaseSystem.cpp" />
+    <ClCompile Include="Src\Systems\CollisionSystem.cpp" />
+    <ClCompile Include="Src\Systems\MovementPostCollisionSystem.cpp" />
+    <ClCompile Include="Src\Systems\MovementSystem.cpp" />
+    <ClCompile Include="Src\Systems\OctreeAddRemoverSystem.cpp" />
+    <ClCompile Include="Src\Systems\SpeedLimitSystem.cpp" />
+    <ClCompile Include="Src\Systems\UpdateBoundingBoxSystem.cpp" />
     <ClCompile Include="Src\Utils\Utils.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

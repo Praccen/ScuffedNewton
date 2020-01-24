@@ -25,7 +25,6 @@ public:
 	const glm::vec3& getPosition() const;
 	const glm::vec3& getHalfSize() const;
 
-
 	void prepareCorners();
 	const glm::vec3* getCornersWithUpdate();
 	const glm::vec3* getCornersWithoutUpdate() const;
