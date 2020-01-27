@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <unordered_map>
 
 class Entity;
 
@@ -11,7 +12,7 @@ public:
 
 protected:
 	std::vector<Entity*> entities;
-
+	std::unordered_map<std::string, bool> requiredComponents;
 private:
 
 

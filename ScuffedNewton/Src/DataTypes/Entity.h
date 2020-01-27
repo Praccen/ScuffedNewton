@@ -12,18 +12,7 @@ public:
 	Entity();
 	virtual ~Entity();
 
-	void setCollidable(bool status);
-	void setHasModel(bool status);
-
 	unsigned int getId() const;
-
-	BoundingBox* getBoundingBox() const;
-
-	Mesh* getMesh() const;
-
-	bool hasModel() const;
-	bool isCollidable() const;
-	bool allowSimpleCollision() const;
 
 	template<typename ComponentType, typename... Targs>
 	ComponentType* addComponent(Targs... args);

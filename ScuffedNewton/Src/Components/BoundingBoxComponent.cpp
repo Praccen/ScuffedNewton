@@ -4,9 +4,10 @@
 #include "../DataTypes/BoundingBox.h"
 
 BoundingBoxComponent::BoundingBoxComponent() {
+	ID = "BoundingBoxComponent";
 	boundingBox = SN_NEW BoundingBox();
 }
 
-BoundingBoxComponent::~BoundingBoxComponent()
-{
+BoundingBoxComponent::~BoundingBoxComponent() {
+	delete boundingBox;
 }

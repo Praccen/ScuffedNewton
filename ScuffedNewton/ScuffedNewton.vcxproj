@@ -188,6 +188,7 @@
     <ClInclude Include="Src\Components\CollisionComponent.h" />
     <ClInclude Include="Src\Components\Component.h" />
     <ClInclude Include="Src\Components\Components.h" />
+    <ClInclude Include="Src\Components\MeshComponent.h" />
     <ClInclude Include="Src\Components\MovementComponent.h" />
     <ClInclude Include="Src\Components\RagdollComponent.h" />
     <ClInclude Include="Src\Components\SpeedLimitComponent.h" />
@@ -215,8 +216,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\Components\BoundingBoxComponent.cpp" />
+    <ClCompile Include="Src\Components\CollidableComponent.cpp" />
     <ClCompile Include="Src\Components\CollisionComponent.cpp" />
+    <ClCompile Include="Src\Components\MeshComponent.cpp" />
+    <ClCompile Include="Src\Components\MovementComponent.cpp" />
     <ClCompile Include="Src\Components\RagdollComponent.cpp" />
+    <ClCompile Include="Src\Components\SpeedLimitComponent.cpp" />
     <ClCompile Include="Src\DataStructures\Scene.cpp" />
     <ClCompile Include="Src\DataTypes\Mesh.cpp" />
     <ClCompile Include="Src\dllmain.cpp" />

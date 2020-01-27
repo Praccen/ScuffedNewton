@@ -5,7 +5,7 @@
 class Component {
 public:
 	Component(){};
-	~Component(){};
+	virtual ~Component(){};
 
 	std::string ID;
 };

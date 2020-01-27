@@ -3,6 +3,7 @@
 #include "RagdollComponent.h"
 
 RagdollComponent::RagdollComponent() {
+	ID = "RagdollComponent";
 	localCenterOfMass = {0.f, 0.f, 0.f};
 	wireframeModel = nullptr;
 }

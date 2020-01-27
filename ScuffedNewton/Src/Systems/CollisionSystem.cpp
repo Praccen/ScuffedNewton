@@ -9,6 +9,8 @@
 
 
 CollisionSystem::CollisionSystem() {
+	requiredComponents["CollisionComponent"] = true;
+
 	m_octree = nullptr;
 }
 
