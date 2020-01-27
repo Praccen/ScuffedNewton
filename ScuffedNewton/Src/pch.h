@@ -14,10 +14,13 @@
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/norm.hpp>
 //-----------
 
 //----STD----
 #include <vector>
 //-----------
+
+#include "Utils/Utils.h"
 
 #endif //PCH_H

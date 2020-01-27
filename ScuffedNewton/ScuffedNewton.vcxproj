@@ -183,6 +183,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Src\Components\BoundingBoxComponent.h" />
     <ClInclude Include="Src\Components\CollidableComponent.h" />
     <ClInclude Include="Src\Components\CollisionComponent.h" />
     <ClInclude Include="Src\Components\Component.h" />
@@ -213,6 +214,7 @@
     <ClInclude Include="Src\Utils\Utils.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Src\Components\BoundingBoxComponent.cpp" />
     <ClCompile Include="Src\Components\CollisionComponent.cpp" />
     <ClCompile Include="Src\Components\RagdollComponent.cpp" />
     <ClCompile Include="Src\DataStructures\Scene.cpp" />
