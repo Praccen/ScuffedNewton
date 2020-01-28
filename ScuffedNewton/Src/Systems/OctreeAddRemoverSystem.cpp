@@ -1,48 +1,36 @@
-#include "pch.h"
+#include "../pch.h"
 #include "OctreeAddRemoverSystem.h"
 
-#include "../Physics/Physics.h"
-#include "Sail/entities/components/Components.h"
-#include "Sail/entities/components/RenderInActiveGameComponent.h"
-#include "Sail/entities/components/RenderInReplayComponent.h"
-#include "Sail/graphics/geometry/Model.h"
-#include "Sail/graphics/camera/Camera.h"
+#include "../components/Components.h"
 
-template <typename T>
-OctreeAddRemoverSystem<T>::OctreeAddRemoverSystem() 
+OctreeAddRemoverSystem::OctreeAddRemoverSystem() 
 	: m_doCulling(false)
 	, m_cullCamera(nullptr)
 {
 	// TODO: System owner should check if this is correct
-	registerComponent<BoundingBoxComponent>(true, true, true);
-	registerComponent<CollidableComponent>(true, true, true);
-	registerComponent<T>(true, false, false);
+	requiredComponents["BoundingBoxComponent"] = true;
+	requiredComponents["CollidableComponent"] = true;
 }
 
-template <typename T>
-OctreeAddRemoverSystem<T>::~OctreeAddRemoverSystem() {
+OctreeAddRemoverSystem::~OctreeAddRemoverSystem() {
 
 }
 
-template <typename T>
-void OctreeAddRemoverSystem<T>::provideOctree(Octree* octree) {
+void OctreeAddRemoverSystem::provideOctree(Octree* octree) {
 	m_octree = octree;
 	m_octree->addEntities(&entities);
 }
 
-template <typename T>
-bool OctreeAddRemoverSystem<T>::addEntity(Entity* entity) {
-	if (BaseComponentSystem::addEntity(entity) && m_octree) {
+bool OctreeAddRemoverSystem::addEntity(Entity* entity) {
+	if (BaseSystem::addEntity(entity) && m_octree) {
 			m_octree->addEntity(entity);
 			return true;
 	}
 	return false;
 }
 
-template <typename T>
-void OctreeAddRemoverSystem<T>::removeEntity(Entity* entity) {
-	BaseComponentSystem::removeEntity(entity);
-	//entity->queueDestruction();
+void OctreeAddRemoverSystem::removeEntity(Entity* entity) {
+	BaseSystem::removeEntity(entity);
 
 	if (m_octree) {
 		m_octree->removeEntity(entity);
@@ -50,37 +38,25 @@ void OctreeAddRemoverSystem<T>::removeEntity(Entity* entity) {
 }
 
 
-template <typename T>
-void OctreeAddRemoverSystem<T>::update(float dt) {
+void OctreeAddRemoverSystem::update(float dt) {
 	m_octree->update();
 }
 
-template <typename T>
-void OctreeAddRemoverSystem<T>::updatePerFrame(float dt) {
-	if (m_doCulling) {
-		// Let the renderer know that all entities should not be rendered - will be set to true in cull method call if they are visible
-		for (auto& entity : entities) {
-			auto* cullComponent = entity->getComponent<CullingComponent>();
-			if (cullComponent) {
-				cullComponent->isVisible = false;
-			}
-		}
-		m_octree->frustumCulledDraw(*m_cullCamera);
-	}
+void OctreeAddRemoverSystem::updatePerFrame(float dt) {
+	//if (m_doCulling) {
+	//	// Let the renderer know that all entities should not be rendered - will be set to true in cull method call if they are visible
+	//	for (auto& entity : entities) {
+	//		auto* cullComponent = entity->getComponent<CullingComponent>();
+	//		if (cullComponent) {
+	//			cullComponent->isVisible = false;
+	//		}
+	//	}
+	//	m_octree->frustumCulledDraw(*m_cullCamera);
+	//}
+	assert(false); //Not implemented correctly
 }
 
-template <typename T>
-void OctreeAddRemoverSystem<T>::setCulling(bool activated, Camera* camera) {
+void OctreeAddRemoverSystem::setCulling(bool activated, Camera* camera) {
 	m_doCulling = activated;
 	m_cullCamera = camera;
 }
-
-#ifdef DEVELOPMENT
-template <typename T>
-unsigned int OctreeAddRemoverSystem<T>::getByteSize() const {
-	return BaseComponentSystem::getByteSize() + sizeof(*this);
-}
-#endif
-
-template class OctreeAddRemoverSystem<RenderInActiveGameComponent>;
-template class OctreeAddRemoverSystem<RenderInReplayComponent>;

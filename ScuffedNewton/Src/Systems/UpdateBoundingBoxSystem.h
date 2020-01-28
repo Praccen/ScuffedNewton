@@ -1,8 +1,7 @@
 #pragma once
-#include "..//BaseComponentSystem.h"
+#include "BaseSystem.h"
 
-class UpdateBoundingBoxSystem final : public BaseComponentSystem
-{
+class UpdateBoundingBoxSystem : public BaseSystem {
 public:
 	UpdateBoundingBoxSystem();
 	~UpdateBoundingBoxSystem();

@@ -1,7 +1,7 @@
 #pragma once
-#include "..//BaseComponentSystem.h"
+#include "BaseSystem.h"
 
-class SpeedLimitSystem final : public BaseComponentSystem {
+class SpeedLimitSystem final : public BaseSystem {
 public:
 	SpeedLimitSystem();
 	~SpeedLimitSystem();

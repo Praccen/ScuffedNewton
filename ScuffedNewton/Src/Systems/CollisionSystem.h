@@ -1,8 +1,7 @@
 #pragma once
 
 #include "BaseSystem.h"
-
-class Octree;
+#include "../DataStructures/Octree.h"
 
 class CollisionSystem: public BaseSystem {
 public:

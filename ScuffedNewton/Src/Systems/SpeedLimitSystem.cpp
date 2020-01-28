@@ -1,14 +1,12 @@
-#include "pch.h"
+#include "../pch.h"
 #include "SpeedLimitSystem.h"
-#include "..//..//components/MovementComponent.h"
-#include "..//..//components/SpeedLimitComponent.h"
-#include "Sail/entities/components/SprintingComponent.h"
-#include "..//..//Entity.h"
+
+#include "../Components/Components.h"
+#include "../DataTypes/Entity.h"
 
 SpeedLimitSystem::SpeedLimitSystem() {
-	registerComponent<MovementComponent>(true, true, true);
-	registerComponent<SpeedLimitComponent>(true, true, false);
-	registerComponent<SprintingComponent>(false, true, false);
+	requiredComponents["MovementComponent"] = true;
+	requiredComponents["SpeedLimitComponent"] = true;
 }
 
 SpeedLimitSystem::~SpeedLimitSystem() {
@@ -27,13 +25,7 @@ void SpeedLimitSystem::update() {
 		const float horizontalSpeedSquared = glm::length2(newVelocity);
 
 		float maxSpeed = speedLimit->maxSpeed;
-		// Modify max speed if sprinting
-		if (e->hasComponent<SprintingComponent>()) {
-			auto sprintComp = e->getComponent<SprintingComponent>();
-			if (sprintComp->sprintedLastFrame) {
-				maxSpeed = maxSpeed * sprintComp->sprintSpeedModifier;
-			}
-		}
+		
 		// Limit max speed
 		if (horizontalSpeedSquared > maxSpeed * maxSpeed) {
 			newVelocity = glm::normalize(newVelocity) * speedLimit->maxSpeed;

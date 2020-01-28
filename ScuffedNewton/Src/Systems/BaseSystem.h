@@ -10,6 +10,12 @@ public:
 	BaseSystem();
 	~BaseSystem();
 
+	virtual bool addEntity(Entity* entity);
+
+	virtual void removeEntity(Entity* entity);
+
+	virtual void update(float dt);
+
 protected:
 	std::vector<Entity*> entities;
 	std::unordered_map<std::string, bool> requiredComponents;

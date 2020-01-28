@@ -10,6 +10,9 @@
 
 CollisionSystem::CollisionSystem() {
 	requiredComponents["CollisionComponent"] = true;
+	requiredComponents["MovementComponent"] = true;
+	requiredComponents["BoundingBoxComponent"] = true;
+	//requiredComponents["TransformComponent"] = true;
 
 	m_octree = nullptr;
 }
@@ -25,7 +28,7 @@ void CollisionSystem::update(float dt) {
 
 	// prepare matrixes and bounding boxes
 	for (auto e : entities) {
-		e->getBoundingBox()->prepareCorners();
+		e->getComponent<BoundingBoxComponent>()->boundingBox->prepareCorners();
 	}
 
 	// ======================== Collision Update ======================================
@@ -46,7 +49,7 @@ bool CollisionSystem::collisionUpdatePart(float dt) {
 		Entity* e = entities[i];
 
 		CollisionComponent* collision = e->getComponent<CollisionComponent>();
-		BoundingBox* boundingBox = e->getBoundingBox();
+		BoundingBox* boundingBox = e->getComponent<BoundingBoxComponent>()->boundingBox;
 
 		collision->collisions.clear();
 
@@ -69,7 +72,7 @@ bool CollisionSystem::surfaceFromCollisionPart(float dt) {
 
 		if (m_octree) {
 			if (!e->hasComponent<RagdollComponent>()) {
-				surfaceFromCollision(e, e->getBoundingBox(), collision->collisions);
+				surfaceFromCollision(e, e->getComponent<BoundingBoxComponent>()->boundingBox, collision->collisions);
 			}
 			else {
 				surfaceFromRagdollCollision(e, collision->collisions);
@@ -84,7 +87,7 @@ bool CollisionSystem::rayCastCollisionPart(float dt) {
 		Entity* e = entities[i];
 
 		MovementComponent* movement = e->getComponent<MovementComponent>();
-		BoundingBox* boundingBox = e->getBoundingBox();
+		BoundingBox* boundingBox = e->getComponent<BoundingBoxComponent>()->boundingBox;
 
 		float updateableDt = dt;
 
@@ -125,7 +128,7 @@ void CollisionSystem::collisionUpdate(Entity* e, const float dt) {
 	std::vector<Octree::CollisionInfo> collisions;
 
 	if (!e->hasComponent<RagdollComponent>()) {
-		m_octree->getCollisions(e, e->getComponent<BoundingBoxComponent>()->getBoundingBox(), &collisions, collision->doSimpleCollisions);
+		m_octree->getCollisions(e, e->getComponent<BoundingBoxComponent>()->boundingBox, &collisions, collision->doSimpleCollisions);
 		handleCollisions(e, collisions, dt);
 	}
 	else {
@@ -142,7 +145,7 @@ void CollisionSystem::collisionUpdate(Entity* e, const float dt) {
 const bool CollisionSystem::handleCollisions(Entity* e, std::vector<Octree::CollisionInfo>& collisions, const float dt) {
 	MovementComponent* movement = e->getComponent<MovementComponent>();
 	CollisionComponent* collision = e->getComponent<CollisionComponent>();
-	const BoundingBox* boundingBox = e->getComponent<BoundingBoxComponent>()->getBoundingBox();
+	const BoundingBox* boundingBox = e->getComponent<BoundingBoxComponent>()->boundingBox;
 
 	bool collisionFound = false;
 	collision->onGround = false;
@@ -173,93 +176,96 @@ const bool CollisionSystem::handleCollisions(Entity* e, std::vector<Octree::Coll
 }
 
 const bool CollisionSystem::handleRagdollCollisions(Entity* e, std::vector<Octree::CollisionInfo>& collisions, bool calculateMomentum, const float dt) {
-	MovementComponent* movementComp = e->getComponent<MovementComponent>();
-	TransformComponent* transComp = e->getComponent<TransformComponent>();
-	RagdollComponent* ragdollComp = e->getComponent<RagdollComponent>();
-	CollisionComponent* collision = e->getComponent<CollisionComponent>();
+	//MovementComponent* movementComp = e->getComponent<MovementComponent>();
+	////TransformComponent* transComp = e->getComponent<TransformComponent>();
+	//RagdollComponent* ragdollComp = e->getComponent<RagdollComponent>();
+	//CollisionComponent* collision = e->getComponent<CollisionComponent>();
 
-	bool collisionFound = false;
-	collision->onGround = false;
+	//bool collisionFound = false;
+	//collision->onGround = false;
 
-	std::vector<glm::vec3> movementDiffs;
+	//std::vector<glm::vec3> movementDiffs;
 
-	for (size_t i = 0; i < ragdollComp->contactPoints.size(); i++) {
-		//----Avoid spinning into things----
-		glm::vec3 globalCenterOfMass = transComp->getMatrixWithUpdate() * glm::vec4(ragdollComp->localCenterOfMass, 1.0f);
-		glm::vec3 offsetVector = transComp->getMatrixWithUpdate() * glm::vec4(ragdollComp->contactPoints[i].localOffSet, 1.0f) - glm::vec4(globalCenterOfMass, 1.0f);
-		if (glm::length2(offsetVector) > 0.f) {
-			Octree::RayIntersectionInfo tempInfo;
-			m_octree->getRayIntersection(globalCenterOfMass, glm::normalize(offsetVector), &tempInfo, e, 0.0f, collision->doSimpleCollisions);
+	//for (size_t i = 0; i < ragdollComp->contactPoints.size(); i++) {
+	//	//----Avoid spinning into things----
+	//	glm::vec3 globalCenterOfMass = transComp->getMatrixWithUpdate() * glm::vec4(ragdollComp->localCenterOfMass, 1.0f);
+	//	glm::vec3 offsetVector = transComp->getMatrixWithUpdate() * glm::vec4(ragdollComp->contactPoints[i].localOffSet, 1.0f) - glm::vec4(globalCenterOfMass, 1.0f);
+	//	if (glm::length2(offsetVector) > 0.f) {
+	//		Octree::RayIntersectionInfo tempInfo;
+	//		m_octree->getRayIntersection(globalCenterOfMass, glm::normalize(offsetVector), &tempInfo, e, 0.0f, collision->doSimpleCollisions);
 
-			if (tempInfo.closestHit >= 0.0f && tempInfo.closestHit < glm::length(offsetVector)) {
-				glm::vec3 translation = (tempInfo.closestHit - glm::length(offsetVector)) * 1.1f * glm::normalize(offsetVector);
-				transComp->translate(translation);
-				for (size_t j = 0; j < ragdollComp->contactPoints.size(); j++) {
-					ragdollComp->contactPoints[j].boundingBox.setPosition(ragdollComp->contactPoints[j].boundingBox.getPosition() + translation);
-				}
-			}
-		}
-		//----------------------------------
+	//		if (tempInfo.closestHit >= 0.0f && tempInfo.closestHit < glm::length(offsetVector)) {
+	//			glm::vec3 translation = (tempInfo.closestHit - glm::length(offsetVector)) * 1.1f * glm::normalize(offsetVector);
+	//			transComp->translate(translation);
+	//			for (size_t j = 0; j < ragdollComp->contactPoints.size(); j++) {
+	//				ragdollComp->contactPoints[j].boundingBox.setPosition(ragdollComp->contactPoints[j].boundingBox.getPosition() + translation);
+	//			}
+	//		}
+	//	}
+	//	//----------------------------------
 
-		std::vector<int> groundIndices;
-		glm::vec3 sumVec(0.0f);
-		std::vector<Octree::CollisionInfo> trueCollisions;
+	//	std::vector<int> groundIndices;
+	//	glm::vec3 sumVec(0.0f);
+	//	std::vector<Octree::CollisionInfo> trueCollisions;
 
-		//Gather info
-		gatherCollisionInformation(e, &ragdollComp->contactPoints[i].boundingBox, collisions, trueCollisions, sumVec, groundIndices, dt);
+	//	//Gather info
+	//	gatherCollisionInformation(e, &ragdollComp->contactPoints[i].boundingBox, collisions, trueCollisions, sumVec, groundIndices, dt);
 
-		if (groundIndices.size() > 0) {
-			collision->onGround = true;
-		}
+	//	if (groundIndices.size() > 0) {
+	//		collision->onGround = true;
+	//	}
 
-		movementDiffs.emplace_back();
-		movementDiffs.back() = { 0.f, 0.f, 0.f };
+	//	movementDiffs.emplace_back();
+	//	movementDiffs.back() = { 0.f, 0.f, 0.f };
 
-		glm::vec3 bbMovement(0.f);
-		bbMovement += getAngularVelocity(e, ragdollComp->contactPoints[i].localOffSet, ragdollComp->localCenterOfMass);
-		bbMovement += movementComp->velocity;
+	//	glm::vec3 bbMovement(0.f);
+	//	bbMovement += getAngularVelocity(e, ragdollComp->contactPoints[i].localOffSet, ragdollComp->localCenterOfMass);
+	//	bbMovement += movementComp->velocity;
 
-		if (trueCollisions.size() > 0) {
-			collisionFound = true;
+	//	if (trueCollisions.size() > 0) {
+	//		collisionFound = true;
 
-			glm::vec3 updatedMovement = bbMovement;
+	//		glm::vec3 updatedMovement = bbMovement;
 
-			//Update velocity
-			updateVelocityVec(e, updatedMovement, trueCollisions, sumVec, groundIndices, dt);
+	//		//Update velocity
+	//		updateVelocityVec(e, updatedMovement, trueCollisions, sumVec, groundIndices, dt);
 
-			movementDiffs.back() = updatedMovement - bbMovement;
-		}
-	}
+	//		movementDiffs.back() = updatedMovement - bbMovement;
+	//	}
+	//}
 
-	glm::vec3 totalMovementDiff(0.f);
-	glm::vec3 totalRotation(0.f);
-	int movCounter = 0;
+	//glm::vec3 totalMovementDiff(0.f);
+	//glm::vec3 totalRotation(0.f);
+	//int movCounter = 0;
 
-	for (size_t i = 0; i < ragdollComp->contactPoints.size(); i++) {
-		movCounter++;
-		glm::vec3 offsetVector = transComp->getMatrixWithUpdate() * glm::vec4(ragdollComp->contactPoints[i].localOffSet, 1.0f) - transComp->getMatrixWithUpdate() * glm::vec4(ragdollComp->localCenterOfMass, 1.0f);
-		if (glm::length2(movementDiffs[i]) > 0.001f && glm::length2(offsetVector) > 0.001f) {
-			//float hitDot = glm::max(glm::dot(glm::normalize(movementDiffs[i]), glm::normalize(-offsetVector)), 0.f);
-			totalMovementDiff += movementDiffs[i];// * hitDot;
+	//for (size_t i = 0; i < ragdollComp->contactPoints.size(); i++) {
+	//	movCounter++;
+	//	glm::vec3 offsetVector = transComp->getMatrixWithUpdate() * glm::vec4(ragdollComp->contactPoints[i].localOffSet, 1.0f) - transComp->getMatrixWithUpdate() * glm::vec4(ragdollComp->localCenterOfMass, 1.0f);
+	//	if (glm::length2(movementDiffs[i]) > 0.001f && glm::length2(offsetVector) > 0.001f) {
+	//		//float hitDot = glm::max(glm::dot(glm::normalize(movementDiffs[i]), glm::normalize(-offsetVector)), 0.f);
+	//		totalMovementDiff += movementDiffs[i];// * hitDot;
 
-			if (calculateMomentum) {
-				glm::vec3 rotationVec = glm::normalize(glm::cross(offsetVector, movementDiffs[i]));
-				glm::vec3 movementVec = glm::normalize(glm::cross(offsetVector, rotationVec));
+	//		if (calculateMomentum) {
+	//			glm::vec3 rotationVec = glm::normalize(glm::cross(offsetVector, movementDiffs[i]));
+	//			glm::vec3 movementVec = glm::normalize(glm::cross(offsetVector, rotationVec));
 
-				movementVec = movementVec * glm::dot(movementDiffs[i], movementVec);
+	//			movementVec = movementVec * glm::dot(movementDiffs[i], movementVec);
 
-				float angle = glm::atan(glm::length(movementVec), glm::length(offsetVector));
-				totalRotation += rotationVec * glm::pow(angle, 0.6f) * 2.5f;
-			}
-		}
-	}
+	//			float angle = glm::atan(glm::length(movementVec), glm::length(offsetVector));
+	//			totalRotation += rotationVec * glm::pow(angle, 0.6f) * 2.5f;
+	//		}
+	//	}
+	//}
 
-	movementComp->velocity += totalMovementDiff / glm::max((float)movCounter, 1.0f);
-	if (glm::length2(totalRotation) > 0.0001f) {
-		movementComp->rotation = totalRotation;
-	}
+	//movementComp->velocity += totalMovementDiff / glm::max((float)movCounter, 1.0f);
+	//if (glm::length2(totalRotation) > 0.0001f) {
+	//	movementComp->rotation = totalRotation;
+	//}
 
-	return collisionFound;
+	//return collisionFound;
+
+	assert(false); //Not implemented correctly because of transform
+	return;
 }
 
 void CollisionSystem::gatherCollisionInformation(Entity* e, const BoundingBox* boundingBox, std::vector<Octree::CollisionInfo>& collisions, std::vector<Octree::CollisionInfo>& trueCollisions, glm::vec3& sumVec, std::vector<int>& groundIndices, const float dt) {
@@ -369,7 +375,7 @@ const bool CollisionSystem::rayCastCheck(Entity* e, const BoundingBox* boundingB
 
 void CollisionSystem::rayCastUpdate(Entity* e, BoundingBox* boundingBox, float& dt) {
 	MovementComponent* movement = e->getComponent<MovementComponent>();
-	TransformComponent* transform = e->getComponent<TransformComponent>();
+	//TransformComponent* transform = e->getComponent<TransformComponent>();
 	CollisionComponent* collision = e->getComponent<CollisionComponent>();
 
 	const float velocityAmp = glm::length(movement->velocity) * dt;
@@ -387,7 +393,7 @@ void CollisionSystem::rayCastUpdate(Entity* e, BoundingBox* boundingBox, float& 
 
 		//Move untill first overlap
 		boundingBox->setPosition(boundingBox->getPosition() + movement->velocity * newDt);
-		transform->translate(movement->velocity * newDt);
+		//transform->translate(movement->velocity * newDt);
 
 		dt -= newDt;
 
@@ -402,7 +408,7 @@ void CollisionSystem::rayCastUpdate(Entity* e, BoundingBox* boundingBox, float& 
 
 void CollisionSystem::rayCastRagdollUpdate(Entity* e, float& dt) {
 	MovementComponent* movement = e->getComponent<MovementComponent>();
-	TransformComponent* transform = e->getComponent<TransformComponent>();
+	//TransformComponent* transform = e->getComponent<TransformComponent>();
 	CollisionComponent* collision = e->getComponent<CollisionComponent>();
 	RagdollComponent* ragdollComp = e->getComponent<RagdollComponent>();
 
@@ -438,7 +444,8 @@ void CollisionSystem::rayCastRagdollUpdate(Entity* e, float& dt) {
 			ragdollComp->contactPoints[i].boundingBox.setPosition(ragdollComp->contactPoints[i].boundingBox.getPosition() + movement->velocity * newDt);
 		}
 
-		transform->translate(movement->velocity * newDt);
+		assert(false);
+		//transform->translate(movement->velocity * newDt);
 
 		dt -= newDt;
 
@@ -453,7 +460,7 @@ void CollisionSystem::rayCastRagdollUpdate(Entity* e, float& dt) {
 
 glm::vec3 CollisionSystem::surfaceFromCollision(Entity* e, BoundingBox* boundingBox, std::vector<Octree::CollisionInfo>& collisions) {
 	glm::vec3 distance(0.0f);
-	TransformComponent* transform = e->getComponent<TransformComponent>();
+	//TransformComponent* transform = e->getComponent<TransformComponent>();
 
 	const size_t count = collisions.size();
 	for (size_t i = 0; i < count; i++) {
@@ -466,7 +473,9 @@ glm::vec3 CollisionSystem::surfaceFromCollision(Entity* e, BoundingBox* bounding
 			distance += axis * (depth - 0.0001f);
 		}
 	}
-	transform->translate(distance);
+
+	assert(false);
+	//transform->translate(distance);
 
 	return distance;
 }
@@ -485,20 +494,23 @@ void CollisionSystem::surfaceFromRagdollCollision(Entity* e, std::vector<Octree:
 }
 
 glm::vec3 CollisionSystem::getAngularVelocity(Entity* e, const glm::vec3& offset, const glm::vec3& centerOfMass) {
-	TransformComponent* transComp = e->getComponent<TransformComponent>();
-	MovementComponent* movementComp = e->getComponent<MovementComponent>();
+	//TransformComponent* transComp = e->getComponent<TransformComponent>();
+	//MovementComponent* movementComp = e->getComponent<MovementComponent>();
 
-	//----Angular momentum----
-	glm::vec3 bbMovement(0.f);
-	glm::vec3 offsetVector = transComp->getMatrixWithUpdate() * glm::vec4(offset, 1.0f) - transComp->getMatrixWithUpdate() * glm::vec4(centerOfMass, 1.0f);
+	////----Angular momentum----
+	//glm::vec3 bbMovement(0.f);
+	//glm::vec3 offsetVector = transComp->getMatrixWithUpdate() * glm::vec4(offset, 1.0f) - transComp->getMatrixWithUpdate() * glm::vec4(centerOfMass, 1.0f);
 
-	glm::vec3 bbDir = glm::cross(offsetVector, movementComp->rotation);
-	if (glm::length2(bbDir) > 0.0001f) {
-		bbDir = glm::normalize(bbDir);
-		float bbVelocity = (glm::length(movementComp->rotation) / 2.0f * glm::pi<float>()) * glm::length(offsetVector) * 2.0f * glm::pi<float>();
-		glm::vec3 bbMovement = bbDir * bbVelocity;
-	}
-	//------------------------
+	//glm::vec3 bbDir = glm::cross(offsetVector, movementComp->rotation);
+	//if (glm::length2(bbDir) > 0.0001f) {
+	//	bbDir = glm::normalize(bbDir);
+	//	float bbVelocity = (glm::length(movementComp->rotation) / 2.0f * glm::pi<float>()) * glm::length(offsetVector) * 2.0f * glm::pi<float>();
+	//	glm::vec3 bbMovement = bbDir * bbVelocity;
+	//}
+	////------------------------
 
-	return bbMovement;
+	//return bbMovement;
+
+	assert(false); //Not implemented correctly because of transform component
+	return;
 }

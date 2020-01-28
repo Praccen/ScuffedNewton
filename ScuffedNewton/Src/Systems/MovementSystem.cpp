@@ -1,26 +1,20 @@
-#include "pch.h"
+#include "../pch.h"
 #include "MovementSystem.h"
-#include "Sail/entities/components/TransformComponent.h"
-#include "Sail/entities/components/MovementComponent.h"
-#include "Sail/entities/components/RagdollComponent.h"
-#include "Sail/entities/components/RenderInActiveGameComponent.h"
-#include "Sail/entities/components/RenderInReplayComponent.h"
-#include "Sail/entities/Entity.h"
+
+#include "../Components/Components.h"
+
+#include "../DataTypes/Entity.h"
 
 
-template <typename T>
-MovementSystem<T>::MovementSystem() {
-	registerComponent<TransformComponent>(true, true, true);
-	registerComponent<MovementComponent>(true, true, true);
-	registerComponent<RagdollComponent>(false, true, false);
-	registerComponent<T>(true, false, false);
+MovementSystem::MovementSystem() {
+	//requiredComponents["TransformComponent"] = true;
+	requiredComponents["MovementComponent"] = true;
+	requiredComponents["RagdollComponent"] = true;
 }
 
-template <typename T>
-void MovementSystem<T>::update(float dt) {
+void MovementSystem::update(float dt) {
 	for (auto& e : entities) {
-
-		TransformComponent* transform = e->getComponent<TransformComponent>();
+		//TransformComponent* transform = e->getComponent<TransformComponent>();
 		MovementComponent* movement = e->getComponent<MovementComponent>();
 
 		// Update velocity
@@ -31,14 +25,11 @@ void MovementSystem<T>::update(float dt) {
 		
 		// Rotation
 		if (movement->rotation != glm::vec3(0.0f)) {
-			transform->rotate(movement->rotation * dt);
+			assert(false);
+			//transform->rotate(movement->rotation * dt);
 		}
 
 		// Set initial value which might be changed in CollisionSystem
 		movement->updateableDt = dt;
 	}
 }
-
-
-template class MovementSystem<RenderInActiveGameComponent>;
-template class MovementSystem<RenderInReplayComponent>;

@@ -5,6 +5,7 @@
 class BoundingBox;
 
 class BoundingBoxComponent : public Component {
+public:
 	BoundingBoxComponent();
 	~BoundingBoxComponent();
 

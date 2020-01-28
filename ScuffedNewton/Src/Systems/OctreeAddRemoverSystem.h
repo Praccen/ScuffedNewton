@@ -1,12 +1,10 @@
 #pragma once
-#include "..//BaseComponentSystem.h"
+#include "BaseSystem.h"
 
 class Octree;
 class Camera;
 
-template <typename T>
-class OctreeAddRemoverSystem final : public BaseComponentSystem
-{
+class OctreeAddRemoverSystem: public BaseSystem {
 public:
 	OctreeAddRemoverSystem();
 	~OctreeAddRemoverSystem();
@@ -21,10 +19,6 @@ public:
 	void updatePerFrame(float dt);
 
 	void setCulling(bool activated, Camera* camera);
-
-#ifdef DEVELOPMENT
-	unsigned int getByteSize() const override;
-#endif
 
 private:
 	Octree* m_octree;

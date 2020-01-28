@@ -1,8 +1,7 @@
 #pragma once
-#include "..//BaseComponentSystem.h"
+#include "BaseSystem.h"
 
-template <typename T>
-class MovementSystem final : public BaseComponentSystem {
+class MovementSystem: public BaseSystem {
 public:
 	MovementSystem();
 	~MovementSystem() = default;
