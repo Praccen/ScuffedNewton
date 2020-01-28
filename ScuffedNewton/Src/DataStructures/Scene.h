@@ -19,6 +19,7 @@ public:
 
 private:
 	std::unordered_map<int, Entity> m_entities;
+	//TODO: implement systems
 
 	Octree *m_octree;
 };
