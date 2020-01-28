@@ -105,6 +105,9 @@
     <ClInclude Include="Src\Components\MeshComponent.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Systems\SystemDeclarations.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\dllmain.cpp">

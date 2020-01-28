@@ -6,10 +6,11 @@
 class BoundingBox;
 class Component;
 class Mesh;
+class Scene;
 
 class Entity {
 public:
-	Entity();
+	Entity(Scene* scene);
 	virtual ~Entity();
 
 	unsigned int getId() const;
@@ -27,7 +28,13 @@ public:
 	bool hasComponent() const;
 
 private:
+	void addToSystems();
+	void removeFromSystems();
+
+private:
 	unsigned int m_id;
+
+	Scene* m_scene;
 
 	BoundingBox* m_boundingBox;
 	Mesh* m_mesh;

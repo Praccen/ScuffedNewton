@@ -3,11 +3,13 @@
 #include "Entity.h"
 #include "BoundingBox.h"
 #include "Mesh.h"
+#include "../DataStructures/Scene.h"
 
 #include "../Utils/Utils.h"
 
-Entity::Entity() {
+Entity::Entity(Scene* scene) {
 	m_id = Utils::instance()->GetEntityIdCounter(true);
+	m_scene = scene;
 }
 
 Entity::~Entity() {
@@ -15,6 +17,14 @@ Entity::~Entity() {
 
 unsigned int Entity::getId() const {
 	return m_id;
+}
+
+void Entity::addToSystems() {
+	m_scene->addEntityToSystems(this);
+}
+
+void Entity::removeFromSystems() {
+	m_scene->removeEntityFromSystems(this);
 }
 
 template<typename ComponentType, typename... Targs>

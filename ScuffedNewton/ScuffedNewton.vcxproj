@@ -210,6 +210,7 @@
     <ClInclude Include="Src\Systems\MovementSystem.h" />
     <ClInclude Include="Src\Systems\OctreeAddRemoverSystem.h" />
     <ClInclude Include="Src\Systems\SpeedLimitSystem.h" />
+    <ClInclude Include="Src\Systems\SystemDeclarations.h" />
     <ClInclude Include="Src\Systems\Systems.h" />
     <ClInclude Include="Src\Systems\UpdateBoundingBoxSystem.h" />
     <ClInclude Include="Src\Utils\Utils.h" />
