@@ -113,5 +113,14 @@ void UpdateBoundingBoxSystem::update(float dt) {
 			}
 		}
 	}*/
-	assert(false); //Implement transform properly
+	//assert(false); //Implement transform properly
+
+	std::cout << "UpdateBoundingBoxSystem system ran\n";
+
+	// prepare matrixes and bounding boxes
+	for (auto e : entities) {
+		//e->getComponent<BoundingBoxComponent>()->boundingBox->prepareCorners();
+		std::cout << e->getId() << ", ";
+	}
+	std::cout << "\n";
 }

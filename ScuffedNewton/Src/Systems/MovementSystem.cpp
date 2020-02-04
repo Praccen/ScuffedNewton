@@ -13,23 +13,32 @@ MovementSystem::MovementSystem() {
 }
 
 void MovementSystem::update(float dt) {
-	for (auto& e : entities) {
-		//TransformComponent* transform = e->getComponent<TransformComponent>();
-		MovementComponent* movement = e->getComponent<MovementComponent>();
+	std::cout << "Movement system ran\n";
 
-		// Update velocity
-		movement->velocity += (movement->constantAcceleration + movement->accelerationToAdd) * dt;
-
-		// Reset additional acceleration
-		movement->accelerationToAdd = glm::vec3(0.0f);
-		
-		// Rotation
-		if (movement->rotation != glm::vec3(0.0f)) {
-			assert(false);
-			//transform->rotate(movement->rotation * dt);
-		}
-
-		// Set initial value which might be changed in CollisionSystem
-		movement->updateableDt = dt;
+	// prepare matrixes and bounding boxes
+	for (auto e : entities) {
+		//e->getComponent<BoundingBoxComponent>()->boundingBox->prepareCorners();
+		std::cout << e->getId() << ", ";
 	}
+	std::cout << "\n";
+
+	//for (auto& e : entities) {
+	//	//TransformComponent* transform = e->getComponent<TransformComponent>();
+	//	MovementComponent* movement = e->getComponent<MovementComponent>();
+
+	//	// Update velocity
+	//	movement->velocity += (movement->constantAcceleration + movement->accelerationToAdd) * dt;
+
+	//	// Reset additional acceleration
+	//	movement->accelerationToAdd = glm::vec3(0.0f);
+	//	
+	//	// Rotation
+	//	if (movement->rotation != glm::vec3(0.0f)) {
+	//		assert(false);
+	//		//transform->rotate(movement->rotation * dt);
+	//	}
+
+	//	// Set initial value which might be changed in CollisionSystem
+	//	movement->updateableDt = dt;
+	//}
 }

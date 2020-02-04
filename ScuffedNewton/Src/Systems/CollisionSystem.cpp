@@ -1,4 +1,5 @@
 #include "../pch.h"
+
 #include "CollisionSystem.h"
 
 #include "../Components/Components.h"
@@ -25,12 +26,15 @@ void CollisionSystem::provideOctree(Octree* octree) {
 }
 
 void CollisionSystem::update(float dt) {
+	std::cout << "Collision system ran\n";
 
 	// prepare matrixes and bounding boxes
 	for (auto e : entities) {
-		e->getComponent<BoundingBoxComponent>()->boundingBox->prepareCorners();
+		//e->getComponent<BoundingBoxComponent>()->boundingBox->prepareCorners();
+		std::cout << e->getId() << ", ";
 	}
-
+	std::cout << "\n";
+	/*
 	// ======================== Collision Update ======================================
 
 	collisionUpdatePart(dt);
@@ -42,6 +46,7 @@ void CollisionSystem::update(float dt) {
 	// ======================== Ray cast collisions ======================================
 
 	rayCastCollisionPart(dt);
+	*/
 }
 
 bool CollisionSystem::collisionUpdatePart(float dt) {

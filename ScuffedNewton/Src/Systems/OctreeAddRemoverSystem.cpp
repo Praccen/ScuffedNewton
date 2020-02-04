@@ -1,6 +1,8 @@
 #include "../pch.h"
 #include "OctreeAddRemoverSystem.h"
 
+#include "../DataTypes/Entity.h"
+
 #include "../components/Components.h"
 
 OctreeAddRemoverSystem::OctreeAddRemoverSystem() 
@@ -39,7 +41,16 @@ void OctreeAddRemoverSystem::removeEntity(Entity* entity) {
 
 
 void OctreeAddRemoverSystem::update(float dt) {
-	m_octree->update();
+	//m_octree->update();
+
+	std::cout << "OctreeAddRemover system ran\n";
+
+	// prepare matrixes and bounding boxes
+	for (auto e : entities) {
+		//e->getComponent<BoundingBoxComponent>()->boundingBox->prepareCorners();
+		std::cout << e->getId() << ", ";
+	}
+	std::cout << "\n";
 }
 
 void OctreeAddRemoverSystem::updatePerFrame(float dt) {

@@ -34,15 +34,33 @@ Entity* Scene::getEntity(int entityId) {
 }
 
 void Scene::createSystems() {
+	m_systems.emplace_back();
+	m_systems.back() = SN_NEW UpdateBoundingBoxSystem();
+
+	m_systems.emplace_back();
+	m_systems.back() = SN_NEW OctreeAddRemoverSystem();
+
+	m_systems.emplace_back();
+	m_systems.back() = SN_NEW MovementSystem();
+
 	m_systems.emplace_back(); 
 	m_systems.back() = SN_NEW CollisionSystem();
 
-	/*m_systems.collisionSystem = SN_NEW CollisionSystem();
-	m_systems.movementPostCollisionSystem = SN_NEW MovementPostCollisionSystem();
-	m_systems.movementSystem = SN_NEW MovementSystem();
+	m_systems.emplace_back();
+	m_systems.back() = SN_NEW MovementPostCollisionSystem();
+
+	m_systems.emplace_back();
+	m_systems.back() = SN_NEW SpeedLimitSystem();
+
+
+	/*
+	m_systems.updateBoundingBoxSystem = SN_NEW UpdateBoundingBoxSystem();
 	m_systems.octreeAddRemoverSystem = SN_NEW OctreeAddRemoverSystem();
+	m_systems.movementSystem = SN_NEW MovementSystem();
+	m_systems.collisionSystem = SN_NEW CollisionSystem();
+	m_systems.movementPostCollisionSystem = SN_NEW MovementPostCollisionSystem();
 	m_systems.speedLimitSystem = SN_NEW SpeedLimitSystem();
-	m_systems.updateBoundingBoxSystem = SN_NEW UpdateBoundingBoxSystem();*/
+	*/
 }
 
 void Scene::update(float dt) {
