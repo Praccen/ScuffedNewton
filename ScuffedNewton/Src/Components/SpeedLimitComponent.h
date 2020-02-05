@@ -8,4 +8,5 @@ public:
 
 	float maxSpeed;
 	float normalMaxSpeed;
+	static std::string ID;
 };

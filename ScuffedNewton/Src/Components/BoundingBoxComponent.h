@@ -10,4 +10,6 @@ public:
 	~BoundingBoxComponent();
 
 	BoundingBox* boundingBox = nullptr;
+
+	static std::string ID;
 };

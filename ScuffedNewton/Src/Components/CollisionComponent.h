@@ -15,4 +15,5 @@ public:
 
 	std::vector<Octree::CollisionInfo> collisions; //Contains the info for current collisions
 
+	static std::string ID;
 };

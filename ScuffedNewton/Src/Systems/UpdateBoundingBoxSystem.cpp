@@ -89,7 +89,7 @@ void UpdateBoundingBoxSystem::updateRagdollBoundingBoxes(Entity* e) {
 
 bool UpdateBoundingBoxSystem::addEntity(Entity* entity) {
 	if (BaseSystem::addEntity(entity)) {
-		recalculateBoundingBoxFully(entity);
+		//recalculateBoundingBoxFully(entity);
 		return true;
 	}
 	return false;

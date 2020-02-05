@@ -8,4 +8,6 @@ public:
 	~CollidableComponent();
 
 	bool allowSimpleCollision; //Flag to let things collide with the entity's bounding box instead of mesh
+
+	static std::string ID;
 };

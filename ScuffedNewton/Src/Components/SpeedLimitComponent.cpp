@@ -1,8 +1,9 @@
 #include "../pch.h"
 #include "SpeedLimitComponent.h"
 
+std::string SpeedLimitComponent::ID = "SpeedLimitComponent";
+
 SpeedLimitComponent::SpeedLimitComponent(float maxSpeed_) {
-	ID = "SpeedLimitComponent";
 	maxSpeed = maxSpeed_;
 	normalMaxSpeed = maxSpeed_;
 }

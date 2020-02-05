@@ -3,8 +3,9 @@
 
 #include "../DataTypes/BoundingBox.h"
 
+std::string BoundingBoxComponent::ID = "BoundingBoxComponent";
+
 BoundingBoxComponent::BoundingBoxComponent() {
-	ID = "BoundingBoxComponent";
 	boundingBox = SN_NEW BoundingBox();
 }
 

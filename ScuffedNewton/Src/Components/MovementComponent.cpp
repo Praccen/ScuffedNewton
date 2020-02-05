@@ -1,9 +1,9 @@
 #include "../pch.h"
 #include "MovementComponent.h"
 
-MovementComponent::MovementComponent() {
-	ID = "MovementComponent";
+std::string MovementComponent::ID = "MovementComponent";
 
+MovementComponent::MovementComponent() {
 	velocity = glm::vec3(0.0f);
 	relVel = glm::vec3(0.0f);
 	rotation = glm::vec3(0.0f);

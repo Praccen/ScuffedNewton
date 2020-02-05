@@ -7,7 +7,6 @@
 
 #include "../Utils/Utils.h"
 
-
 Octree::Octree(Model* boundingBoxModel) {
 
 	m_boundingBoxModel = boundingBoxModel;

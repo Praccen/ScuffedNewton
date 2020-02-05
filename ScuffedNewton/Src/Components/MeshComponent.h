@@ -10,4 +10,6 @@ public:
 	~MeshComponent();
 
 	Mesh* mesh = nullptr;
+
+	static std::string ID;
 };

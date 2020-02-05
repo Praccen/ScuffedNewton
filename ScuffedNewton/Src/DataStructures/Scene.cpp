@@ -7,6 +7,8 @@
 
 Scene::Scene() {
 	m_octree = SN_NEW Octree();
+
+	createSystems();
 }
 
 Scene::~Scene() {

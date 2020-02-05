@@ -3,8 +3,9 @@
 
 #include "../DataTypes/Mesh.h"
 
+std::string MeshComponent::ID = "MeshComponent";
+
 MeshComponent::MeshComponent() {
-	ID = "MeshComponent";
 	mesh = SN_NEW Mesh();
 }
 

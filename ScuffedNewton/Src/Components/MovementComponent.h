@@ -19,4 +19,6 @@ public:
 	float airDrag;
 
 	float updateableDt;
+
+	static std::string ID;
 };

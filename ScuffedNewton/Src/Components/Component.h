@@ -6,6 +6,4 @@ class Component {
 public:
 	Component(){};
 	virtual ~Component(){};
-
-	std::string ID;
 };

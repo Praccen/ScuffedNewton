@@ -26,4 +26,6 @@ public:
 
 	glm::vec3 localCenterOfMass;
 	Model* wireframeModel;
+
+	static std::string ID;
 };
