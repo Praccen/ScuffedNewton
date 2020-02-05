@@ -270,7 +270,7 @@ const bool CollisionSystem::handleRagdollCollisions(Entity* e, std::vector<Octre
 	//return collisionFound;
 
 	assert(false); //Not implemented correctly because of transform
-	return;
+	return false;
 }
 
 void CollisionSystem::gatherCollisionInformation(Entity* e, const BoundingBox* boundingBox, std::vector<Octree::CollisionInfo>& collisions, std::vector<Octree::CollisionInfo>& trueCollisions, glm::vec3& sumVec, std::vector<int>& groundIndices, const float dt) {
@@ -517,5 +517,5 @@ glm::vec3 CollisionSystem::getAngularVelocity(Entity* e, const glm::vec3& offset
 	//return bbMovement;
 
 	assert(false); //Not implemented correctly because of transform component
-	return;
+	return glm::vec3(0.f);
 }

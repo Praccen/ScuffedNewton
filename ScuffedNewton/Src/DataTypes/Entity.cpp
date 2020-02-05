@@ -41,15 +41,16 @@ void Entity::removeFromSystems() {
 template<typename ComponentType, typename... Targs>
 inline ComponentType* Entity::addComponent(Targs... args) {
 	if (m_components[ComponentType::ID]) {
-		SAIL_LOG_WARNING("Tried to add a duplicate component to an entity");
+		//SAIL_LOG_WARNING("Tried to add a duplicate component to an entity");
+		std::cout << "Tried to add a duplicate component to an entity\n";
 	}
 	else {
 		m_components[ComponentType::ID] = SN_NEW ComponentType(args...);
 
 		// Place this entity within the correct systems if told to
-		if (tryToAddToSystems) {
+		//if (tryToAddToSystems) {
 			addToSystems();
-		}
+		//}
 	}
 
 	// Return pointer to the component

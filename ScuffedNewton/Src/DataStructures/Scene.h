@@ -23,7 +23,7 @@ public:
 	void removeEntityFromSystems(Entity* entity);
 
 private:
-	std::unordered_map<int, Entity> m_entities;
+	std::unordered_map<int, Entity*> m_entities;
 	std::vector<BaseSystem*> m_systems;
 	//Systems m_systems;
 

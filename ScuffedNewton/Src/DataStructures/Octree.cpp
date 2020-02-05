@@ -3,6 +3,7 @@
 #include "Octree.h"
 #include "../Calculations/Intersection.h"
 #include "../DataTypes/Entity.h"
+#include "../Components/Components.h"
 
 #include "../Utils/Utils.h"
 
@@ -68,7 +69,7 @@ glm::vec3 Octree::findCornerOutside(Entity* entity, Node* testNode) {
 	//Find if any corner of a entity's bounding box is outside of node. Returns a vector towards the outside corner if one is found. Otherwise a 0.0f vec is returned.
 	glm::vec3 directionVec(0.0f, 0.0f, 0.0f);
 
-	const glm::vec3* corners = entity->getBoundingBox()->getCornersWithUpdate();
+	const glm::vec3* corners = entity->getComponent<BoundingBoxComponent>()->boundingBox->getCornersWithUpdate();
 	glm::vec3 testNodeHalfSize = testNode->nodeBB->getHalfSize();
 
 	for (int i = 0; i < 8; i++) {
@@ -188,7 +189,7 @@ bool Octree::removeEntityRec(Entity* entityToRemove, Node* currentNode) {
 
 void Octree::updateRec(Node* currentNode, std::vector<Entity*>* entitiesToReAdd) {
 	for (int i = 0; i < currentNode->nrOfEntities; i++) {
-		if (currentNode->entities[i]->getBoundingBox()->getChange()) { //Entity has changed
+		if (currentNode->entities[i]->getComponent<BoundingBoxComponent>()->boundingBox->getChange()) { //Entity has changed
 			//Re-add the entity to get it in the right node
 			Entity* tempEntity = currentNode->entities[i];
 			//First remove the entity from this node to avoid duplicates
@@ -231,7 +232,7 @@ void Octree::getCollisionsRec(Entity* entity, const BoundingBox* entityBoundingB
 			continue;
 		}
 
-		const BoundingBox* otherBoundingBox = currentNode->entities[i]->getBoundingBox();
+		const BoundingBox* otherBoundingBox = currentNode->entities[i]->getComponent<BoundingBoxComponent>()->boundingBox;
 
 		// continue if Bounding box doesn't collide with entity bounding box
 		if (!Intersection::AabbWithAabb(entityBoundingBox->getPosition(), entityBoundingBox->getHalfSize(), otherBoundingBox->getPosition(), otherBoundingBox->getHalfSize())) {
@@ -241,12 +242,12 @@ void Octree::getCollisionsRec(Entity* entity, const BoundingBox* entityBoundingB
 
 		// Get collision
 		/*const ModelComponent* model = currentNode->entities[i]->getComponent<ModelComponent>();
-		const TransformComponent* transform = currentNode->entities[i]->getComponent<TransformComponent>();
-		const CollidableComponent* collidable = currentNode->entities[i]->getComponent<CollidableComponent>();*/
+		const TransformComponent* transform = currentNode->entities[i]->getComponent<TransformComponent>();*/
+		const CollidableComponent* collidable = currentNode->entities[i]->getComponent<CollidableComponent>();
 
-		bool model = currentNode->entities[i]->hasModel();
+		bool model = currentNode->entities[i]->hasComponent<MeshComponent>();
 
-		if (model && !(doSimpleCollisions && currentNode->entities[i]->allowSimpleCollision())) {
+		if (model && !(doSimpleCollisions && collidable->allowSimpleCollision)) {
 			assert(false); // Not implemented yet
 			/*
 			// Entity has a model. Check collision with meshes
@@ -328,7 +329,7 @@ void Octree::getRayIntersectionRec(const glm::vec3& rayStart, const glm::vec3& r
 			continue;
 		}
 
-		const BoundingBox* collidableBoundingBox = currentNode->entities[i]->getBoundingBox();
+		const BoundingBox* collidableBoundingBox = currentNode->entities[i]->getComponent<BoundingBoxComponent>()->boundingBox;
 		glm::vec3 intersectionAxis;
 		float entityIntersectionDistance = Intersection::RayWithPaddedAabb(rayStart, rayDir, collidableBoundingBox->getPosition(), collidableBoundingBox->getHalfSize(), padding, &intersectionAxis);
 
@@ -339,12 +340,12 @@ void Octree::getRayIntersectionRec(const glm::vec3& rayStart, const glm::vec3& r
 
 		//Get Intersection
 		/*const ModelComponent* model = currentNode->entities[i]->getComponent<ModelComponent>();
-		const TransformComponent* transform = currentNode->entities[i]->getComponent<TransformComponent>();
-		const CollidableComponent* collidable = currentNode->entities[i]->getComponent<CollidableComponent>();*/
+		const TransformComponent* transform = currentNode->entities[i]->getComponent<TransformComponent>();*/
+		const CollidableComponent* collidable = currentNode->entities[i]->getComponent<CollidableComponent>();
 
-		bool model = currentNode->entities[i]->hasModel();
+		bool model = currentNode->entities[i]->hasComponent<MeshComponent>();
 
-		if (model && !(doSimpleIntersections && currentNode->entities[i]->allowSimpleCollision())) {
+		if (model && !(doSimpleIntersections && collidable->allowSimpleCollision)) {
 			assert(false); // Not implemented yet
 			/*
 			// Entity has a model. Check ray against meshes

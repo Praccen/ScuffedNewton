@@ -11,6 +11,10 @@ Scene::Scene() {
 
 Scene::~Scene() {
 	delete m_octree;
+
+	for (auto e : m_entities) {
+		delete e.second;
+	}
 }
 
 int Scene::addEntity() {
@@ -20,7 +24,7 @@ int Scene::addEntity() {
 	}
 	else {
 		// Create new entity
-		m_entities[testId];
+		m_entities[testId] = SN_NEW Entity(this);
 	}
 
 	return testId;
@@ -28,7 +32,7 @@ int Scene::addEntity() {
 
 Entity* Scene::getEntity(int entityId) {
 	if (m_entities.count(entityId) > 0) {
-		return &m_entities[entityId];
+		return m_entities[entityId];
 	}
 	else {
 		return nullptr;
