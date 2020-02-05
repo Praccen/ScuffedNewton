@@ -1,5 +1,7 @@
 #include "../pch.h"
 
+#include <unordered_map>
+
 #include "Entity.h"
 #include "BoundingBox.h"
 #include "Mesh.h"
@@ -17,6 +19,15 @@ Entity::~Entity() {
 
 unsigned int Entity::getId() const {
 	return m_id;
+}
+
+
+bool Entity::hasComponents(const std::unordered_map<std::string, bool>& requiredComponents) {
+	for (auto it = requiredComponents.begin(); it != requiredComponents.end(); it++) {
+		if (m_components.count(it->first) <= 0) {
+			return false;
+		}
+	}
 }
 
 void Entity::addToSystems() {

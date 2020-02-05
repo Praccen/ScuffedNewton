@@ -21,8 +21,7 @@ int Scene::addEntity() {
 	else {
 		// Create new entity
 		m_entities[testId];
-		m_octree->addEntity(&m_entities[testId]);
- 	}
+	}
 
 	return testId;
 }
@@ -30,6 +29,9 @@ int Scene::addEntity() {
 Entity* Scene::getEntity(int entityId) {
 	if (m_entities.count(entityId) > 0) {
 		return &m_entities[entityId];
+	}
+	else {
+		return nullptr;
 	}
 }
 
@@ -43,7 +45,7 @@ void Scene::createSystems() {
 	m_systems.emplace_back();
 	m_systems.back() = SN_NEW MovementSystem();
 
-	m_systems.emplace_back(); 
+	m_systems.emplace_back();
 	m_systems.back() = SN_NEW CollisionSystem();
 
 	m_systems.emplace_back();
@@ -64,27 +66,27 @@ void Scene::createSystems() {
 }
 
 void Scene::update(float dt) {
-	m_octree->update();
+	//m_octree->update();
+	for (auto s : m_systems) {
+		s->update(dt);
+	}
 }
 
 void Scene::addEntityToSystems(Entity* entity) {
-	//SystemMap::iterator it = m_systems.begin();
+	// Check which systems this entity can be placed in
+	for (auto sys : m_systems) {
+		auto componentTypes = sys->getRequiredComponentTypes();
 
-	//// Check which systems this entity can be placed in
-	//for (; it != m_systems.end(); ++it) {
-	//	if (it->second) {
-	//		auto componentTypes = it->second->getRequiredComponentTypes();
-
-	//		// Add this entity to the system
-	//		if (entity->hasComponents(componentTypes)) {
-	//			it->second->addEntity(entity);
-	//		}
-	//	}
-	//}
-	assert(false); //Not implemented yet
+		// Add this entity to the system
+		if (entity->hasComponents(componentTypes)) {
+			sys->addEntity(entity);
+		}
+	}
 }
 
 void Scene::removeEntityFromSystems(Entity* entity) {
-	assert(false); //Not implemented yet
+	for (auto sys : m_systems) {
+		sys->removeEntity(entity);
+	}
 }
 

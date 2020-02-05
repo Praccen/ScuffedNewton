@@ -30,3 +30,7 @@ void BaseSystem::removeEntity(Entity* entity) {
 void BaseSystem::update(float dt) {
 
 }
+
+std::unordered_map<std::string, bool>& BaseSystem::getRequiredComponentTypes() {
+	return requiredComponents;
+}

@@ -27,6 +27,8 @@ public:
 	template<typename ComponentType>
 	bool hasComponent() const;
 
+	bool hasComponents(const std::unordered_map<std::string, bool>& requiredComponents);
+
 private:
 	void addToSystems();
 	void removeFromSystems();

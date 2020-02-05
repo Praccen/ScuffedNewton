@@ -16,6 +16,8 @@ public:
 
 	virtual void update(float dt);
 
+	virtual std::unordered_map<std::string, bool>& getRequiredComponentTypes();
+
 protected:
 	std::vector<Entity*> entities;
 	std::unordered_map<std::string, bool> requiredComponents;
