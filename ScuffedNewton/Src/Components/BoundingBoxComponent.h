@@ -9,7 +9,10 @@ public:
 	BoundingBoxComponent();
 	~BoundingBoxComponent();
 
-	BoundingBox* boundingBox = nullptr;
+	BoundingBox* getBoundingBox() const;
 
 	static std::string ID;
+
+private:
+	BoundingBox* m_boundingBox = nullptr;
 };

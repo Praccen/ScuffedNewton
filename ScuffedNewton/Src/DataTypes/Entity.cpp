@@ -5,6 +5,8 @@
 #include "Entity.h"
 #include "../DataStructures/Scene.h"
 
+#include "../Components/Components.h"
+
 
 Entity::Entity(Scene* scene) {
 	m_id = Utils::instance()->GetEntityIdCounter(true);

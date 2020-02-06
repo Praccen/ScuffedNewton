@@ -9,7 +9,6 @@
 MovementSystem::MovementSystem() {
 	//requiredComponents["TransformComponent"] = true;
 	requiredComponents["MovementComponent"] = true;
-	requiredComponents["RagdollComponent"] = true;
 }
 
 void MovementSystem::update(float dt) {

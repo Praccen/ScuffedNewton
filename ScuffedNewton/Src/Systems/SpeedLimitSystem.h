@@ -6,5 +6,5 @@ public:
 	SpeedLimitSystem();
 	~SpeedLimitSystem();
 
-	void update();
+	void update(float dt);
 };

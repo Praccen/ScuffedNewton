@@ -6,17 +6,19 @@
 #include "../Systems/Systems.h"
 
 Scene::Scene() {
-	m_octree = SN_NEW Octree();
+	//m_octree = SN_NEW Octree();
 
 	createSystems();
 }
 
 Scene::~Scene() {
-	delete m_octree;
-
 	for (auto e : m_entities) {
 		delete e.second;
 	}
+
+	deleteSystems();
+
+	//delete m_octree;
 }
 
 int Scene::addEntity() {
@@ -59,16 +61,12 @@ void Scene::createSystems() {
 
 	m_systems.emplace_back();
 	m_systems.back() = SN_NEW SpeedLimitSystem();
+}
 
-
-	/*
-	m_systems.updateBoundingBoxSystem = SN_NEW UpdateBoundingBoxSystem();
-	m_systems.octreeAddRemoverSystem = SN_NEW OctreeAddRemoverSystem();
-	m_systems.movementSystem = SN_NEW MovementSystem();
-	m_systems.collisionSystem = SN_NEW CollisionSystem();
-	m_systems.movementPostCollisionSystem = SN_NEW MovementPostCollisionSystem();
-	m_systems.speedLimitSystem = SN_NEW SpeedLimitSystem();
-	*/
+void Scene::deleteSystems() {
+	for (auto s : m_systems) {
+		delete s;
+	}
 }
 
 void Scene::update(float dt) {

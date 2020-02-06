@@ -50,7 +50,7 @@ void CollisionSystem::update(float dt) {
 }
 
 bool CollisionSystem::collisionUpdatePart(float dt) {
-	for (size_t i = 0; i < entities.size(); ++i) {
+	/*for (size_t i = 0; i < entities.size(); ++i) {
 		Entity* e = entities[i];
 
 		CollisionComponent* collision = e->getComponent<CollisionComponent>();
@@ -64,13 +64,13 @@ bool CollisionSystem::collisionUpdatePart(float dt) {
 		}
 
 		collisionUpdate(e, dt);
-	}
+	}*/
 
 	return true;
 }
 
 bool CollisionSystem::surfaceFromCollisionPart(float dt) {
-	for (size_t i = 0; i < entities.size(); ++i) {
+	/*for (size_t i = 0; i < entities.size(); ++i) {
 		Entity* e = entities[i];
 
 		CollisionComponent* collision = e->getComponent<CollisionComponent>();
@@ -83,53 +83,53 @@ bool CollisionSystem::surfaceFromCollisionPart(float dt) {
 				surfaceFromRagdollCollision(e, collision->collisions);
 			}
 		}
-	}
+	}*/
 	return true;
 }
 
 bool CollisionSystem::rayCastCollisionPart(float dt) {
-	for (size_t i = 0; i < entities.size(); ++i) {
-		Entity* e = entities[i];
+	//for (size_t i = 0; i < entities.size(); ++i) {
+	//	Entity* e = entities[i];
 
-		MovementComponent* movement = e->getComponent<MovementComponent>();
-		BoundingBox* boundingBox = e->getComponent<BoundingBoxComponent>()->boundingBox;
+	//	MovementComponent* movement = e->getComponent<MovementComponent>();
+	//	BoundingBox* boundingBox = e->getComponent<BoundingBoxComponent>()->boundingBox;
 
-		float updateableDt = dt;
+	//	float updateableDt = dt;
 
-		if (m_octree) {
-			if (!e->hasComponent<RagdollComponent>()) {
-				if (rayCastCheck(e, boundingBox, movement->velocity, updateableDt)) {
-					//Object is moving fast, ray cast for collisions
-					rayCastUpdate(e, boundingBox, updateableDt);
-					movement->oldVelocity = movement->velocity;
-				}
-			}
-			else {
-				RagdollComponent* ragdollComp = e->getComponent<RagdollComponent>();
-				bool rayCastingNeeded = false;
-			
-				for (size_t j = 0; j < ragdollComp->contactPoints.size(); j++) {
-					if (rayCastCheck(e, &ragdollComp->contactPoints[j].boundingBox, movement->velocity, dt)) {
-						rayCastingNeeded = true;
-						break;
-					}
-				}
-			
-				if (rayCastingNeeded) {
-					//Object is moving fast, ray cast for collisions
-					rayCastRagdollUpdate(e, updateableDt);
-					movement->oldVelocity = movement->velocity;
-				}
-			}
-		}
-		movement->updateableDt = updateableDt;
-	}
+	//	if (m_octree) {
+	//		if (!e->hasComponent<RagdollComponent>()) {
+	//			if (rayCastCheck(e, boundingBox, movement->velocity, updateableDt)) {
+	//				//Object is moving fast, ray cast for collisions
+	//				rayCastUpdate(e, boundingBox, updateableDt);
+	//				movement->oldVelocity = movement->velocity;
+	//			}
+	//		}
+	//		else {
+	//			RagdollComponent* ragdollComp = e->getComponent<RagdollComponent>();
+	//			bool rayCastingNeeded = false;
+	//		
+	//			for (size_t j = 0; j < ragdollComp->contactPoints.size(); j++) {
+	//				if (rayCastCheck(e, &ragdollComp->contactPoints[j].boundingBox, movement->velocity, dt)) {
+	//					rayCastingNeeded = true;
+	//					break;
+	//				}
+	//			}
+	//		
+	//			if (rayCastingNeeded) {
+	//				//Object is moving fast, ray cast for collisions
+	//				rayCastRagdollUpdate(e, updateableDt);
+	//				movement->oldVelocity = movement->velocity;
+	//			}
+	//		}
+	//	}
+	//	movement->updateableDt = updateableDt;
+	//}
 	return true;
 }
 
 void CollisionSystem::collisionUpdate(Entity* e, const float dt) {
 	//Update collision data
-	CollisionComponent* collision = e->getComponent<CollisionComponent>();
+	/*CollisionComponent* collision = e->getComponent<CollisionComponent>();
 	std::vector<Octree::CollisionInfo> collisions;
 
 	if (!e->hasComponent<RagdollComponent>()) {
@@ -144,38 +144,38 @@ void CollisionSystem::collisionUpdate(Entity* e, const float dt) {
 		}
 
 		handleRagdollCollisions(e, collisions, true, dt);
-	}
+	}*/
 }
 
 const bool CollisionSystem::handleCollisions(Entity* e, std::vector<Octree::CollisionInfo>& collisions, const float dt) {
-	MovementComponent* movement = e->getComponent<MovementComponent>();
-	CollisionComponent* collision = e->getComponent<CollisionComponent>();
-	const BoundingBox* boundingBox = e->getComponent<BoundingBoxComponent>()->boundingBox;
+	//MovementComponent* movement = e->getComponent<MovementComponent>();
+	//CollisionComponent* collision = e->getComponent<CollisionComponent>();
+	//const BoundingBox* boundingBox = e->getComponent<BoundingBoxComponent>()->boundingBox;
 
 	bool collisionFound = false;
-	collision->onGround = false;
+	//collision->onGround = false;
 
-	const size_t collisionCount = collisions.size();
+	//const size_t collisionCount = collisions.size();
 
-	if (collisionCount > 0) {
-		std::vector<int> groundIndices;
-		glm::vec3 sumVec(0.0f);
-		std::vector<Octree::CollisionInfo> trueCollisions;
+	//if (collisionCount > 0) {
+	//	std::vector<int> groundIndices;
+	//	glm::vec3 sumVec(0.0f);
+	//	std::vector<Octree::CollisionInfo> trueCollisions;
 
-		//Gather info
-		gatherCollisionInformation(e, boundingBox, collisions, trueCollisions, sumVec, groundIndices, dt);
+	//	//Gather info
+	//	gatherCollisionInformation(e, boundingBox, collisions, trueCollisions, sumVec, groundIndices, dt);
 
-		if (trueCollisions.size() > 0) {
-			collisionFound = true;
-		}
+	//	if (trueCollisions.size() > 0) {
+	//		collisionFound = true;
+	//	}
 
-		if (groundIndices.size() > 0) {
-			collision->onGround = true;
-		}
+	//	if (groundIndices.size() > 0) {
+	//		collision->onGround = true;
+	//	}
 
-		//Handle true collisions
-		updateVelocityVec(e, movement->velocity, trueCollisions, sumVec, groundIndices, dt);
-	}
+	//	//Handle true collisions
+	//	updateVelocityVec(e, movement->velocity, trueCollisions, sumVec, groundIndices, dt);
+	//}
 
 	return collisionFound;
 }
@@ -274,219 +274,219 @@ const bool CollisionSystem::handleRagdollCollisions(Entity* e, std::vector<Octre
 }
 
 void CollisionSystem::gatherCollisionInformation(Entity* e, const BoundingBox* boundingBox, std::vector<Octree::CollisionInfo>& collisions, std::vector<Octree::CollisionInfo>& trueCollisions, glm::vec3& sumVec, std::vector<int>& groundIndices, const float dt) {
-	CollisionComponent* collision = e->getComponent<CollisionComponent>();
+	//CollisionComponent* collision = e->getComponent<CollisionComponent>();
 
-	const size_t collisionCount = collisions.size();
+	//const size_t collisionCount = collisions.size();
 
-	if (collisionCount > 0) {
-		//Get the actual intersection axises
-		for (size_t i = 0; i < collisionCount; i++) {
-			Octree::CollisionInfo& collisionInfo_i = collisions[i];
+	//if (collisionCount > 0) {
+	//	//Get the actual intersection axises
+	//	for (size_t i = 0; i < collisionCount; i++) {
+	//		Octree::CollisionInfo& collisionInfo_i = collisions[i];
 
-			glm::vec3 intersectionAxis;
-			float intersectionDepth;
+	//		glm::vec3 intersectionAxis;
+	//		float intersectionDepth;
 
-			if (collisionInfo_i.shape->getIntersectionDepthAndAxis(boundingBox, &intersectionAxis, &intersectionDepth)) {
-				collisionInfo_i.intersectionAxis = intersectionAxis;
+	//		if (collisionInfo_i.shape->getIntersectionDepthAndAxis(boundingBox, &intersectionAxis, &intersectionDepth)) {
+	//			collisionInfo_i.intersectionAxis = intersectionAxis;
 
-				sumVec += collisionInfo_i.intersectionAxis;
+	//			sumVec += collisionInfo_i.intersectionAxis;
 
-				collisionInfo_i.intersectionPosition = collisionInfo_i.shape->getIntersectionPosition(boundingBox);
+	//			collisionInfo_i.intersectionPosition = collisionInfo_i.shape->getIntersectionPosition(boundingBox);
 
-				//Add collision to current collisions for collisionComponent
-				collision->collisions.push_back(collisionInfo_i);
+	//			//Add collision to current collisions for collisionComponent
+	//			collision->collisions.push_back(collisionInfo_i);
 
-				//Add collision to true collisions
-				trueCollisions.push_back(collisionInfo_i);
+	//			//Add collision to true collisions
+	//			trueCollisions.push_back(collisionInfo_i);
 
-				//Save ground collisions
-				if (collisionInfo_i.intersectionAxis.y > 0.7f) {
-					bool newGround = true;
-					for (size_t j = 0; j < groundIndices.size(); j++) {
-						if (collisionInfo_i.intersectionAxis == trueCollisions[groundIndices[j]].intersectionAxis) {
-							newGround = false;
-						}
-					}
-					if (newGround) {
-						//Save collision for friction calculation
-						groundIndices.push_back((int)trueCollisions.size() - 1);
-					}
-				}
-			}
-		}
-	}
+	//			//Save ground collisions
+	//			if (collisionInfo_i.intersectionAxis.y > 0.7f) {
+	//				bool newGround = true;
+	//				for (size_t j = 0; j < groundIndices.size(); j++) {
+	//					if (collisionInfo_i.intersectionAxis == trueCollisions[groundIndices[j]].intersectionAxis) {
+	//						newGround = false;
+	//					}
+	//				}
+	//				if (newGround) {
+	//					//Save collision for friction calculation
+	//					groundIndices.push_back((int)trueCollisions.size() - 1);
+	//				}
+	//			}
+	//		}
+	//	}
+	//}
 }
 
 void CollisionSystem::updateVelocityVec(Entity* e, glm::vec3& velocity, std::vector<Octree::CollisionInfo>& collisions, glm::vec3& sumVec, std::vector<int>& groundIndices, const float dt) {
-	CollisionComponent* collision = e->getComponent<CollisionComponent>();
+	//CollisionComponent* collision = e->getComponent<CollisionComponent>();
 
-	const size_t collisionCount = collisions.size();
+	//const size_t collisionCount = collisions.size();
 
-	//Loop through collisions and handle them
-	for (size_t i = 0; i < collisionCount; i++) {
-		const Octree::CollisionInfo& collisionInfo_i = collisions[i];
+	////Loop through collisions and handle them
+	//for (size_t i = 0; i < collisionCount; i++) {
+	//	const Octree::CollisionInfo& collisionInfo_i = collisions[i];
 
-		//----Velocity changes from collisions----
+	//	//----Velocity changes from collisions----
 
-		//Stop movement towards triangle
-		float projectionSize = glm::dot(velocity, -collisionInfo_i.intersectionAxis);
+	//	//Stop movement towards triangle
+	//	float projectionSize = glm::dot(velocity, -collisionInfo_i.intersectionAxis);
 
-		if (projectionSize > 0.0f) { //Is pushing against wall
-			velocity += collisionInfo_i.intersectionAxis * (projectionSize * (1.0f + collision->bounciness)); //Limit movement towards wall
-		}
+	//	if (projectionSize > 0.0f) { //Is pushing against wall
+	//		velocity += collisionInfo_i.intersectionAxis * (projectionSize * (1.0f + collision->bounciness)); //Limit movement towards wall
+	//	}
 
 
-		//Tight angle corner special case
-		const float dotProduct = glm::dot(collisionInfo_i.intersectionAxis, glm::normalize(sumVec));
-		if (dotProduct < 0.7072f && dotProduct > 0.0f) { //Colliding in a tight angle corner
-			glm::vec3 normalToNormal = sumVec - glm::dot(sumVec, collisionInfo_i.intersectionAxis) * collisionInfo_i.intersectionAxis;
-			normalToNormal = glm::normalize(normalToNormal);
+	//	//Tight angle corner special case
+	//	const float dotProduct = glm::dot(collisionInfo_i.intersectionAxis, glm::normalize(sumVec));
+	//	if (dotProduct < 0.7072f && dotProduct > 0.0f) { //Colliding in a tight angle corner
+	//		glm::vec3 normalToNormal = sumVec - glm::dot(sumVec, collisionInfo_i.intersectionAxis) * collisionInfo_i.intersectionAxis;
+	//		normalToNormal = glm::normalize(normalToNormal);
 
-			//Stop movement towards corner
-			projectionSize = glm::dot(velocity, -normalToNormal);
+	//		//Stop movement towards corner
+	//		projectionSize = glm::dot(velocity, -normalToNormal);
 
-			if (projectionSize > 0.0f) {
-				velocity += normalToNormal * projectionSize * (1.0f + collision->bounciness);
-			}
-		}
-		//----------------------------------------
-	}
+	//		if (projectionSize > 0.0f) {
+	//			velocity += normalToNormal * projectionSize * (1.0f + collision->bounciness);
+	//		}
+	//	}
+	//	//----------------------------------------
+	//}
 
-	//----Drag----
-	if (collision->onGround) { //Ground drag
-		size_t nrOfGroundCollisions = groundIndices.size();
-		for (size_t i = 0; i < nrOfGroundCollisions; i++) {
-			const Octree::CollisionInfo& collisionInfo_ground_i = collisions[groundIndices[i]];
-			const glm::vec3 velAlongPlane = velocity - collisionInfo_ground_i.intersectionAxis * glm::dot(collisionInfo_ground_i.intersectionAxis, velocity);
-			const float sizeOfVel = glm::length(velAlongPlane);
-			if (sizeOfVel > 0.0f) {
-				const float slowdown = glm::min((collision->drag / nrOfGroundCollisions) * dt, sizeOfVel);
-				velocity -= slowdown * glm::normalize(velAlongPlane);
-			}
-		}
-	}
-	//------------
+	////----Drag----
+	//if (collision->onGround) { //Ground drag
+	//	size_t nrOfGroundCollisions = groundIndices.size();
+	//	for (size_t i = 0; i < nrOfGroundCollisions; i++) {
+	//		const Octree::CollisionInfo& collisionInfo_ground_i = collisions[groundIndices[i]];
+	//		const glm::vec3 velAlongPlane = velocity - collisionInfo_ground_i.intersectionAxis * glm::dot(collisionInfo_ground_i.intersectionAxis, velocity);
+	//		const float sizeOfVel = glm::length(velAlongPlane);
+	//		if (sizeOfVel > 0.0f) {
+	//			const float slowdown = glm::min((collision->drag / nrOfGroundCollisions) * dt, sizeOfVel);
+	//			velocity -= slowdown * glm::normalize(velAlongPlane);
+	//		}
+	//	}
+	//}
+	////------------
 }
 
 const bool CollisionSystem::rayCastCheck(Entity* e, const BoundingBox* boundingBox, const glm::vec3& velocity, const float& dt) const {
-	if (glm::abs(velocity.x * dt) > glm::abs(boundingBox->getHalfSize().x)
-		|| glm::abs(velocity.y * dt) > glm::abs(boundingBox->getHalfSize().y)
-		|| glm::abs(velocity.z * dt) > glm::abs(boundingBox->getHalfSize().z)) {
-		//Object is moving at a speed that risks missing collisions
-		return true;
-	}
+	//if (glm::abs(velocity.x * dt) > glm::abs(boundingBox->getHalfSize().x)
+	//	|| glm::abs(velocity.y * dt) > glm::abs(boundingBox->getHalfSize().y)
+	//	|| glm::abs(velocity.z * dt) > glm::abs(boundingBox->getHalfSize().z)) {
+	//	//Object is moving at a speed that risks missing collisions
+	//	return true;
+	//}
 	return false;
 }
 
 void CollisionSystem::rayCastUpdate(Entity* e, BoundingBox* boundingBox, float& dt) {
-	MovementComponent* movement = e->getComponent<MovementComponent>();
-	//TransformComponent* transform = e->getComponent<TransformComponent>();
-	CollisionComponent* collision = e->getComponent<CollisionComponent>();
+	//MovementComponent* movement = e->getComponent<MovementComponent>();
+	////TransformComponent* transform = e->getComponent<TransformComponent>();
+	//CollisionComponent* collision = e->getComponent<CollisionComponent>();
 
-	const float velocityAmp = glm::length(movement->velocity) * dt;
+	//const float velocityAmp = glm::length(movement->velocity) * dt;
 
-	//Ray cast to find upcoming collisions, use padding for "swept sphere"
-	Octree::RayIntersectionInfo intersectionInfo;
-	m_octree->getRayIntersection(boundingBox->getPosition(), glm::normalize(movement->velocity), &intersectionInfo, e, collision->padding, collision->doSimpleCollisions);
+	////Ray cast to find upcoming collisions, use padding for "swept sphere"
+	//Octree::RayIntersectionInfo intersectionInfo;
+	//m_octree->getRayIntersection(boundingBox->getPosition(), glm::normalize(movement->velocity), &intersectionInfo, e, collision->padding, collision->doSimpleCollisions);
 
-	float closestHit = intersectionInfo.closestHit + 0.01f; //Force small forwards movement to avoid getting stuck in infinite loops
+	//float closestHit = intersectionInfo.closestHit + 0.01f; //Force small forwards movement to avoid getting stuck in infinite loops
 
-	if (closestHit <= velocityAmp && closestHit >= 0.0f) { //Found upcoming collision
+	//if (closestHit <= velocityAmp && closestHit >= 0.0f) { //Found upcoming collision
 
-		//Calculate new dt
-		float newDt = ((closestHit) / velocityAmp) * dt;
+	//	//Calculate new dt
+	//	float newDt = ((closestHit) / velocityAmp) * dt;
 
-		//Move untill first overlap
-		boundingBox->setPosition(boundingBox->getPosition() + movement->velocity * newDt);
-		//transform->translate(movement->velocity * newDt);
+	//	//Move untill first overlap
+	//	boundingBox->setPosition(boundingBox->getPosition() + movement->velocity * newDt);
+	//	//transform->translate(movement->velocity * newDt);
 
-		dt -= newDt;
+	//	dt -= newDt;
 
-		//Collision update
-		if (handleCollisions(e, intersectionInfo.info, 0.0f)) {
-			surfaceFromCollision(e, boundingBox, intersectionInfo.info);
-		}
+	//	//Collision update
+	//	if (handleCollisions(e, intersectionInfo.info, 0.0f)) {
+	//		surfaceFromCollision(e, boundingBox, intersectionInfo.info);
+	//	}
 
-		rayCastUpdate(e, boundingBox, dt);
-	}
+	//	rayCastUpdate(e, boundingBox, dt);
+	//}
 }
 
 void CollisionSystem::rayCastRagdollUpdate(Entity* e, float& dt) {
-	MovementComponent* movement = e->getComponent<MovementComponent>();
-	//TransformComponent* transform = e->getComponent<TransformComponent>();
-	CollisionComponent* collision = e->getComponent<CollisionComponent>();
-	RagdollComponent* ragdollComp = e->getComponent<RagdollComponent>();
+	//MovementComponent* movement = e->getComponent<MovementComponent>();
+	////TransformComponent* transform = e->getComponent<TransformComponent>();
+	//CollisionComponent* collision = e->getComponent<CollisionComponent>();
+	//RagdollComponent* ragdollComp = e->getComponent<RagdollComponent>();
 
-	const float velocityAmp = glm::length(movement->velocity) * dt;
+	//const float velocityAmp = glm::length(movement->velocity) * dt;
 
-	float closestHit = 9999999.0f;
+	//float closestHit = 9999999.0f;
 
-	std::vector<Octree::CollisionInfo> collisions;
+	//std::vector<Octree::CollisionInfo> collisions;
 
-	for (size_t i = 0; i < ragdollComp->contactPoints.size(); i++) {
-		//Ray cast to find upcoming collisions, use padding for "swept sphere"
-		Octree::RayIntersectionInfo intersectionInfo;
-		float padding = glm::min(glm::min(ragdollComp->contactPoints[i].boundingBox.getHalfSize().x, ragdollComp->contactPoints[i].boundingBox.getHalfSize().y), ragdollComp->contactPoints[i].boundingBox.getHalfSize().z);
-		m_octree->getRayIntersection(ragdollComp->contactPoints[i].boundingBox.getPosition(), glm::normalize(movement->velocity), &intersectionInfo, e, padding, collision->doSimpleCollisions);
-		if (intersectionInfo.closestHit >= 0.f) {
-			if (intersectionInfo.closestHit < closestHit) {
-				closestHit = intersectionInfo.closestHit;
-			}
+	//for (size_t i = 0; i < ragdollComp->contactPoints.size(); i++) {
+	//	//Ray cast to find upcoming collisions, use padding for "swept sphere"
+	//	Octree::RayIntersectionInfo intersectionInfo;
+	//	float padding = glm::min(glm::min(ragdollComp->contactPoints[i].boundingBox.getHalfSize().x, ragdollComp->contactPoints[i].boundingBox.getHalfSize().y), ragdollComp->contactPoints[i].boundingBox.getHalfSize().z);
+	//	m_octree->getRayIntersection(ragdollComp->contactPoints[i].boundingBox.getPosition(), glm::normalize(movement->velocity), &intersectionInfo, e, padding, collision->doSimpleCollisions);
+	//	if (intersectionInfo.closestHit >= 0.f) {
+	//		if (intersectionInfo.closestHit < closestHit) {
+	//			closestHit = intersectionInfo.closestHit;
+	//		}
 
-			collisions.push_back(intersectionInfo.info[intersectionInfo.closestHitIndex]);
-		}
-	}
+	//		collisions.push_back(intersectionInfo.info[intersectionInfo.closestHitIndex]);
+	//	}
+	//}
 
-	closestHit += 0.01f; //Force small forwards movement to avoid getting stuck in infinite loops
+	//closestHit += 0.01f; //Force small forwards movement to avoid getting stuck in infinite loops
 
-	if (closestHit <= velocityAmp && closestHit >= 0.0f) { //Found upcoming collision
+	//if (closestHit <= velocityAmp && closestHit >= 0.0f) { //Found upcoming collision
 
-		//Calculate new dt
-		float newDt = ((closestHit) / velocityAmp) * dt;
+	//	//Calculate new dt
+	//	float newDt = ((closestHit) / velocityAmp) * dt;
 
-		//Move untill first overlap
-		for (size_t i = 0; i < ragdollComp->contactPoints.size(); i++) {
-			ragdollComp->contactPoints[i].boundingBox.setPosition(ragdollComp->contactPoints[i].boundingBox.getPosition() + movement->velocity * newDt);
-		}
+	//	//Move untill first overlap
+	//	for (size_t i = 0; i < ragdollComp->contactPoints.size(); i++) {
+	//		ragdollComp->contactPoints[i].boundingBox.setPosition(ragdollComp->contactPoints[i].boundingBox.getPosition() + movement->velocity * newDt);
+	//	}
 
-		assert(false);
-		//transform->translate(movement->velocity * newDt);
+	//	assert(false);
+	//	//transform->translate(movement->velocity * newDt);
 
-		dt -= newDt;
+	//	dt -= newDt;
 
-		//Collision update
-		if (handleRagdollCollisions(e, collisions, true, 0.0f)) {
-			surfaceFromRagdollCollision(e, collisions);
-		}
+	//	//Collision update
+	//	if (handleRagdollCollisions(e, collisions, true, 0.0f)) {
+	//		surfaceFromRagdollCollision(e, collisions);
+	//	}
 
-		rayCastRagdollUpdate(e, dt);
-	}
+	//	rayCastRagdollUpdate(e, dt);
+	//}
 }
 
 glm::vec3 CollisionSystem::surfaceFromCollision(Entity* e, BoundingBox* boundingBox, std::vector<Octree::CollisionInfo>& collisions) {
 	glm::vec3 distance(0.0f);
-	//TransformComponent* transform = e->getComponent<TransformComponent>();
+	////TransformComponent* transform = e->getComponent<TransformComponent>();
 
-	const size_t count = collisions.size();
-	for (size_t i = 0; i < count; i++) {
-		const Octree::CollisionInfo& collisionInfo_i = collisions[i];
-		float depth;
-		glm::vec3 axis;
+	//const size_t count = collisions.size();
+	//for (size_t i = 0; i < count; i++) {
+	//	const Octree::CollisionInfo& collisionInfo_i = collisions[i];
+	//	float depth;
+	//	glm::vec3 axis;
 
-		if (collisionInfo_i.shape->getIntersectionDepthAndAxis(boundingBox, &axis, &depth)) {
-			boundingBox->setPosition(boundingBox->getPosition() + axis * (depth - 0.0001f));
-			distance += axis * (depth - 0.0001f);
-		}
-	}
+	//	if (collisionInfo_i.shape->getIntersectionDepthAndAxis(boundingBox, &axis, &depth)) {
+	//		boundingBox->setPosition(boundingBox->getPosition() + axis * (depth - 0.0001f));
+	//		distance += axis * (depth - 0.0001f);
+	//	}
+	//}
 
-	assert(false);
-	//transform->translate(distance);
+	//assert(false);
+	////transform->translate(distance);
 
 	return distance;
 }
 
 void CollisionSystem::surfaceFromRagdollCollision(Entity* e, std::vector<Octree::CollisionInfo>& collisions) {
-	RagdollComponent* ragdollComp = e->getComponent<RagdollComponent>();
+	/*RagdollComponent* ragdollComp = e->getComponent<RagdollComponent>();
 	for (size_t i = 0; i < ragdollComp->contactPoints.size(); i++) {
 		glm::vec3 distance = surfaceFromCollision(e, &ragdollComp->contactPoints[i].boundingBox, collisions);
 
@@ -495,7 +495,7 @@ void CollisionSystem::surfaceFromRagdollCollision(Entity* e, std::vector<Octree:
 				ragdollComp->contactPoints[j].boundingBox.setPosition(ragdollComp->contactPoints[j].boundingBox.getPosition() + distance);
 			}
 		}
-	}
+	}*/
 }
 
 glm::vec3 CollisionSystem::getAngularVelocity(Entity* e, const glm::vec3& offset, const glm::vec3& centerOfMass) {

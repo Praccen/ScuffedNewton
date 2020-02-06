@@ -12,7 +12,7 @@ SpeedLimitSystem::SpeedLimitSystem() {
 SpeedLimitSystem::~SpeedLimitSystem() {
 }
 
-void SpeedLimitSystem::update() {
+void SpeedLimitSystem::update(float dt) {
 	//for (auto& e : entities) {
 	//	MovementComponent* movement = e->getComponent<MovementComponent>();
 	//	SpeedLimitComponent* speedLimit = e->getComponent<SpeedLimitComponent>();

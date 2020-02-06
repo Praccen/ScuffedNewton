@@ -2,8 +2,6 @@
 
 #include <unordered_map>
 
-#include "../Systems/SystemDeclarations.h"
-
 class Octree;
 class Entity;
 class BaseSystem;
@@ -17,6 +15,7 @@ public:
 	Entity* getEntity(int entityId);
 
 	void createSystems();
+	void deleteSystems();
 	void update(float dt);
 
 	void addEntityToSystems(Entity* entity);
@@ -25,7 +24,6 @@ public:
 private:
 	std::unordered_map<int, Entity*> m_entities;
 	std::vector<BaseSystem*> m_systems;
-	//Systems m_systems;
 
 	Octree *m_octree;
 };

@@ -68,7 +68,7 @@ glm::vec3 Octree::findCornerOutside(Entity* entity, Node* testNode) {
 	//Find if any corner of a entity's bounding box is outside of node. Returns a vector towards the outside corner if one is found. Otherwise a 0.0f vec is returned.
 	glm::vec3 directionVec(0.0f, 0.0f, 0.0f);
 
-	const glm::vec3* corners = entity->getComponent<BoundingBoxComponent>()->boundingBox->getCornersWithUpdate();
+	const glm::vec3* corners = entity->getComponent<BoundingBoxComponent>()->getBoundingBox()->getCornersWithUpdate();
 	glm::vec3 testNodeHalfSize = testNode->nodeBB->getHalfSize();
 
 	for (int i = 0; i < 8; i++) {
@@ -188,7 +188,7 @@ bool Octree::removeEntityRec(Entity* entityToRemove, Node* currentNode) {
 
 void Octree::updateRec(Node* currentNode, std::vector<Entity*>* entitiesToReAdd) {
 	for (int i = 0; i < currentNode->nrOfEntities; i++) {
-		if (currentNode->entities[i]->getComponent<BoundingBoxComponent>()->boundingBox->getChange()) { //Entity has changed
+		if (currentNode->entities[i]->getComponent<BoundingBoxComponent>()->getBoundingBox()->getChange()) { //Entity has changed
 			//Re-add the entity to get it in the right node
 			Entity* tempEntity = currentNode->entities[i];
 			//First remove the entity from this node to avoid duplicates
@@ -231,7 +231,7 @@ void Octree::getCollisionsRec(Entity* entity, const BoundingBox* entityBoundingB
 			continue;
 		}
 
-		const BoundingBox* otherBoundingBox = currentNode->entities[i]->getComponent<BoundingBoxComponent>()->boundingBox;
+		const BoundingBox* otherBoundingBox = currentNode->entities[i]->getComponent<BoundingBoxComponent>()->getBoundingBox();
 
 		// continue if Bounding box doesn't collide with entity bounding box
 		if (!Intersection::AabbWithAabb(entityBoundingBox->getPosition(), entityBoundingBox->getHalfSize(), otherBoundingBox->getPosition(), otherBoundingBox->getHalfSize())) {
@@ -328,7 +328,7 @@ void Octree::getRayIntersectionRec(const glm::vec3& rayStart, const glm::vec3& r
 			continue;
 		}
 
-		const BoundingBox* collidableBoundingBox = currentNode->entities[i]->getComponent<BoundingBoxComponent>()->boundingBox;
+		const BoundingBox* collidableBoundingBox = currentNode->entities[i]->getComponent<BoundingBoxComponent>()->getBoundingBox();
 		glm::vec3 intersectionAxis;
 		float entityIntersectionDistance = Intersection::RayWithPaddedAabb(rayStart, rayDir, collidableBoundingBox->getPosition(), collidableBoundingBox->getHalfSize(), padding, &intersectionAxis);
 

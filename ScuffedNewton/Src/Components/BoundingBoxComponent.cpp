@@ -5,10 +5,14 @@
 
 std::string BoundingBoxComponent::ID = "BoundingBoxComponent";
 
-BoundingBoxComponent::BoundingBoxComponent() {
-	boundingBox = SN_NEW BoundingBox();
+BoundingBoxComponent::BoundingBoxComponent() { 
+	m_boundingBox = SN_NEW BoundingBox();
 }
 
 BoundingBoxComponent::~BoundingBoxComponent() {
-	delete boundingBox;
+	delete m_boundingBox;
+}
+
+BoundingBox* BoundingBoxComponent::getBoundingBox() const {
+	return m_boundingBox;
 }
