@@ -7,6 +7,8 @@ std::string BoundingBoxComponent::ID = "BoundingBoxComponent";
 
 BoundingBoxComponent::BoundingBoxComponent() { 
 	m_boundingBox = SN_NEW BoundingBox();
+
+	isStatic = false;
 }
 
 BoundingBoxComponent::~BoundingBoxComponent() {

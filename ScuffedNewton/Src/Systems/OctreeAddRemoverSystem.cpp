@@ -5,13 +5,13 @@
 
 #include "../components/Components.h"
 
-OctreeAddRemoverSystem::OctreeAddRemoverSystem() 
-	: m_doCulling(false)
-	, m_cullCamera(nullptr)
-{
-	// TODO: System owner should check if this is correct
+OctreeAddRemoverSystem::OctreeAddRemoverSystem() {
 	requiredComponents["BoundingBoxComponent"] = true;
 	requiredComponents["CollidableComponent"] = true;
+
+	m_doCulling = false;
+	m_cullCamera = nullptr;
+	m_octree = nullptr;
 }
 
 OctreeAddRemoverSystem::~OctreeAddRemoverSystem() {
@@ -26,7 +26,7 @@ void OctreeAddRemoverSystem::provideOctree(Octree* octree) {
 bool OctreeAddRemoverSystem::addEntity(Entity* entity) {
 	BaseSystem::addEntity(entity);
 	if (m_octree) {
-			//m_octree->addEntity(entity);
+			m_octree->addEntity(entity);
 			return true;
 	}
 	return false;
@@ -36,7 +36,7 @@ void OctreeAddRemoverSystem::removeEntity(Entity* entity) {
 	BaseSystem::removeEntity(entity);
 
 	if (m_octree) {
-		//m_octree->removeEntity(entity);
+		m_octree->removeEntity(entity);
 	}
 }
 
@@ -44,14 +44,14 @@ void OctreeAddRemoverSystem::removeEntity(Entity* entity) {
 void OctreeAddRemoverSystem::update(float dt) {
 	//m_octree->update();
 
-	std::cout << "OctreeAddRemover system ran\n";
+	//std::cout << "OctreeAddRemover system ran\n";
 
 	// prepare matrixes and bounding boxes
 	for (auto e : entities) {
-		//e->getComponent<BoundingBoxComponent>()->boundingBox->prepareCorners();
-		std::cout << e->getId() << ", ";
+		e->getComponent<BoundingBoxComponent>()->getBoundingBox()->prepareCorners();
+		//std::cout << e->getId() << ", ";
 	}
-	std::cout << "\n";
+	//std::cout << "\n";
 }
 
 void OctreeAddRemoverSystem::updatePerFrame(float dt) {

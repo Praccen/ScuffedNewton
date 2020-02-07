@@ -6,12 +6,6 @@ std::string RagdollComponent::ID = "RagdollComponent";
 
 RagdollComponent::RagdollComponent() {
 	localCenterOfMass = {0.f, 0.f, 0.f};
-	wireframeModel = nullptr;
-}
-
-RagdollComponent::RagdollComponent(Model* wireframe) {
-	localCenterOfMass = { 0.f, 0.f, 0.f };
-	wireframeModel = wireframe;
 }
 
 RagdollComponent::~RagdollComponent() {

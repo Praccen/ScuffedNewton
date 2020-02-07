@@ -9,3 +9,4 @@
 #include "MeshComponent.h"
 #include "RagdollComponent.h"
 #include "SpeedLimitComponent.h"
+#include "TransformComponent.h"

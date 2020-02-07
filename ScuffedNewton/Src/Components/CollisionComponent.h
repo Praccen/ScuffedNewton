@@ -13,7 +13,7 @@ public:
 	bool onGround;
 	bool doSimpleCollisions;
 
-	//std::vector<Octree::CollisionInfo> collisions; //Contains the info for current collisions
+	std::vector<Octree::CollisionInfo> collisions; //Contains the info for current collisions
 
 	static std::string ID;
 };

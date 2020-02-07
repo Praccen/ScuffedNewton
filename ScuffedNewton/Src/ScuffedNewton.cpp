@@ -49,6 +49,7 @@ SCUFFEDNEWTON_API void addComponentToEntity(int entityId, int compType) {
 		case 4: e->addComponent<MovementComponent>();  break;
 		case 5: e->addComponent<RagdollComponent>(); break;
 		case 6: e->addComponent<SpeedLimitComponent>();  break;
+		case 7: e->addComponent<TransformComponent>(); break;
 		default: break;
 		}
 	}

@@ -7,7 +7,7 @@ private:
 	glm::vec3 m_position;
 	glm::vec3 m_halfSize;
 
-	//glm::vec3 m_corners[8];
+	glm::vec3 m_corners[8];
 
 	bool m_hasChanged;
 	bool m_cornersNeedUpdate;

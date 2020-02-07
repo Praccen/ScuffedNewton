@@ -8,11 +8,12 @@ class BoundingBoxComponent : public Component {
 public:
 	BoundingBoxComponent();
 	~BoundingBoxComponent();
+	static std::string ID;
 
 	BoundingBox* getBoundingBox() const;
 
-	static std::string ID;
+	bool isStatic;
 
 private:
-	BoundingBox* m_boundingBox = nullptr;
+	BoundingBox* m_boundingBox;
 };
