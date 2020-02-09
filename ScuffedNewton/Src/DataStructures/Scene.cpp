@@ -6,7 +6,7 @@
 #include "../Systems/Systems.h"
 
 Scene::Scene() {
-	//m_octree = SN_NEW Octree();
+	m_octree = SN_NEW Octree();
 
 	createSystems();
 }
@@ -18,7 +18,7 @@ Scene::~Scene() {
 
 	deleteSystems();
 
-	//delete m_octree;
+	delete m_octree;
 }
 
 int Scene::addEntity() {
@@ -50,11 +50,15 @@ void Scene::createSystems() {
 	m_systems.emplace_back();
 	m_systems.back() = SN_NEW OctreeAddRemoverSystem();
 
+	static_cast<OctreeAddRemoverSystem*>(m_systems.back())->provideOctree(m_octree);
+
 	m_systems.emplace_back();
 	m_systems.back() = SN_NEW MovementSystem();
 
 	m_systems.emplace_back();
 	m_systems.back() = SN_NEW CollisionSystem();
+
+	static_cast<CollisionSystem*>(m_systems.back())->provideOctree(m_octree);
 
 	m_systems.emplace_back();
 	m_systems.back() = SN_NEW MovementPostCollisionSystem();
@@ -70,7 +74,6 @@ void Scene::deleteSystems() {
 }
 
 void Scene::update(float dt) {
-	//m_octree->update();
 	for (auto s : m_systems) {
 		s->update(dt);
 	}

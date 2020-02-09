@@ -42,7 +42,7 @@ void OctreeAddRemoverSystem::removeEntity(Entity* entity) {
 
 
 void OctreeAddRemoverSystem::update(float dt) {
-	//m_octree->update();
+	m_octree->update();
 
 	//std::cout << "OctreeAddRemover system ran\n";
 

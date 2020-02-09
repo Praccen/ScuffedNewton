@@ -7,6 +7,4 @@ public:
 	~MovementPostCollisionSystem() = default;
 
 	void update(float dt);
-private:
-
 };
