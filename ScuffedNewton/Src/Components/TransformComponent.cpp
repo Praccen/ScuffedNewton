@@ -11,4 +11,3 @@ TransformComponent::TransformComponent() {
 TransformComponent::~TransformComponent() {
 
 }
-

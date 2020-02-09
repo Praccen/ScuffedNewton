@@ -21,12 +21,14 @@ public:
 
 	void prepareUpdate();
 
+	void bindMatrixPointer(glm::mat4* matrix);
+	void bindPositionPointer(glm::vec3* position);
+
 private:
 	void updateMatrix();
 
 private:
 	glm::mat4 m_matrix;
-
 	glm::vec3 m_translation;
 	glm::vec3 m_rotation;
 	glm::vec3 m_scale;

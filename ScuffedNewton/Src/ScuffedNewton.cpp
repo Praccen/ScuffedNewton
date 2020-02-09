@@ -6,6 +6,7 @@
 
 #include "DataTypes/Entity.h"
 #include "Components/Components.h"
+#include "DataTypes/Mesh.h"
 
 #ifdef SCUFFEDNEWTON_EXPORTS
 #define SCUFFEDNEWTON_API __declspec(dllexport)
@@ -22,20 +23,57 @@ SCUFFEDNEWTON_API int getNewObjectId() {
 }
 
 SCUFFEDNEWTON_API void loadMesh(int entityId, void* data, size_t size, size_t vertexSize, size_t positionOffset, size_t positionSize) {
-	//Entity* e = scene.getEntity(entityId);
-	//if (e) {
-	//	/*e->getMesh()->loadData(data, size, vertexSize, positionOffset, positionSize);
-	//	e->setHasModel(true);*/
-	//}
-	assert(false);
+	//Find entity
+	Entity* e = scene.getEntity(entityId);
+	if (e) {
+		MeshComponent* comp = e->getComponent<MeshComponent>();
+		// Check if entity has mesh component
+		if (comp) {
+			// Load data
+			comp->mesh->loadData(data, size, vertexSize, positionOffset, positionSize);
+		}
+		else {
+			// Create component and load data
+			comp = e->addComponent<MeshComponent>();
+			comp->mesh->loadData(data, size, vertexSize, positionOffset, positionSize);
+		}
+	}
 }
 
-SCUFFEDNEWTON_API void setModelMatrixPointer(int entityId, glm::mat4* modelMatrix) {
-	/*Entity* e = scene.getEntity(entityId);
+SCUFFEDNEWTON_API void bindModelMatrix(int entityId, glm::mat4* matrix) {
+	//Find entity
+	Entity* e = scene.getEntity(entityId);
 	if (e) {
-		e->getMesh()->setModelMatrixPointer(modelMatrix);
-	}*/
-	assert(false);
+		TransformComponent* comp = e->getComponent<TransformComponent>();
+		// Check if entity has mesh component
+		if (comp) {
+			// Bind pointer
+			comp->bindMatrixPointer(matrix);
+		}
+		else {
+			// Create component and bind pointer
+			comp = e->addComponent<TransformComponent>();
+			comp->bindMatrixPointer(matrix);
+		}
+	}
+}
+
+SCUFFEDNEWTON_API void bindPosition(int entityId, glm::vec3* positionVector) {
+	//Find entity
+	Entity* e = scene.getEntity(entityId);
+	if (e) {
+		TransformComponent* comp = e->getComponent<TransformComponent>();
+		// Check if entity has mesh component
+		if (comp) {
+			// Bind pointer
+			comp->bindPositionPointer(positionVector);
+		}
+		else {
+			// Create component and bind pointer
+			comp = e->addComponent<TransformComponent>();
+			comp->bindPositionPointer(positionVector);
+		}
+	}
 }
 
 SCUFFEDNEWTON_API void addComponentToEntity(int entityId, int compType) {

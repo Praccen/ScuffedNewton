@@ -3,7 +3,11 @@
 #include "Mesh.h"
 
 Mesh::Mesh() {
-
+	m_data = nullptr;
+	m_size = 0;
+	m_vertexSize = 0;
+	m_positionOffset = 0;
+	m_positionSize = 0;
 }
 
 Mesh::~Mesh() {
@@ -18,13 +22,9 @@ void Mesh::loadData(void* data, size_t size, size_t vertexSize, size_t positionO
 	m_positionSize = positionSize;
 }
 
-void Mesh::setModelMatrixPointer(glm::mat4* modelMatrix) {
-	m_modelMatrix = modelMatrix;
-}
-
 glm::vec3 Mesh::getVertexPosition(int vertexIndex) {
+	glm::vec3 position(0.0);
 	if (vertexIndex < m_size / m_vertexSize) {
-		glm::vec3 position(0.0);
 		void* pos = static_cast<void*>(static_cast<char*>(m_data) + (m_vertexSize * vertexIndex) + m_positionOffset);
 
 		if (m_positionSize == sizeof(float)) {
@@ -41,10 +41,9 @@ glm::vec3 Mesh::getVertexPosition(int vertexIndex) {
 			pos = static_cast<void*>(static_cast<char*>(pos) + m_positionSize);
 			position.z = *(double*)pos;
 		}
-		
-
-		return position;
 	}
+
+	return position;
 }
 
 int Mesh::getNumberOfVertices() {
