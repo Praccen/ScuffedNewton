@@ -19,9 +19,9 @@ extern "C" SCUFFEDNEWTON_API int getNewObjectId();
 
 extern "C" SCUFFEDNEWTON_API void loadMesh(int entityId, void* data, size_t size, size_t vertexSize, size_t positionOffset, size_t positionSize);
 
-extern "C" SCUFFEDNEWTON_API void bindModelMatrix(int entityId, glm::mat4 *matrix);
+extern "C" SCUFFEDNEWTON_API void bindModelMatrix(int entityId, glm::mat4 **matrix);
 
-extern "C" SCUFFEDNEWTON_API void bindPosition(int entityId, glm::vec3 *positionVector);
+extern "C" SCUFFEDNEWTON_API void bindPosition(int entityId, glm::vec3 **positionVector);
 
 extern "C" SCUFFEDNEWTON_API void addComponentToEntity(int entityId, int compType);
 // ---------------------

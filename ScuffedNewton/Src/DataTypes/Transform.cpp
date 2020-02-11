@@ -57,12 +57,12 @@ void Transform::prepareUpdate() {
 	m_hasChanged = 0;
 }
 
-void Transform::bindMatrixPointer(glm::mat4* matrix) {
-	matrix = &m_matrix;
+void Transform::bindMatrixPointer(glm::mat4** matrix) {
+	*matrix = &m_matrix;
 }
 
-void Transform::bindPositionPointer(glm::vec3* position) {
-	position = &m_translation;
+void Transform::bindPositionPointer(glm::vec3** position) {
+	*position = &m_translation;
 }
 
 void Transform::updateMatrix() {

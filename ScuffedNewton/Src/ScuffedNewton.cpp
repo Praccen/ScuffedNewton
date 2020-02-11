@@ -40,7 +40,7 @@ SCUFFEDNEWTON_API void loadMesh(int entityId, void* data, size_t size, size_t ve
 	}
 }
 
-SCUFFEDNEWTON_API void bindModelMatrix(int entityId, glm::mat4* matrix) {
+SCUFFEDNEWTON_API void bindModelMatrix(int entityId, glm::mat4** matrix) {
 	//Find entity
 	Entity* e = scene.getEntity(entityId);
 	if (e) {
@@ -58,7 +58,7 @@ SCUFFEDNEWTON_API void bindModelMatrix(int entityId, glm::mat4* matrix) {
 	}
 }
 
-SCUFFEDNEWTON_API void bindPosition(int entityId, glm::vec3* positionVector) {
+SCUFFEDNEWTON_API void bindPosition(int entityId, glm::vec3** positionVector) {
 	//Find entity
 	Entity* e = scene.getEntity(entityId);
 	if (e) {

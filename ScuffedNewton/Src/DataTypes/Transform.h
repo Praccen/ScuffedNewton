@@ -21,8 +21,8 @@ public:
 
 	void prepareUpdate();
 
-	void bindMatrixPointer(glm::mat4* matrix);
-	void bindPositionPointer(glm::vec3* position);
+	void bindMatrixPointer(glm::mat4** matrix);
+	void bindPositionPointer(glm::vec3** position);
 
 private:
 	void updateMatrix();
