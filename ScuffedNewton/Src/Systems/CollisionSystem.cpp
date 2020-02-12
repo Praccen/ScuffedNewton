@@ -410,7 +410,7 @@ void CollisionSystem::rayCastUpdate(Entity* e, BoundingBox* boundingBox, float& 
 
 void CollisionSystem::rayCastRagdollUpdate(Entity* e, float& dt) {
 	MovementComponent* movement = e->getComponent<MovementComponent>();
-	//TransformComponent* transform = e->getComponent<TransformComponent>();
+	TransformComponent* transform = e->getComponent<TransformComponent>();
 	CollisionComponent* collision = e->getComponent<CollisionComponent>();
 	RagdollComponent* ragdollComp = e->getComponent<RagdollComponent>();
 
@@ -446,8 +446,7 @@ void CollisionSystem::rayCastRagdollUpdate(Entity* e, float& dt) {
 			ragdollComp->contactPoints[i].boundingBox.setPosition(ragdollComp->contactPoints[i].boundingBox.getPosition() + movement->velocity * newDt);
 		}
 
-		assert(false);
-		//transform->translate(movement->velocity * newDt);
+		transform->translate(movement->velocity * newDt);
 
 		dt -= newDt;
 
@@ -462,7 +461,7 @@ void CollisionSystem::rayCastRagdollUpdate(Entity* e, float& dt) {
 
 glm::vec3 CollisionSystem::surfaceFromCollision(Entity* e, BoundingBox* boundingBox, std::vector<Octree::CollisionInfo>& collisions) {
 	glm::vec3 distance(0.0f);
-	//TransformComponent* transform = e->getComponent<TransformComponent>();
+	TransformComponent* transform = e->getComponent<TransformComponent>();
 
 	const size_t count = collisions.size();
 	for (size_t i = 0; i < count; i++) {
@@ -476,8 +475,7 @@ glm::vec3 CollisionSystem::surfaceFromCollision(Entity* e, BoundingBox* bounding
 		}
 	}
 
-	assert(false);
-	//transform->translate(distance);
+	transform->translate(distance);
 
 	return distance;
 }

@@ -44,7 +44,7 @@ void UpdateBoundingBoxSystem::recalculateBoundingBoxFully(Entity* e) {
 		glm::vec3 minPositions(9999999.0f), maxPositions(-9999999.0f);
 
 		//Recalculate min and max
-		for (unsigned int j = 0; j < mesh->mesh->getNumberOfVertices(); j++) {
+		for (int j = 0; j < mesh->mesh->getNumberOfVertices(); j++) {
 			glm::vec3 posAfterTransform = glm::vec3(transform->getMatrixWithUpdate() * glm::vec4(mesh->mesh->getVertexPosition(j), 1.0f));
 			checkDistances(minPositions, maxPositions, posAfterTransform);
 		}

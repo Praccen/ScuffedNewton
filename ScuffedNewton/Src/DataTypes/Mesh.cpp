@@ -24,7 +24,7 @@ void Mesh::loadData(void* data, size_t size, size_t vertexSize, size_t positionO
 
 glm::vec3 Mesh::getVertexPosition(int vertexIndex) {
 	glm::vec3 position(0.0);
-	if (vertexIndex < m_size / m_vertexSize) {
+	if ((size_t)vertexIndex < m_size / m_vertexSize) {
 		void* pos = static_cast<void*>(static_cast<char*>(m_data) + (m_vertexSize * vertexIndex) + m_positionOffset);
 
 		if (m_positionSize == sizeof(float)) {
@@ -35,11 +35,11 @@ glm::vec3 Mesh::getVertexPosition(int vertexIndex) {
 			position.z = *(float*)pos;
 		}
 		else if (m_positionSize == sizeof(double)) {
-			position.x = *(double*)pos;
+			position.x = (float) *(double*)pos;
 			pos = static_cast<void*>(static_cast<char*>(pos) + m_positionSize);
-			position.y = *(double*)pos;
+			position.y = (float) *(double*)pos;
 			pos = static_cast<void*>(static_cast<char*>(pos) + m_positionSize);
-			position.z = *(double*)pos;
+			position.z = (float) *(double*)pos;
 		}
 	}
 
