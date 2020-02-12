@@ -16,6 +16,7 @@ bool BaseSystem::addEntity(Entity* entity) {
 	}
 
 	entities.push_back(entity);
+	return true;
 }
 
 void BaseSystem::removeEntity(Entity* entity) {
