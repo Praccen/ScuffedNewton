@@ -7,7 +7,7 @@ MovementComponent::MovementComponent() {
 	velocity = glm::vec3(0.0f);
 	relVel = glm::vec3(0.0f);
 	rotation = glm::vec3(0.0f);
-	constantAcceleration = glm::vec3(-9.8f);
+	constantAcceleration = glm::vec3(0.f);
 	accelerationToAdd = glm::vec3(0.0f);
 
 	oldVelocity = glm::vec3(0.0f);

@@ -16,7 +16,9 @@ void MovementSystem::update(float dt) {
 
 	// prepare matrixes and bounding boxes
 	for (auto e : entities) {
-		e->getComponent<BoundingBoxComponent>()->getBoundingBox()->prepareCorners();
+		if (auto bb = e->getComponent<BoundingBoxComponent>()) {
+			bb->getBoundingBox()->prepareCorners();
+		}
 		//std::cout << e->getId() << ", ";
 	}
 	//std::cout << "\n";

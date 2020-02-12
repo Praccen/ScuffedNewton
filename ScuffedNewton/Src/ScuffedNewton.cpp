@@ -76,7 +76,7 @@ SCUFFEDNEWTON_API void bindPosition(int entityId, glm::vec3** positionVector) {
 	}
 }
 
-SCUFFEDNEWTON_API void addComponentToEntity(int entityId, int compType) {
+SCUFFEDNEWTON_API bool addComponentToEntity(int entityId, int compType) {
 	Entity* e = scene.getEntity(entityId);
 	if (e) {
 		switch (compType) {
@@ -90,5 +90,7 @@ SCUFFEDNEWTON_API void addComponentToEntity(int entityId, int compType) {
 		case 7: e->addComponent<TransformComponent>(); break;
 		default: break;
 		}
+		return true;
 	}
+	return false;
 }

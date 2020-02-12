@@ -23,5 +23,5 @@ extern "C" SCUFFEDNEWTON_API void bindModelMatrix(int entityId, glm::mat4 **matr
 
 extern "C" SCUFFEDNEWTON_API void bindPosition(int entityId, glm::vec3 **positionVector);
 
-extern "C" SCUFFEDNEWTON_API void addComponentToEntity(int entityId, int compType);
+extern "C" SCUFFEDNEWTON_API bool addComponentToEntity(int entityId, int compType);
 // ---------------------

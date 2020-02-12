@@ -29,6 +29,7 @@ bool Entity::hasComponents(const std::unordered_map<std::string, bool>& required
 			return false;
 		}
 	}
+	return true;
 }
 
 void Entity::addToSystems() {
