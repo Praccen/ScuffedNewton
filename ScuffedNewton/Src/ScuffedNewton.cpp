@@ -2,12 +2,6 @@
 
 #include "ScuffedNewton.h"
 
-#include <string>
-
-#include "DataTypes/Entity.h"
-#include "Components/Components.h"
-#include "DataTypes/Mesh.h"
-
 #ifdef SCUFFEDNEWTON_EXPORTS
 #define SCUFFEDNEWTON_API __declspec(dllexport)
 #else

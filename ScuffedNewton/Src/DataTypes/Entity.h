@@ -3,6 +3,8 @@
 #include <unordered_map>
 #include <string>
 
+#include "../Utils/Utils.h"
+
 namespace Scuffed {
 
 	class Component;
@@ -13,7 +15,7 @@ namespace Scuffed {
 		Entity(Scene* scene);
 		virtual ~Entity();
 
-		unsigned int getId() const;
+		virtual unsigned int getId() const;
 
 		template<typename ComponentType, typename... Targs>
 		ComponentType* addComponent(Targs... args);

@@ -3,19 +3,6 @@
 #include "DataStructures/Scene.h"
 
 namespace Scuffed {
-	
-	namespace Components {
-		enum types {
-			BoundingBoxComponent,
-			CollidableComponent,
-			CollisionComponent,
-			MeshComponent,
-			MovementComponent,
-			RagdollComponent,
-			SpeedLimitComponent,
-			TransformComponent
-		};
-	}
 
 	class Interface {
 	public:
@@ -29,8 +16,9 @@ namespace Scuffed {
 		virtual void loadMesh(int entityId, void* data, size_t size, size_t vertexSize, size_t positionOffset, size_t positionSize);
 		virtual void bindModelMatrix(int entityId, glm::mat4** matrix);
 		virtual void bindPosition(int entityId, glm::vec3** positionVector);
-		virtual bool addComponentToEntity(int entityId, int compType);
 
+		virtual Entity* getEntity(int entityId);
+		virtual Scene* getScene();
 
 	private:
 		Scene* m_scene;
