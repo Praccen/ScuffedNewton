@@ -5,95 +5,98 @@
 #include "../DataTypes/Entity.h"
 #include "../Systems/Systems.h"
 
-Scene::Scene() {
-	m_octree = SN_NEW Octree();
+namespace Scuffed {
 
-	createSystems();
-}
+	Scene::Scene() {
+		m_octree = SN_NEW Octree();
 
-Scene::~Scene() {
-	for (auto e : m_entities) {
-		delete e.second;
+		createSystems();
 	}
 
-	deleteSystems();
+	Scene::~Scene() {
+		for (auto e : m_entities) {
+			delete e.second;
+		}
 
-	delete m_octree;
-}
+		deleteSystems();
 
-int Scene::addEntity() {
-	int testId = Utils::instance()->GetEntityIdCounter();
-	if (m_entities.count(testId) > 0) {
-		return -1;
-	}
-	else {
-		// Create new entity
-		m_entities[testId] = SN_NEW Entity(this);
+		delete m_octree;
 	}
 
-	return testId;
-}
+	int Scene::addEntity() {
+		int testId = Utils::instance()->GetEntityIdCounter();
+		if (m_entities.count(testId) > 0) {
+			return -1;
+		}
+		else {
+			// Create new entity
+			m_entities[testId] = SN_NEW Entity(this);
+		}
 
-Entity* Scene::getEntity(int entityId) {
-	if (m_entities.count(entityId) > 0) {
-		return m_entities[entityId];
+		return testId;
 	}
-	else {
-		return nullptr;
-	}
-}
 
-void Scene::createSystems() {
-	m_systems.emplace_back();
-	m_systems.back() = SN_NEW UpdateBoundingBoxSystem();
-
-	m_systems.emplace_back();
-	m_systems.back() = SN_NEW OctreeAddRemoverSystem();
-
-	static_cast<OctreeAddRemoverSystem*>(m_systems.back())->provideOctree(m_octree);
-
-	m_systems.emplace_back();
-	m_systems.back() = SN_NEW MovementSystem();
-
-	m_systems.emplace_back();
-	m_systems.back() = SN_NEW CollisionSystem();
-
-	static_cast<CollisionSystem*>(m_systems.back())->provideOctree(m_octree);
-
-	m_systems.emplace_back();
-	m_systems.back() = SN_NEW MovementPostCollisionSystem();
-
-	m_systems.emplace_back();
-	m_systems.back() = SN_NEW SpeedLimitSystem();
-}
-
-void Scene::deleteSystems() {
-	for (auto s : m_systems) {
-		delete s;
-	}
-}
-
-void Scene::update(float dt) {
-	for (auto s : m_systems) {
-		s->update(dt);
-	}
-}
-
-void Scene::addEntityToSystems(Entity* entity) {
-	// Check which systems this entity can be placed in
-	for (auto sys : m_systems) {
-		auto componentTypes = sys->getRequiredComponentTypes();
-
-		// Add this entity to the system
-		if (entity->hasComponents(componentTypes)) {
-			sys->addEntity(entity);
+	Entity* Scene::getEntity(int entityId) {
+		if (m_entities.count(entityId) > 0) {
+			return m_entities[entityId];
+		}
+		else {
+			return nullptr;
 		}
 	}
-}
 
-void Scene::removeEntityFromSystems(Entity* entity) {
-	for (auto sys : m_systems) {
-		sys->removeEntity(entity);
+	void Scene::createSystems() {
+		m_systems.emplace_back();
+		m_systems.back() = SN_NEW UpdateBoundingBoxSystem();
+
+		m_systems.emplace_back();
+		m_systems.back() = SN_NEW OctreeAddRemoverSystem();
+
+		static_cast<OctreeAddRemoverSystem*>(m_systems.back())->provideOctree(m_octree);
+
+		m_systems.emplace_back();
+		m_systems.back() = SN_NEW MovementSystem();
+
+		m_systems.emplace_back();
+		m_systems.back() = SN_NEW CollisionSystem();
+
+		static_cast<CollisionSystem*>(m_systems.back())->provideOctree(m_octree);
+
+		m_systems.emplace_back();
+		m_systems.back() = SN_NEW MovementPostCollisionSystem();
+
+		m_systems.emplace_back();
+		m_systems.back() = SN_NEW SpeedLimitSystem();
 	}
-}
 
+	void Scene::deleteSystems() {
+		for (auto s : m_systems) {
+			delete s;
+		}
+	}
+
+	void Scene::update(float dt) {
+		for (auto s : m_systems) {
+			s->update(dt);
+		}
+	}
+
+	void Scene::addEntityToSystems(Entity* entity) {
+		// Check which systems this entity can be placed in
+		for (auto sys : m_systems) {
+			auto componentTypes = sys->getRequiredComponentTypes();
+
+			// Add this entity to the system
+			if (entity->hasComponents(componentTypes)) {
+				sys->addEntity(entity);
+			}
+		}
+	}
+
+	void Scene::removeEntityFromSystems(Entity* entity) {
+		for (auto sys : m_systems) {
+			sys->removeEntity(entity);
+		}
+	}
+
+}

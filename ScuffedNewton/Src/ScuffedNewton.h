@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include "DataStructures/Scene.h"
+#include "Interface.h"
 
 #ifdef SCUFFEDNEWTON_EXPORTS
 #define SCUFFEDNEWTON_API __declspec(dllexport)
@@ -10,18 +11,10 @@
 #define SCUFFEDNEWTON_API __declspec(dllimport)
 #endif
 
-Scene scene;
+namespace Scuffed {
 
-// ----DLL functions----
-extern "C" SCUFFEDNEWTON_API void update(float dt);
+	// ----DLL functions----
+	extern "C" SCUFFEDNEWTON_API Scuffed::Interface * newInterface();
+	// ---------------------
 
-extern "C" SCUFFEDNEWTON_API int getNewObjectId();
-
-extern "C" SCUFFEDNEWTON_API void loadMesh(int entityId, void* data, size_t size, size_t vertexSize, size_t positionOffset, size_t positionSize);
-
-extern "C" SCUFFEDNEWTON_API void bindModelMatrix(int entityId, glm::mat4 **matrix);
-
-extern "C" SCUFFEDNEWTON_API void bindPosition(int entityId, glm::vec3 **positionVector);
-
-extern "C" SCUFFEDNEWTON_API bool addComponentToEntity(int entityId, int compType);
-// ---------------------
+}

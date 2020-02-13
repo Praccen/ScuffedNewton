@@ -1,37 +1,41 @@
 #include "BaseSystem.h"
 
-BaseSystem::BaseSystem() {
+namespace Scuffed {
 
-}
+	BaseSystem::BaseSystem() {
 
-BaseSystem::~BaseSystem() {
+	}
 
-}
+	BaseSystem::~BaseSystem() {
 
-bool BaseSystem::addEntity(Entity* entity) {
-	for (size_t i = 0; i < entities.size(); i++) {
-		if (entities[i] == entity) {
-			return false;
+	}
+
+	bool BaseSystem::addEntity(Entity* entity) {
+		for (size_t i = 0; i < entities.size(); i++) {
+			if (entities[i] == entity) {
+				return false;
+			}
+		}
+
+		entities.push_back(entity);
+		return true;
+	}
+
+	void BaseSystem::removeEntity(Entity* entity) {
+		for (size_t i = 0; i < entities.size(); i++) {
+			if (entities[i] == entity) {
+				entities.erase(entities.begin() + i);
+				break;
+			}
 		}
 	}
 
-	entities.push_back(entity);
-	return true;
-}
+	void BaseSystem::update(float dt) {
 
-void BaseSystem::removeEntity(Entity* entity) {
-	for (size_t i = 0; i < entities.size(); i++) {
-		if (entities[i] == entity) {
-			entities.erase(entities.begin() + i);
-			break;
-		}
 	}
-}
 
-void BaseSystem::update(float dt) {
+	std::unordered_map<std::string, bool>& BaseSystem::getRequiredComponentTypes() {
+		return requiredComponents;
+	}
 
-}
-
-std::unordered_map<std::string, bool>& BaseSystem::getRequiredComponentTypes() {
-	return requiredComponents;
 }

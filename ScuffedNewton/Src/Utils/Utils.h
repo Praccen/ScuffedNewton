@@ -7,14 +7,18 @@
 #define SN_NEW new
 #endif
 
-class Utils {
-public:
-	Utils();
-	~Utils();
+namespace Scuffed {
 
-	static Utils* instance();
+	class Utils {
+	public:
+		Utils();
+		~Utils();
 
-	int GetEntityIdCounter(bool increase = false);
-private:
-	int m_entityIdCounter;
-};
+		static Utils* instance();
+
+		int GetEntityIdCounter(bool increase = false);
+	private:
+		int m_entityIdCounter;
+	};
+
+}

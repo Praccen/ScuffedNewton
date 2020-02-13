@@ -2,18 +2,22 @@
 #include "Component.h"
 #include "../DataStructures/Octree.h"
 
-class CollisionComponent : public Component {
-public:
-	CollisionComponent(bool simpleCollisions = false);
-	~CollisionComponent();
+namespace Scuffed {
 
-	float drag;
-	float bounciness;
-	float padding;
-	bool onGround;
-	bool doSimpleCollisions;
+	class CollisionComponent : public Component {
+	public:
+		CollisionComponent(bool simpleCollisions = false);
+		~CollisionComponent();
 
-	std::vector<Octree::CollisionInfo> collisions; //Contains the info for current collisions
+		float drag;
+		float bounciness;
+		float padding;
+		bool onGround;
+		bool doSimpleCollisions;
 
-	static std::string ID;
-};
+		std::vector<Octree::CollisionInfo> collisions; //Contains the info for current collisions
+
+		static std::string ID;
+	};
+
+}

@@ -3,13 +3,16 @@
 
 #include "../DataTypes/Mesh.h"
 
-std::string MeshComponent::ID = "MeshComponent";
+namespace Scuffed {
 
-MeshComponent::MeshComponent() {
-	mesh = SN_NEW Mesh();
+	std::string MeshComponent::ID = "MeshComponent";
+
+	MeshComponent::MeshComponent() {
+		mesh = SN_NEW Mesh();
+	}
+
+	MeshComponent::~MeshComponent() {
+		delete mesh;
+	}
+
 }
-
-MeshComponent::~MeshComponent() {
-	delete mesh;
-}
-

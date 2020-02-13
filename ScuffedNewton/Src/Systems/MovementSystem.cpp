@@ -5,40 +5,43 @@
 
 #include "../DataTypes/Entity.h"
 
+namespace Scuffed {
 
-MovementSystem::MovementSystem() {
-	requiredComponents["TransformComponent"] = true;
-	requiredComponents["MovementComponent"] = true;
-}
-
-void MovementSystem::update(float dt) {
-	//std::cout << "Movement system ran\n";
-
-	// prepare matrixes and bounding boxes
-	for (auto e : entities) {
-		if (auto bb = e->getComponent<BoundingBoxComponent>()) {
-			bb->getBoundingBox()->prepareCorners();
-		}
-		//std::cout << e->getId() << ", ";
+	MovementSystem::MovementSystem() {
+		requiredComponents["TransformComponent"] = true;
+		requiredComponents["MovementComponent"] = true;
 	}
-	//std::cout << "\n";
 
-	for (auto& e : entities) {
-		TransformComponent* transform = e->getComponent<TransformComponent>();
-		MovementComponent* movement = e->getComponent<MovementComponent>();
+	void MovementSystem::update(float dt) {
+		//std::cout << "Movement system ran\n";
 
-		// Update velocity
-		movement->velocity += (movement->constantAcceleration + movement->accelerationToAdd) * dt;
-
-		// Reset additional acceleration
-		movement->accelerationToAdd = glm::vec3(0.0f);
-		
-		// Rotation
-		if (movement->rotation != glm::vec3(0.0f)) {
-			transform->rotate(movement->rotation * dt);
+		// prepare matrixes and bounding boxes
+		for (auto e : entities) {
+			if (auto bb = e->getComponent<BoundingBoxComponent>()) {
+				bb->getBoundingBox()->prepareCorners();
+			}
+			//std::cout << e->getId() << ", ";
 		}
+		//std::cout << "\n";
 
-		// Set initial value which might be changed in CollisionSystem
-		movement->updateableDt = dt;
+		for (auto& e : entities) {
+			TransformComponent* transform = e->getComponent<TransformComponent>();
+			MovementComponent* movement = e->getComponent<MovementComponent>();
+
+			// Update velocity
+			movement->velocity += (movement->constantAcceleration + movement->accelerationToAdd) * dt;
+
+			// Reset additional acceleration
+			movement->accelerationToAdd = glm::vec3(0.0f);
+
+			// Rotation
+			if (movement->rotation != glm::vec3(0.0f)) {
+				transform->rotate(movement->rotation * dt);
+			}
+
+			// Set initial value which might be changed in CollisionSystem
+			movement->updateableDt = dt;
+		}
 	}
+
 }

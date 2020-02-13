@@ -2,28 +2,32 @@
 
 #include <unordered_map>
 
-class Octree;
-class Entity;
-class BaseSystem;
+namespace Scuffed {
 
-class Scene {
-public:
-	Scene();
-	~Scene();
+	class Octree;
+	class Entity;
+	class BaseSystem;
 
-	int addEntity();
-	Entity* getEntity(int entityId);
+	class Scene {
+	public:
+		Scene();
+		~Scene();
 
-	void createSystems();
-	void deleteSystems();
-	void update(float dt);
+		int addEntity();
+		Entity* getEntity(int entityId);
 
-	void addEntityToSystems(Entity* entity);
-	void removeEntityFromSystems(Entity* entity);
+		void createSystems();
+		void deleteSystems();
+		void update(float dt);
 
-private:
-	std::unordered_map<int, Entity*> m_entities;
-	std::vector<BaseSystem*> m_systems;
+		void addEntityToSystems(Entity* entity);
+		void removeEntityFromSystems(Entity* entity);
 
-	Octree *m_octree;
-};
+	private:
+		std::unordered_map<int, Entity*> m_entities;
+		std::vector<BaseSystem*> m_systems;
+
+		Octree* m_octree;
+	};
+
+}

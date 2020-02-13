@@ -1,10 +1,14 @@
 #pragma once
 #include "BaseSystem.h"
 
-class SpeedLimitSystem final : public BaseSystem {
-public:
-	SpeedLimitSystem();
-	~SpeedLimitSystem();
+namespace Scuffed {
 
-	void update(float dt);
-};
+	class SpeedLimitSystem final : public BaseSystem {
+	public:
+		SpeedLimitSystem();
+		~SpeedLimitSystem();
+
+		void update(float dt);
+	};
+
+}

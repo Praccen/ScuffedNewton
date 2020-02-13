@@ -5,24 +5,28 @@
 #include "../DataTypes/BoundingBox.h"
 #include "../DataTypes/Transform.h"
 
-class RagdollComponent : public Component {
-public:
-	RagdollComponent();
-	~RagdollComponent();
+namespace Scuffed {
 
-	void addContactPoint(glm::vec3 localOffset, glm::vec3 halfSize);
+	class RagdollComponent : public Component {
+	public:
+		RagdollComponent();
+		~RagdollComponent();
 
-public:
-	struct ContactPoint {
-		BoundingBox boundingBox;
-		glm::vec3 localOffSet;
-		//std::vector<Octree::CollisionInfo> collisions;
-		Transform transform;
+		void addContactPoint(glm::vec3 localOffset, glm::vec3 halfSize);
+
+	public:
+		struct ContactPoint {
+			BoundingBox boundingBox;
+			glm::vec3 localOffSet;
+			//std::vector<Octree::CollisionInfo> collisions;
+			Transform transform;
+		};
+
+		std::vector<ContactPoint> contactPoints;
+
+		glm::vec3 localCenterOfMass;
+
+		static std::string ID;
 	};
 
-	std::vector<ContactPoint> contactPoints;
-
-	glm::vec3 localCenterOfMass;
-
-	static std::string ID;
-};
+}

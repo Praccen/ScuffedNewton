@@ -1,10 +1,14 @@
 #pragma once
 #include "BaseSystem.h"
 
-class MovementSystem: public BaseSystem {
-public:
-	MovementSystem();
-	~MovementSystem() = default;
+namespace Scuffed {
 
-	void update(float dt);
-};
+	class MovementSystem : public BaseSystem {
+	public:
+		MovementSystem();
+		~MovementSystem() = default;
+
+		void update(float dt);
+	};
+
+}

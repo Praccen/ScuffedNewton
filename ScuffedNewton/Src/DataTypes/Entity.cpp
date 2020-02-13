@@ -7,35 +7,38 @@
 
 #include "../Components/Components.h"
 
+namespace Scuffed {
 
-Entity::Entity(Scene* scene) {
-	m_id = Utils::instance()->GetEntityIdCounter(true);
-	m_scene = scene;
-}
-
-Entity::~Entity() {
-	for (auto it : m_components) {
-		delete it.second;
+	Entity::Entity(Scene* scene) {
+		m_id = Utils::instance()->GetEntityIdCounter(true);
+		m_scene = scene;
 	}
-}
 
-unsigned int Entity::getId() const {
-	return m_id;
-}
-
-bool Entity::hasComponents(const std::unordered_map<std::string, bool>& requiredComponents) {
-	for (auto it = requiredComponents.begin(); it != requiredComponents.end(); it++) {
-		if (m_components.count(it->first) <= 0) {
-			return false;
+	Entity::~Entity() {
+		for (auto it : m_components) {
+			delete it.second;
 		}
 	}
-	return true;
-}
 
-void Entity::addToSystems() {
-	m_scene->addEntityToSystems(this);
-}
+	unsigned int Entity::getId() const {
+		return m_id;
+	}
 
-void Entity::removeFromSystems() {
-	m_scene->removeEntityFromSystems(this);
+	bool Entity::hasComponents(const std::unordered_map<std::string, bool>& requiredComponents) {
+		for (auto it = requiredComponents.begin(); it != requiredComponents.end(); it++) {
+			if (m_components.count(it->first) <= 0) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	void Entity::addToSystems() {
+		m_scene->addEntityToSystems(this);
+	}
+
+	void Entity::removeFromSystems() {
+		m_scene->removeEntityFromSystems(this);
+	}
+
 }

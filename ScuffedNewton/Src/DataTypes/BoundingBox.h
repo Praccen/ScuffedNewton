@@ -2,34 +2,38 @@
 
 #include <glm/vec3.hpp>
 
-class BoundingBox {
-private:
-	glm::vec3 m_position;
-	glm::vec3 m_halfSize;
+namespace Scuffed {
 
-	glm::vec3 m_corners[8];
+	class BoundingBox {
+	private:
+		glm::vec3 m_position;
+		glm::vec3 m_halfSize;
 
-	bool m_hasChanged;
-	bool m_cornersNeedUpdate;
+		glm::vec3 m_corners[8];
 
-	void updateCorners();
+		bool m_hasChanged;
+		bool m_cornersNeedUpdate;
 
-private:
-	friend class Octree;
-	const bool getChange(); //Only access this from Octree::updateRec
+		void updateCorners();
 
-public:
-	BoundingBox();
-	~BoundingBox();
+	private:
+		friend class Octree;
+		const bool getChange(); //Only access this from Octree::updateRec
 
-	const glm::vec3& getPosition() const;
-	const glm::vec3& getHalfSize() const;
+	public:
+		BoundingBox();
+		~BoundingBox();
 
-	void prepareCorners();
-	const glm::vec3* getCornersWithUpdate();
-	const glm::vec3* getCornersWithoutUpdate() const;
+		const glm::vec3& getPosition() const;
+		const glm::vec3& getHalfSize() const;
+
+		void prepareCorners();
+		const glm::vec3* getCornersWithUpdate();
+		const glm::vec3* getCornersWithoutUpdate() const;
 
 
-	void setPosition(const glm::vec3& position);
-	void setHalfSize(const glm::vec3& size);
-};
+		void setPosition(const glm::vec3& position);
+		void setHalfSize(const glm::vec3& size);
+	};
+
+}

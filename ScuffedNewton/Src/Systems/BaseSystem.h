@@ -3,25 +3,29 @@
 #include <vector>
 #include <unordered_map>
 
-class Entity;
+namespace Scuffed {
 
-class BaseSystem {
-public:
-	BaseSystem();
-	~BaseSystem();
+	class Entity;
 
-	virtual bool addEntity(Entity* entity);
+	class BaseSystem {
+	public:
+		BaseSystem();
+		~BaseSystem();
 
-	virtual void removeEntity(Entity* entity);
+		virtual bool addEntity(Entity* entity);
 
-	virtual void update(float dt);
+		virtual void removeEntity(Entity* entity);
 
-	virtual std::unordered_map<std::string, bool>& getRequiredComponentTypes();
+		virtual void update(float dt);
 
-protected:
-	std::vector<Entity*> entities;
-	std::unordered_map<std::string, bool> requiredComponents;
-private:
+		virtual std::unordered_map<std::string, bool>& getRequiredComponentTypes();
+
+	protected:
+		std::vector<Entity*> entities;
+		std::unordered_map<std::string, bool> requiredComponents;
+	private:
 
 
-};
+	};
+
+}

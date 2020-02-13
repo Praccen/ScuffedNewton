@@ -1,12 +1,16 @@
 #pragma once
 #include "Component.h"
 
-class SpeedLimitComponent final : public Component {
-public:
-	SpeedLimitComponent(float maxSpeed_ = 9999999.0f);
-	~SpeedLimitComponent();
+namespace Scuffed {
 
-	float maxSpeed;
-	float normalMaxSpeed;
-	static std::string ID;
-};
+	class SpeedLimitComponent final : public Component {
+	public:
+		SpeedLimitComponent(float maxSpeed_ = 9999999.0f);
+		~SpeedLimitComponent();
+
+		float maxSpeed;
+		float normalMaxSpeed;
+		static std::string ID;
+	};
+
+}

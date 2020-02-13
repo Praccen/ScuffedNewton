@@ -2,23 +2,27 @@
 #include "Component.h"
 #include <glm/vec3.hpp>
 
-class MovementComponent final : public Component {
-public:
-	MovementComponent();
-	~MovementComponent();
+namespace Scuffed {
 
-	glm::vec3 velocity;
-	glm::vec3 relVel;
-	glm::vec3 rotation;
-	glm::vec3 constantAcceleration;
-	glm::vec3 accelerationToAdd;
+	class MovementComponent final : public Component {
+	public:
+		MovementComponent();
+		~MovementComponent();
 
-	glm::vec3 oldVelocity;
-	glm::vec3 oldMovement;
+		glm::vec3 velocity;
+		glm::vec3 relVel;
+		glm::vec3 rotation;
+		glm::vec3 constantAcceleration;
+		glm::vec3 accelerationToAdd;
 
-	float airDrag;
+		glm::vec3 oldVelocity;
+		glm::vec3 oldMovement;
 
-	float updateableDt;
+		float airDrag;
 
-	static std::string ID;
-};
+		float updateableDt;
+
+		static std::string ID;
+	};
+
+}

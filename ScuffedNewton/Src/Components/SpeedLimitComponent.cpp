@@ -1,13 +1,17 @@
 #include "../pch.h"
 #include "SpeedLimitComponent.h"
 
-std::string SpeedLimitComponent::ID = "SpeedLimitComponent";
+namespace Scuffed {
 
-SpeedLimitComponent::SpeedLimitComponent(float maxSpeed_) {
-	maxSpeed = maxSpeed_;
-	normalMaxSpeed = maxSpeed_;
-}
+	std::string SpeedLimitComponent::ID = "SpeedLimitComponent";
 
-SpeedLimitComponent::~SpeedLimitComponent() {
+	SpeedLimitComponent::SpeedLimitComponent(float maxSpeed_) {
+		maxSpeed = maxSpeed_;
+		normalMaxSpeed = maxSpeed_;
+	}
+
+	SpeedLimitComponent::~SpeedLimitComponent() {
+
+	}
 
 }

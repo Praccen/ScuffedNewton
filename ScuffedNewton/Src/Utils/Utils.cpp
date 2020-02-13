@@ -2,24 +2,28 @@
 
 #include "Utils.h"
 
-Utils::Utils() {
-	m_entityIdCounter = 0;
-}
+namespace Scuffed {
 
-Utils::~Utils() {
-
-}
-
-Utils* Utils::instance() {
-	static Utils instance;
-	return &instance;
-}
-
-int Utils::GetEntityIdCounter(bool increase) {
-	if (increase) {
-		return m_entityIdCounter++;
+	Utils::Utils() {
+		m_entityIdCounter = 0;
 	}
-	else {
-		return m_entityIdCounter;
+
+	Utils::~Utils() {
+
 	}
+
+	Utils* Utils::instance() {
+		static Utils instance;
+		return &instance;
+	}
+
+	int Utils::GetEntityIdCounter(bool increase) {
+		if (increase) {
+			return m_entityIdCounter++;
+		}
+		else {
+			return m_entityIdCounter;
+		}
+	}
+
 }

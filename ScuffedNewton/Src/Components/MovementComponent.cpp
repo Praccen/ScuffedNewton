@@ -1,23 +1,27 @@
 #include "../pch.h"
 #include "MovementComponent.h"
 
-std::string MovementComponent::ID = "MovementComponent";
+namespace Scuffed {
 
-MovementComponent::MovementComponent() {
-	velocity = glm::vec3(0.0f);
-	relVel = glm::vec3(0.0f);
-	rotation = glm::vec3(0.0f);
-	constantAcceleration = glm::vec3(0.f);
-	accelerationToAdd = glm::vec3(0.0f);
+	std::string MovementComponent::ID = "MovementComponent";
 
-	oldVelocity = glm::vec3(0.0f);
-	oldMovement = glm::vec3(0.0f);
+	MovementComponent::MovementComponent() {
+		velocity = glm::vec3(0.0f);
+		relVel = glm::vec3(0.0f);
+		rotation = glm::vec3(0.0f);
+		constantAcceleration = glm::vec3(0.f);
+		accelerationToAdd = glm::vec3(0.0f);
 
-	airDrag = 1.0f;
+		oldVelocity = glm::vec3(0.0f);
+		oldMovement = glm::vec3(0.0f);
 
-	updateableDt = 0.0f;
-}
+		airDrag = 1.0f;
 
-MovementComponent::~MovementComponent() {
+		updateableDt = 0.0f;
+	}
+
+	MovementComponent::~MovementComponent() {
+
+	}
 
 }

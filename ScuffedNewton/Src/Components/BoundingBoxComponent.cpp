@@ -2,19 +2,21 @@
 #include "BoundingBoxComponent.h"
 
 #include "../DataTypes/BoundingBox.h"
+namespace Scuffed {
+	std::string BoundingBoxComponent::ID = "BoundingBoxComponent";
 
-std::string BoundingBoxComponent::ID = "BoundingBoxComponent";
+	BoundingBoxComponent::BoundingBoxComponent() {
+		m_boundingBox = SN_NEW BoundingBox();
 
-BoundingBoxComponent::BoundingBoxComponent() { 
-	m_boundingBox = SN_NEW BoundingBox();
+		isStatic = false;
+	}
 
-	isStatic = false;
-}
+	BoundingBoxComponent::~BoundingBoxComponent() {
+		delete m_boundingBox;
+	}
 
-BoundingBoxComponent::~BoundingBoxComponent() {
-	delete m_boundingBox;
-}
+	BoundingBox* BoundingBoxComponent::getBoundingBox() const {
+		return m_boundingBox;
+	}
 
-BoundingBox* BoundingBoxComponent::getBoundingBox() const {
-	return m_boundingBox;
 }

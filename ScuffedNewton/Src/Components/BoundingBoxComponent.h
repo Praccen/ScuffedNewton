@@ -2,18 +2,22 @@
 
 #include "Component.h"
 
-class BoundingBox;
+namespace Scuffed {
 
-class BoundingBoxComponent : public Component {
-public:
-	BoundingBoxComponent();
-	~BoundingBoxComponent();
-	static std::string ID;
+	class BoundingBox;
 
-	BoundingBox* getBoundingBox() const;
+	class BoundingBoxComponent : public Component {
+	public:
+		BoundingBoxComponent();
+		~BoundingBoxComponent();
+		static std::string ID;
 
-	bool isStatic;
+		BoundingBox* getBoundingBox() const;
 
-private:
-	BoundingBox* m_boundingBox;
-};
+		bool isStatic;
+
+	private:
+		BoundingBox* m_boundingBox;
+	};
+
+}

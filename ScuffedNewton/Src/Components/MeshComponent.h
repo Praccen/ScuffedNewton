@@ -2,14 +2,18 @@
 
 #include "Component.h"
 
-class Mesh;
+namespace Scuffed {
 
-class MeshComponent : public Component {
-public:
-	MeshComponent();
-	~MeshComponent();
+	class Mesh;
 
-	Mesh* mesh = nullptr;
+	class MeshComponent : public Component {
+	public:
+		MeshComponent();
+		~MeshComponent();
 
-	static std::string ID;
-};
+		Mesh* mesh = nullptr;
+
+		static std::string ID;
+	};
+
+}

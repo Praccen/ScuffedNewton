@@ -2,42 +2,46 @@
 
 #include <glm/glm.hpp>
 
-class Transform {
-public:
-	Transform();
-	~Transform();
+namespace Scuffed {
 
-	void setTranslation(glm::vec3 translation);
-	void setScale(glm::vec3 scale);
-	void setCenter(glm::vec3 center);
+	class Transform {
+	public:
+		Transform();
+		~Transform();
 
-	void translate(glm::vec3 translation);
-	void rotate(glm::vec3 rotation);
+		void setTranslation(glm::vec3 translation);
+		void setScale(glm::vec3 scale);
+		void setCenter(glm::vec3 center);
 
-	glm::mat4 getMatrixWithUpdate();
-	glm::mat4 getMatrixWithoutUpdate();
+		void translate(glm::vec3 translation);
+		void rotate(glm::vec3 rotation);
 
-	glm::vec3 getTranslation() const;
+		glm::mat4 getMatrixWithUpdate();
+		glm::mat4 getMatrixWithoutUpdate();
 
-	void prepareUpdate();
+		glm::vec3 getTranslation() const;
 
-	void bindMatrixPointer(glm::mat4** matrix);
-	void bindPositionPointer(glm::vec3** position);
+		void prepareUpdate();
 
-private:
-	void updateMatrix();
+		void bindMatrixPointer(glm::mat4** matrix);
+		void bindPositionPointer(glm::vec3** position);
 
-private:
-	glm::mat4 m_matrix;
-	glm::vec3 m_translation;
-	glm::vec3 m_rotation;
-	glm::vec3 m_scale;
+	private:
+		void updateMatrix();
 
-	glm::vec3 m_center;
+	private:
+		glm::mat4 m_matrix;
+		glm::vec3 m_translation;
+		glm::vec3 m_rotation;
+		glm::vec3 m_scale;
 
-	int m_hasChanged;
+		glm::vec3 m_center;
 
-private:
-	friend class UpdateBoundingBoxSystem;
-	const int getChange(); //Only access this from UpdateBoundingBoxSystem::update()
-};
+		int m_hasChanged;
+
+	private:
+		friend class UpdateBoundingBoxSystem;
+		const int getChange(); //Only access this from UpdateBoundingBoxSystem::update()
+	};
+
+}

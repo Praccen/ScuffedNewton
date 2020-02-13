@@ -1,18 +1,22 @@
 #pragma once
 #include "BaseSystem.h"
 
-class UpdateBoundingBoxSystem : public BaseSystem {
-public:
-	UpdateBoundingBoxSystem();
-	~UpdateBoundingBoxSystem();
+namespace Scuffed {
 
-	bool addEntity(Entity* entity);
+	class UpdateBoundingBoxSystem : public BaseSystem {
+	public:
+		UpdateBoundingBoxSystem();
+		~UpdateBoundingBoxSystem();
 
-	void update(float dt) override;
+		bool addEntity(Entity* entity);
 
-private:
-	void checkDistances(glm::vec3& minVec, glm::vec3& maxVec, const glm::vec3& testVec);
-	void recalculateBoundingBoxFully(Entity* e);
-	void recalculateBoundingBoxPosition(Entity* e);
-	void updateRagdollBoundingBoxes(Entity* e);
-};
+		void update(float dt) override;
+
+	private:
+		void checkDistances(glm::vec3& minVec, glm::vec3& maxVec, const glm::vec3& testVec);
+		void recalculateBoundingBoxFully(Entity* e);
+		void recalculateBoundingBoxPosition(Entity* e);
+		void updateRagdollBoundingBoxes(Entity* e);
+	};
+
+}

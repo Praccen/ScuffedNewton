@@ -1,27 +1,31 @@
 #pragma once
 #include "BaseSystem.h"
 
-class Octree;
-class Camera;
+namespace Scuffed {
 
-class OctreeAddRemoverSystem: public BaseSystem {
-public:
-	OctreeAddRemoverSystem();
-	~OctreeAddRemoverSystem();
+	class Octree;
+	class Camera;
 
-	void provideOctree(Octree* octree);
+	class OctreeAddRemoverSystem : public BaseSystem {
+	public:
+		OctreeAddRemoverSystem();
+		~OctreeAddRemoverSystem();
 
-	bool addEntity(Entity* entity) override;
+		void provideOctree(Octree* octree);
 
-	void removeEntity(Entity* entity) override;
+		bool addEntity(Entity* entity) override;
 
-	void update(float dt) override;
-	void updatePerFrame(float dt);
+		void removeEntity(Entity* entity) override;
 
-	void setCulling(bool activated, Camera* camera);
+		void update(float dt) override;
+		void updatePerFrame(float dt);
 
-private:
-	Octree* m_octree;
-	bool m_doCulling;
-	Camera* m_cullCamera;
-};
+		void setCulling(bool activated, Camera* camera);
+
+	private:
+		Octree* m_octree;
+		bool m_doCulling;
+		Camera* m_cullCamera;
+	};
+
+}

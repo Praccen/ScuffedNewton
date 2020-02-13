@@ -1,12 +1,16 @@
 #include "../pch.h"
 #include "CollidableComponent.h"
 
-std::string CollidableComponent::ID = "CollidableComponent";
+namespace Scuffed {
 
-CollidableComponent::CollidableComponent(bool simpleCollisionAllowed) {
-	allowSimpleCollision = simpleCollisionAllowed;
-}
+	std::string CollidableComponent::ID = "CollidableComponent";
 
-CollidableComponent::~CollidableComponent() {
+	CollidableComponent::CollidableComponent(bool simpleCollisionAllowed) {
+		allowSimpleCollision = simpleCollisionAllowed;
+	}
+
+	CollidableComponent::~CollidableComponent() {
+
+	}
 
 }
