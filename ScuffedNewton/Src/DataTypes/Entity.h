@@ -16,7 +16,15 @@ namespace Scuffed {
 		virtual ~Entity();
 
 		virtual unsigned int getId() const;
+		virtual Component* addComponent(int componentNumber);
+		virtual void removeComponent(int componentNumber);
+		virtual Component* getComponent(int componentNumber);
+		virtual bool hasComponent(int componentNumber);
+		virtual bool hasComponents(const std::unordered_map<std::string, bool>& requiredComponents);
 
+	public:
+		// ----Template functions----
+		//Can only be used from inside ScuffedNewton if explicity linking
 		template<typename ComponentType, typename... Targs>
 		ComponentType* addComponent(Targs... args);
 
@@ -28,8 +36,7 @@ namespace Scuffed {
 
 		template<typename ComponentType>
 		bool hasComponent() const;
-
-		bool hasComponents(const std::unordered_map<std::string, bool>& requiredComponents);
+		// --------------------------
 
 	private:
 		void addToSystems();
@@ -43,6 +50,7 @@ namespace Scuffed {
 		std::unordered_map<std::string, Component*> m_components;
 	};
 
+	// ----Template functions----
 	template<typename ComponentType, typename... Targs>
 	inline ComponentType* Entity::addComponent(Targs... args) {
 		if (m_components[ComponentType::ID]) {
@@ -84,5 +92,5 @@ namespace Scuffed {
 	inline bool Entity::hasComponent() const {
 		return m_components.find(ComponentType::ID) != m_components.end();
 	}
-
+	// --------------------------
 }
