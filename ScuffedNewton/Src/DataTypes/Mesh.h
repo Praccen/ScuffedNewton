@@ -8,11 +8,11 @@ namespace Scuffed {
 		Mesh();
 		~Mesh();
 
-		void loadData(void* data, size_t size, size_t vertexSize, size_t positionOffset, size_t positionSize);
+		virtual void loadData(void* data, size_t size, size_t vertexSize, size_t positionOffset, size_t positionSize);
 
-		glm::vec3 getVertexPosition(int vertexIndex);
+		virtual glm::vec3 getVertexPosition(int vertexIndex);
 
-		int getNumberOfVertices();
+		virtual int getNumberOfVertices();
 
 	private:
 		void* m_data;

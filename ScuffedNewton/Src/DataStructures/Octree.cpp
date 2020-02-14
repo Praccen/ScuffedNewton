@@ -3,6 +3,7 @@
 #include "Octree.h"
 #include "../Calculations/Intersection.h"
 #include "../DataTypes/Entity.h"
+#include "../DataTypes/Mesh.h"
 #include "../Components/Components.h"
 
 #include "../Utils/Utils.h"
@@ -245,42 +246,45 @@ namespace Scuffed {
 
 
 			// Get collision
-			/*const ModelComponent* model = currentNode->entities[i]->getComponent<ModelComponent>();
-			const TransformComponent* transform = currentNode->entities[i]->getComponent<TransformComponent>();*/
+			const MeshComponent* mesh = currentNode->entities[i]->getComponent<MeshComponent>();
+			TransformComponent* transform = currentNode->entities[i]->getComponent<TransformComponent>();
 			const CollidableComponent* collidable = currentNode->entities[i]->getComponent<CollidableComponent>();
 
-			bool model = currentNode->entities[i]->hasComponent<MeshComponent>();
-
-			if (model && !(doSimpleCollisions && collidable->allowSimpleCollision)) {
-				assert(false); // Not implemented yet
-				/*
+			if (mesh && !(doSimpleCollisions && collidable->allowSimpleCollision)) {
 				// Entity has a model. Check collision with meshes
 				glm::mat4 transformMatrix;
 				if (transform) {
 					transformMatrix = transform->getMatrixWithoutUpdate();
 				}
 
-				for (unsigned int j = 0; j < model->getModel()->getNumberOfMeshes(); j++) {
-					const Mesh::Data& meshData = model->getModel()->getMesh(j)->getData();
-					if (meshData.indices) { // Has indices
-						for (unsigned int k = 0; k < meshData.numIndices; k += 3) {
-							glm::vec3 v0, v1, v2;
-							v0 = glm::vec3(transformMatrix * glm::vec4(meshData.positions[meshData.indices[k]].vec, 1.0f));
-							v1 = glm::vec3(transformMatrix * glm::vec4(meshData.positions[meshData.indices[k + 1]].vec, 1.0f));
-							v2 = glm::vec3(transformMatrix * glm::vec4(meshData.positions[meshData.indices[k + 2]].vec, 1.0f));
-							getCollisionData(entityBoundingBox, currentNode->entities[i], v0, v1, v2, outCollisionData, checkBackfaces);
-						}
-					} else { // Does not have indices
-						for (unsigned int k = 0; k < meshData.numVertices; k += 3) {
-							glm::vec3 v0, v1, v2;
-							v0 = glm::vec3(transformMatrix * glm::vec4(meshData.positions[k].vec, 1.0f));
-							v1 = glm::vec3(transformMatrix * glm::vec4(meshData.positions[k + 1].vec, 1.0f));
-							v2 = glm::vec3(transformMatrix * glm::vec4(meshData.positions[k + 2].vec, 1.0f));
-							getCollisionData(entityBoundingBox, currentNode->entities[i], v0, v1, v2, outCollisionData, checkBackfaces);
-						}
-					}
+				for (unsigned int j = 0; j < mesh->mesh->getNumberOfVertices(); j++) {
+					glm::vec3 v0, v1, v2;
+					v0 = glm::vec3(transformMatrix * glm::vec4(mesh->mesh->getVertexPosition(j), 1.0f));
+					v1 = glm::vec3(transformMatrix * glm::vec4(mesh->mesh->getVertexPosition(j + 1), 1.0f));
+					v2 = glm::vec3(transformMatrix * glm::vec4(mesh->mesh->getVertexPosition(j + 2), 1.0f));
+					getCollisionData(entityBoundingBox, currentNode->entities[i], v0, v1, v2, outCollisionData, checkBackfaces);
 				}
-				*/
+
+				//for (unsigned int j = 0; j < model->getModel()->getNumberOfMeshes(); j++) {
+				//	const Mesh::Data& meshData = model->getModel()->getMesh(j)->getData();
+				//	if (meshData.indices) { // Has indices
+				//		for (unsigned int k = 0; k < meshData.numIndices; k += 3) {
+				//			glm::vec3 v0, v1, v2;
+				//			v0 = glm::vec3(transformMatrix * glm::vec4(meshData.positions[meshData.indices[k]].vec, 1.0f));
+				//			v1 = glm::vec3(transformMatrix * glm::vec4(meshData.positions[meshData.indices[k + 1]].vec, 1.0f));
+				//			v2 = glm::vec3(transformMatrix * glm::vec4(meshData.positions[meshData.indices[k + 2]].vec, 1.0f));
+				//			getCollisionData(entityBoundingBox, currentNode->entities[i], v0, v1, v2, outCollisionData, checkBackfaces);
+				//		}
+				//	} else { // Does not have indices
+				//		for (unsigned int k = 0; k < meshData.numVertices; k += 3) {
+				//			glm::vec3 v0, v1, v2;
+				//			v0 = glm::vec3(transformMatrix * glm::vec4(meshData.positions[k].vec, 1.0f));
+				//			v1 = glm::vec3(transformMatrix * glm::vec4(meshData.positions[k + 1].vec, 1.0f));
+				//			v2 = glm::vec3(transformMatrix * glm::vec4(meshData.positions[k + 2].vec, 1.0f));
+				//			getCollisionData(entityBoundingBox, currentNode->entities[i], v0, v1, v2, outCollisionData, checkBackfaces);
+				//		}
+				//	}
+				//}
 			}
 			else { // No model or simple collision opportunity
 			 // Collide with bounding box
