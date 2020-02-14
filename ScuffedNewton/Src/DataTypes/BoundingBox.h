@@ -24,16 +24,16 @@ namespace Scuffed {
 		BoundingBox();
 		~BoundingBox();
 
-		const glm::vec3& getPosition() const;
-		const glm::vec3& getHalfSize() const;
+		virtual const glm::vec3& getPosition() const;
+		virtual const glm::vec3& getHalfSize() const;
 
-		void prepareCorners();
-		const glm::vec3* getCornersWithUpdate();
-		const glm::vec3* getCornersWithoutUpdate() const;
+		virtual void prepareCorners();
+		virtual const glm::vec3* getCornersWithUpdate();
+		virtual const glm::vec3* getCornersWithoutUpdate() const;
 
 
-		void setPosition(const glm::vec3& position);
-		void setHalfSize(const glm::vec3& size);
+		virtual void setPosition(const glm::vec3& position);
+		virtual void setHalfSize(const glm::vec3& size);
 	};
 
 }

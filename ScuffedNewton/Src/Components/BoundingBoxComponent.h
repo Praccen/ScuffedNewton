@@ -12,7 +12,7 @@ namespace Scuffed {
 		~BoundingBoxComponent();
 		static std::string ID;
 
-		BoundingBox* getBoundingBox() const;
+		virtual BoundingBox* getBoundingBox() const;
 
 		bool isStatic;
 
