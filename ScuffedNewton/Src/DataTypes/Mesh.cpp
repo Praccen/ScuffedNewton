@@ -10,6 +10,9 @@ namespace Scuffed {
 		m_vertexSize = 0;
 		m_positionOffset = 0;
 		m_positionSize = 0;
+
+		m_indices = nullptr;
+		m_nrOfIndices = 0;
 	}
 
 	Mesh::~Mesh() {
@@ -22,6 +25,11 @@ namespace Scuffed {
 		m_vertexSize = vertexSize;
 		m_positionOffset = positionOffset;
 		m_positionSize = positionSize;
+	}
+
+	void Mesh::loadIndices(int* indices, int nrOfIndices) {
+		m_indices = indices;
+		m_nrOfIndices = nrOfIndices;
 	}
 
 	glm::vec3 Mesh::getVertexPosition(int vertexIndex) {
@@ -48,8 +56,19 @@ namespace Scuffed {
 		return position;
 	}
 
+	int Mesh::getVertexIndex(int indexIndex) {
+		if (indexIndex < m_nrOfIndices) {
+			return m_indices[indexIndex];
+		}
+		return -1;
+	}
+
 	int Mesh::getNumberOfVertices() {
 		return m_size / m_vertexSize;
+	}
+
+	int Mesh::getNumberOfIndices() {
+		return m_nrOfIndices;
 	}
 
 }
