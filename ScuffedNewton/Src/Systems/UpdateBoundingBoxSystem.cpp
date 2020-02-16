@@ -45,9 +45,11 @@ namespace Scuffed {
 		if (mesh) {
 			glm::vec3 minPositions(9999999.0f), maxPositions(-9999999.0f);
 
+			auto transMatrix = transform->getMatrixWithUpdate();
+
 			//Recalculate min and max
 			for (int j = 0; j < mesh->mesh->getNumberOfVertices(); j++) {
-				glm::vec3 posAfterTransform = glm::vec3(transform->getMatrixWithUpdate() * glm::vec4(mesh->mesh->getVertexPosition(j), 1.0f));
+				glm::vec3 posAfterTransform = glm::vec3(transMatrix * glm::vec4(mesh->mesh->getVertexPosition(j), 1.0f));
 				checkDistances(minPositions, maxPositions, posAfterTransform);
 			}
 
@@ -58,8 +60,8 @@ namespace Scuffed {
 			boundingBox->getBoundingBox()->setPosition(transform->getTranslation() + glm::vec3(0.0f, boundingBox->getBoundingBox()->getHalfSize().y, 0.0f));
 		}
 
-		transform->setTranslation(boundingBox->getBoundingBox()->getPosition() - glm::vec3(0.0f, boundingBox->getBoundingBox()->getHalfSize().y, 0.0f));
-		transform->setScale(boundingBox->getBoundingBox()->getHalfSize() * 2.0f);
+		//transform->setTranslation(boundingBox->getBoundingBox()->getPosition() - glm::vec3(0.0f, boundingBox->getBoundingBox()->getHalfSize().y, 0.0f));
+		//transform->setScale(boundingBox->getBoundingBox()->getHalfSize() * 2.0f);
 		/*boundingBox->getTransform()->setTranslation(boundingBox->getBoundingBox()->getPosition() - glm::vec3(0.0f, boundingBox->getBoundingBox()->getHalfSize().y, 0.0f));
 		boundingBox->getTransform()->setScale(boundingBox->getBoundingBox()->getHalfSize() * 2.0f);*/
 	}
@@ -69,8 +71,8 @@ namespace Scuffed {
 		TransformComponent* transform = e->getComponent<TransformComponent>();
 		glm::mat4 transformationMatrix = transform->getMatrixWithUpdate();
 		boundingBox->getBoundingBox()->setPosition(glm::vec3(transformationMatrix[3]) + glm::vec3(0.0f, boundingBox->getBoundingBox()->getHalfSize().y, 0.0f));
-		transform->setTranslation(boundingBox->getBoundingBox()->getPosition() - glm::vec3(0.0f, boundingBox->getBoundingBox()->getHalfSize().y, 0.0f));
-		transform->setScale(boundingBox->getBoundingBox()->getHalfSize() * 2.0f);
+		//transform->setTranslation(boundingBox->getBoundingBox()->getPosition() - glm::vec3(0.0f, boundingBox->getBoundingBox()->getHalfSize().y, 0.0f));
+		//transform->setScale(boundingBox->getBoundingBox()->getHalfSize() * 2.0f);
 		/*boundingBox->getTransform()->setTranslation(boundingBox->getBoundingBox()->getPosition() - glm::vec3(0.0f, boundingBox->getBoundingBox()->getHalfSize().y, 0.0f));
 		boundingBox->getTransform()->setScale(boundingBox->getBoundingBox()->getHalfSize() * 2.0f);*/
 	}

@@ -218,7 +218,7 @@ namespace Scuffed {
 			outCollisionData->emplace_back();
 			outCollisionData->back().entity = meshEntity;
 			outCollisionData->back().shape = SN_NEW CollisionTriangle(v0, v1, v2, glm::normalize(glm::cross(glm::vec3(v0 - v1), glm::vec3(v0 - v2))));
-			//SAIL_LOG("Collision detected with " + meshEntity->getName());
+			//std::cout << "Collision detected with " + meshEntity->getId();
 		}
 	}
 
@@ -244,7 +244,6 @@ namespace Scuffed {
 				continue;
 			}
 
-
 			// Get collision
 			const MeshComponent* mesh = currentNode->entities[i]->getComponent<MeshComponent>();
 			TransformComponent* transform = currentNode->entities[i]->getComponent<TransformComponent>();
@@ -252,7 +251,7 @@ namespace Scuffed {
 
 			if (mesh && !(doSimpleCollisions && collidable->allowSimpleCollision)) {
 				// Entity has a model. Check collision with meshes
-				glm::mat4 transformMatrix;
+				glm::mat4 transformMatrix(1.0f);
 				if (transform) {
 					transformMatrix = transform->getMatrixWithoutUpdate();
 				}

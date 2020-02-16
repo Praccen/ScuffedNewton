@@ -9,12 +9,12 @@ namespace Scuffed {
 		Transform();
 		~Transform();
 
-		virtual void setTranslation(glm::vec3 translation);
-		virtual void setScale(glm::vec3 scale);
-		virtual void setCenter(glm::vec3 center);
+		virtual void setTranslation(const glm::vec3& translation);
+		virtual void setScale(const glm::vec3& scale);
+		virtual void setCenter(const glm::vec3& center);
 
-		virtual void translate(glm::vec3 translation);
-		virtual void rotate(glm::vec3 rotation);
+		virtual void translate(const glm::vec3& translation);
+		virtual void rotate(const glm::vec3& rotation);
 
 		virtual glm::mat4 getMatrixWithUpdate();
 		virtual glm::mat4 getMatrixWithoutUpdate();

@@ -19,7 +19,7 @@ namespace Scuffed {
 	void Mesh::loadData(void* data, size_t size, size_t vertexSize, size_t positionOffset, size_t positionSize) {
 		m_data = data;
 		m_size = size;
-		m_vertexSize = size;
+		m_vertexSize = vertexSize;
 		m_positionOffset = positionOffset;
 		m_positionSize = positionSize;
 	}
