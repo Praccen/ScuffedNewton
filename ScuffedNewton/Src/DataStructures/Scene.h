@@ -11,17 +11,18 @@ namespace Scuffed {
 	class Scene {
 	public:
 		Scene();
-		~Scene();
+		virtual ~Scene();
 
-		int addEntity();
-		Entity* getEntity(int entityId);
+		virtual int addEntity();
+		virtual Entity* getEntity(int entityId);
+		virtual Octree* getOctree();
 
-		void createSystems();
-		void deleteSystems();
-		void update(float dt);
+		virtual void createSystems();
+		virtual void deleteSystems();
+		virtual void update(float dt);
 
-		void addEntityToSystems(Entity* entity);
-		void removeEntityFromSystems(Entity* entity);
+		virtual void addEntityToSystems(Entity* entity);
+		virtual void removeEntityFromSystems(Entity* entity);
 
 	private:
 		std::unordered_map<int, Entity*> m_entities;

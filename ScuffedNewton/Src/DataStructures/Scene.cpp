@@ -45,6 +45,10 @@ namespace Scuffed {
 		}
 	}
 
+	Octree* Scene::getOctree() {
+		return m_octree;
+	}
+
 	void Scene::createSystems() {
 		m_systems.emplace_back();
 		m_systems.back() = SN_NEW UpdateBoundingBoxSystem();

@@ -258,7 +258,7 @@ namespace Scuffed {
 
 				//for (unsigned int j = 0; j < model->getModel()->getNumberOfMeshes(); j++) {
 				if (int numIndices = mesh->mesh->getNumberOfIndices() > 0) { // Has indices
-					for (unsigned int j = 0; j < numIndices; j += 3) {
+					for (int j = 0; j < numIndices; j += 3) {
 						glm::vec3 v0, v1, v2;
 						v0 = glm::vec3(transformMatrix * glm::vec4(mesh->mesh->getVertexPosition(mesh->mesh->getVertexIndex(j)), 1.0f));
 						v1 = glm::vec3(transformMatrix * glm::vec4(mesh->mesh->getVertexPosition(mesh->mesh->getVertexIndex(j + 1)), 1.0f));
@@ -267,7 +267,7 @@ namespace Scuffed {
 					}
 				}
 				else if (int numVertices = mesh->mesh->getNumberOfVertices() > 0) {
-					for (unsigned int j = 0; j < mesh->mesh->getNumberOfVertices(); j += 3) {
+					for (int j = 0; j < mesh->mesh->getNumberOfVertices(); j += 3) {
 						glm::vec3 v0, v1, v2;
 						v0 = glm::vec3(transformMatrix * glm::vec4(mesh->mesh->getVertexPosition(j), 1.0f));
 						v1 = glm::vec3(transformMatrix * glm::vec4(mesh->mesh->getVertexPosition(j + 1), 1.0f));
@@ -325,7 +325,7 @@ namespace Scuffed {
 
 		//Check against entities
 		for (int i = 0; i < currentNode->nrOfEntities; i++) {
-			if (currentNode->entities[i]->getId() == ignoreThis->getId()) {
+			if (ignoreThis && currentNode->entities[i]->getId() == ignoreThis->getId()) {
 				continue;
 			}
 
@@ -352,7 +352,7 @@ namespace Scuffed {
 
 				//for (unsigned int j = 0; j < model->getModel()->getNumberOfMeshes(); j++) {
 				if (int numIndices = mesh->mesh->getNumberOfIndices() > 0) { // Has indices
-					for (unsigned int j = 0; j < numIndices; j += 3) {
+					for (int j = 0; j < numIndices; j += 3) {
 						glm::vec3 v0, v1, v2;
 						v0 = glm::vec3(transformMatrix * glm::vec4(mesh->mesh->getVertexPosition(mesh->mesh->getVertexIndex(j)), 1.0f));
 						v1 = glm::vec3(transformMatrix * glm::vec4(mesh->mesh->getVertexPosition(mesh->mesh->getVertexIndex(j + 1)), 1.0f));
@@ -361,7 +361,7 @@ namespace Scuffed {
 					}
 				}
 				else if (int numVertices = mesh->mesh->getNumberOfVertices() > 0) {
-					for (unsigned int j = 0; j < mesh->mesh->getNumberOfVertices(); j += 3) {
+					for (int j = 0; j < mesh->mesh->getNumberOfVertices(); j += 3) {
 						glm::vec3 v0, v1, v2;
 						v0 = glm::vec3(transformMatrix * glm::vec4(mesh->mesh->getVertexPosition(j), 1.0f));
 						v1 = glm::vec3(transformMatrix * glm::vec4(mesh->mesh->getVertexPosition(j + 1), 1.0f));

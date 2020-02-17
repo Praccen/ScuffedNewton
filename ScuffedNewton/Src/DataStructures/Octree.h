@@ -64,7 +64,7 @@ namespace Scuffed {
 		struct Node {
 			std::vector<Node> childNodes;
 			Node* parentNode = nullptr;
-			BoundingBox* nodeBB;
+			BoundingBox* nodeBB = nullptr;
 			int nrOfEntities = 0;
 			std::vector<Entity*> entities;
 		};
@@ -94,16 +94,16 @@ namespace Scuffed {
 		Octree(Model* boundingBoxModel = nullptr);
 		~Octree();
 
-		void addEntity(Entity* newEntity);
-		void addEntities(std::vector<Entity*>* newEntities);
+		virtual void addEntity(Entity* newEntity);
+		virtual void addEntities(std::vector<Entity*>* newEntities);
 
-		void removeEntity(Entity* entityToRemove);
-		void removeEntities(std::vector<Entity*> entitiesToRemove);
+		virtual void removeEntity(Entity* entityToRemove);
+		virtual void removeEntities(std::vector<Entity*> entitiesToRemove);
 
-		void update();
+		virtual void update();
 
-		void getCollisions(Entity* entity, const BoundingBox* entityBoundingBox, std::vector<CollisionInfo>* outCollisionData, const bool doSimpleCollisions = false, const bool checkBackfaces = false);
-		void getRayIntersection(const glm::vec3& rayStart, const glm::vec3& rayDir, RayIntersectionInfo* outIntersectionData, Entity* ignoreThis = nullptr, float padding = 0.0f, const bool doSimpleIntersections = false, const bool checkBackfaces = false);
+		virtual void getCollisions(Entity* entity, const BoundingBox* entityBoundingBox, std::vector<CollisionInfo>* outCollisionData, const bool doSimpleCollisions = false, const bool checkBackfaces = false);
+		virtual void getRayIntersection(const glm::vec3& rayStart, const glm::vec3& rayDir, RayIntersectionInfo* outIntersectionData, Entity* ignoreThis = nullptr, float padding = 0.0f, const bool doSimpleIntersections = false, const bool checkBackfaces = false);
 
 		//int frustumCulledDraw(Camera& camera);
 	};
