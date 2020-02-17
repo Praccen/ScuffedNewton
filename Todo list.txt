@@ -1,0 +1,7 @@
+- Mesh-mesh collision using SAT and possible speedups.
+- Continous collision detection using SAT instead of swept sphere
+- Dynamic rigid body collisions (Remove ragdoll component)
+- Add support for OBB's
+- Add support for Bounding spheres
+- Add support for Capsules
+- Make interface pretty and user friendly
