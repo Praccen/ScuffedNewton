@@ -24,7 +24,7 @@ namespace Scuffed {
 		m_scene->update(dt);
 	}
 
-	int Interface::getNewObjectId() {
+	int Interface::getNewEntityID() {
 		return m_scene->addEntity();
 	}
 

@@ -12,7 +12,7 @@ namespace Scuffed {
 		virtual void print();
 
 		virtual void update(float dt);
-		virtual int getNewObjectId();
+		virtual int getNewEntityID();
 		virtual void loadMesh(int entityId, void* data, size_t size, size_t vertexSize, size_t positionOffset, size_t positionSize);
 		virtual void bindModelMatrix(int entityId, glm::mat4** matrix);
 		virtual void bindPosition(int entityId, glm::vec3** positionVector);
