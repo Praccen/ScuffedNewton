@@ -16,15 +16,7 @@ namespace Scuffed {
 		static bool AabbWithSphere(const glm::vec3* aabbCorners, const Sphere& sphere);
 		static bool AabbWithVerticalCylinder(const glm::vec3& aabbPos, const glm::vec3& aabbHalfSize, const glm::vec3* aabbCorners, const VerticalCylinder& cyl);
 
-		static bool TriangleWithTriangle(const glm::vec3 U[3], const glm::vec3 V[3]);
-		static bool TriangleWithSphere(const glm::vec3 tri[3], const Sphere& sphere);
-		static bool TriangleWithVerticalCylinder(const glm::vec3 tri[3], const VerticalCylinder& cyl);
-
 		static bool SphereWithPlane(const Sphere& sphere, const glm::vec3& planeNormal, const float planeDistance);
-
-		static bool PointWithVerticalCylinder(const glm::vec3 p, const VerticalCylinder& cyl);
-
-		static bool LineSegmentWithVerticalCylinder(const glm::vec3& start, const glm::vec3& end, const VerticalCylinder& cyl);
 
 		static float RayWithAabb(const glm::vec3& rayStart, const glm::vec3& rayVec, const glm::vec3& aabbPos, const glm::vec3& aabbHalfSize, glm::vec3* intersectionAxis = nullptr);
 		static float RayWithTriangle(const glm::vec3& rayStart, const glm::vec3& rayDir, const glm::vec3& triPos1, const glm::vec3& triPos2, const glm::vec3& triPos3);
@@ -41,7 +33,6 @@ namespace Scuffed {
 		Intersection() {};
 		~Intersection() {};
 
-		static bool TriangleWithTriangleSupport(const glm::vec3 U[3], const glm::vec3 V[3], glm::vec3 outSegment[2]);
 		static void Barycentric(const glm::vec3& p, const glm::vec3& a, const glm::vec3& b, const glm::vec3& c, float& outU, float& outV, float& outW);
 		static bool OnTriangle(const float u, const float v, const float w);
 
