@@ -816,4 +816,95 @@ namespace Scuffed {
 		return true;
 	}
 
+	std::vector<glm::vec3> Intersection::getEdges(const glm::vec3 tri[3]) {
+		std::vector<glm::vec3> edges = { tri[1] - tri[0], tri[2] - tri[0], tri[2] - tri[1] };
+		return edges;
+	}
+
+	std::vector<glm::vec3> Intersection::getAxes(const glm::vec3 tri1[3], const glm::vec3 tri2[3]) {
+		std::vector<glm::vec3> axes(11);
+
+		std::vector<glm::vec3> edges1 = getEdges(tri1);
+		std::vector<glm::vec3> edges2 = getEdges(tri2);
+
+		axes[0] = glm::cross(edges1[0], edges1[1]);
+		axes[1] = glm::cross(edges2[0], edges2[1]);
+
+		for (size_t i = 0; i < edges1.size(); i++) {
+			for (size_t j = 0; j < edges2.size(); j++) {
+				axes[2 + i * 3 + j] = glm::cross(edges1[i], edges2[j]);
+			}
+		}
+		return axes;
+	}
+
+	bool Intersection::projectionOverlapTest(glm::vec3& testVec, const glm::vec3 tri1[3], const glm::vec3 tri2[3]) {
+		testVec = glm::normalize(testVec);
+		float min1 = 9999.0f, min2 = 9999.0f;
+		float max1 = -9999.0f, max2 = -9999.0f;
+
+		for (int i = 0; i < 3; i++) {
+			float tempDot1 = glm::dot(tri1[i], testVec);
+
+			if (tempDot1 < min1) {
+				min1 = tempDot1;
+			}
+			if (tempDot1 > max1) {
+				max1 = tempDot1;
+			}
+
+			float tempDot2 = glm::dot(tri2[i], testVec);
+
+			if (tempDot2 < min2) {
+				min2 = tempDot2;
+			}
+			if (tempDot2 > max2) {
+				max2 = tempDot2;
+			}
+		}
+
+		if (max2 > min1&& max1 > min2) {
+			return true;
+		}
+		return false;
+	}
+
+	bool Intersection::SAT(const glm::vec3 tri1[3], const glm::vec3 tri2[3], int earlyExitLevel) {
+		bool returnValue = true;
+		std::vector<glm::vec3> axes = getAxes(tri1, tri2);
+
+		for (size_t i = 0; i < axes.size(); i++) {
+			if (!projectionOverlapTest(axes[i], tri1, tri2)) {
+				if (earlyExitLevel >= 2) {
+					return false;
+				}
+				else {
+					returnValue = false;
+				}
+			}
+		}
+
+		return returnValue;
+	}
+
+	bool Intersection::meshVsMeshIntersection(std::vector<glm::vec3> mesh1, std::vector<glm::vec3> mesh2, int earlyExitLevel) {
+		bool returnValue = false;
+
+		for (size_t i = 0; i < mesh1.size(); i += 3) {
+			glm::vec3 tri1[3] = { mesh1[i], mesh1[i + 1], mesh1[i + 2] };
+			for (size_t j = 0; j < mesh2.size(); j += 3) {
+				glm::vec3 tri2[3] = { mesh2[j], mesh2[j + 1], mesh2[j + 2] };
+				if (SAT(tri1, tri2, earlyExitLevel)) {
+					if (earlyExitLevel >= 1) {
+						return true;
+					}
+					else {
+						returnValue = true;
+					}
+				}
+			}
+		}
+		return returnValue;
+	}
+
 }

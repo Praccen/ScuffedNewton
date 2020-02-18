@@ -46,6 +46,19 @@ namespace Scuffed {
 		static bool OnTriangle(const float u, const float v, const float w);
 
 		static bool SATTest(const glm::vec3& testAxis, const glm::vec3& triPos1, const glm::vec3& triPos2, const glm::vec3& triPos3, const glm::vec3& aabbHalfSize, glm::vec3* intersectionAxis, float* depth);
+	
+	private:
+		// ----SAT functions----
+		std::vector<glm::vec3> getEdges(const glm::vec3 tri[3]);
+
+		std::vector<glm::vec3> getAxes(const glm::vec3 tri1[3], const glm::vec3 tri2[3]);
+
+		bool projectionOverlapTest(glm::vec3& testVec, const glm::vec3 tri1[3], const glm::vec3 tri2[3]);
+
+		bool SAT(const glm::vec3 tri1[3], const glm::vec3 tri2[3], int earlyExitLevel);
+
+		bool meshVsMeshIntersection(std::vector<glm::vec3> mesh1, std::vector<glm::vec3> mesh2, int earlyExitLevel);
+		// ---------------------
 	};
 
 }

@@ -7,3 +7,4 @@
 - Add support for Bounding spheres
 - Add support for Capsules
 - Make interface pretty and user friendly
+- Make it possible to render bounding boxes in some way
