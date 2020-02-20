@@ -183,6 +183,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Src\Calculations\Box.h" />
     <ClInclude Include="Src\Calculations\Shape.h" />
     <ClInclude Include="Src\Calculations\Triangle.h" />
     <ClInclude Include="Src\Components\BoundingBoxComponent.h" />
@@ -218,6 +219,7 @@
     <ClInclude Include="Src\Utils\Utils.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Src\Calculations\Box.cpp" />
     <ClCompile Include="Src\Calculations\Shape.cpp" />
     <ClCompile Include="Src\Calculations\Triangle.cpp" />
     <ClCompile Include="Src\Components\BoundingBoxComponent.cpp" />

@@ -494,10 +494,21 @@ namespace Scuffed {
 		std::vector<glm::vec3> s1Edges = shape1.getEdges();
 		std::vector<glm::vec3> s2Edges = shape2.getEdges();
 
+		// Calculate cross vectors
 		for (size_t i = 0; i < s1Edges.size(); i++) {
 			for (size_t j = 0; j < s2Edges.size(); j++) {
 				axes.emplace_back();
 				axes.back() = glm::normalize(glm::cross(s1Edges[i], s2Edges[j]));
+			}
+		}
+
+		// TODO: Remove duplicates
+		for (size_t i = 0; i < axes.size(); i++) {
+			for (size_t j = i + 1; j < axes.size(); j++) {
+				if (axes[i] == axes[j]) {
+					axes.erase(axes.begin() + j);
+					j--;
+				}
 			}
 		}
 
