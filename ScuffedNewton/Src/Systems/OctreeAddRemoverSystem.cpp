@@ -46,14 +46,9 @@ namespace Scuffed {
 	void OctreeAddRemoverSystem::update(float dt) {
 		m_octree->update();
 
-		//std::cout << "OctreeAddRemover system ran\n";
-
-		// prepare matrixes and bounding boxes
 		for (auto e : entities) {
 			e->getComponent<BoundingBoxComponent>()->getBoundingBox()->prepareCorners();
-			//std::cout << e->getId() << ", ";
 		}
-		//std::cout << "\n";
 	}
 
 	void OctreeAddRemoverSystem::updatePerFrame(float dt) {

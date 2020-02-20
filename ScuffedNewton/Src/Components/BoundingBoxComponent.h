@@ -1,10 +1,9 @@
 #pragma once
 
 #include "Component.h"
+#include "../DataTypes/BoundingBox.h"
 
 namespace Scuffed {
-
-	class BoundingBox;
 
 	class BoundingBoxComponent : public Component {
 	public:

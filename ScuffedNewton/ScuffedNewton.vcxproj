@@ -183,6 +183,8 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Src\Calculations\Shape.h" />
+    <ClInclude Include="Src\Calculations\Triangle.h" />
     <ClInclude Include="Src\Components\BoundingBoxComponent.h" />
     <ClInclude Include="Src\Components\CollidableComponent.h" />
     <ClInclude Include="Src\Components\CollisionComponent.h" />
@@ -190,7 +192,6 @@
     <ClInclude Include="Src\Components\Components.h" />
     <ClInclude Include="Src\Components\MeshComponent.h" />
     <ClInclude Include="Src\Components\MovementComponent.h" />
-    <ClInclude Include="Src\Components\RagdollComponent.h" />
     <ClInclude Include="Src\Components\SpeedLimitComponent.h" />
     <ClInclude Include="Src\Components\TransformComponent.h" />
     <ClInclude Include="Src\DataStructures\Scene.h" />
@@ -201,7 +202,6 @@
     <ClInclude Include="Src\pch.h" />
     <ClInclude Include="Src\DataTypes\BoundingBox.h" />
     <ClInclude Include="Src\DataTypes\CollisionShapes.h" />
-    <ClInclude Include="Src\DataTypes\Cylinder.h" />
     <ClInclude Include="Src\DataTypes\Entity.h" />
     <ClInclude Include="Src\Calculations\Intersection.h" />
     <ClInclude Include="Src\DataStructures\Octree.h" />
@@ -218,12 +218,13 @@
     <ClInclude Include="Src\Utils\Utils.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Src\Calculations\Shape.cpp" />
+    <ClCompile Include="Src\Calculations\Triangle.cpp" />
     <ClCompile Include="Src\Components\BoundingBoxComponent.cpp" />
     <ClCompile Include="Src\Components\CollidableComponent.cpp" />
     <ClCompile Include="Src\Components\CollisionComponent.cpp" />
     <ClCompile Include="Src\Components\MeshComponent.cpp" />
     <ClCompile Include="Src\Components\MovementComponent.cpp" />
-    <ClCompile Include="Src\Components\RagdollComponent.cpp" />
     <ClCompile Include="Src\Components\SpeedLimitComponent.cpp" />
     <ClCompile Include="Src\Components\TransformComponent.cpp" />
     <ClCompile Include="Src\DataStructures\Scene.cpp" />

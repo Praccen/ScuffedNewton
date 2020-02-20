@@ -3,6 +3,8 @@
 
 #include "Intersection.h"
 
+#include "Shape.h"
+
 namespace Scuffed {
 
 	bool Intersection::AabbWithAabb(const glm::vec3& aabb1Pos, const glm::vec3& aabb1HalfSize, const glm::vec3& aabb2Pos, const glm::vec3& aabb2HalfSize) {
@@ -206,30 +208,6 @@ namespace Scuffed {
 
 		// True if the distance is smaller than the radius
 		return (distSquared < sphere.radius * sphere.radius);
-	}
-
-	bool Intersection::AabbWithVerticalCylinder(const glm::vec3& aabbPos, const glm::vec3& aabbHalfSize, const glm::vec3* aabbCorners, const VerticalCylinder& cyl) {
-		float yPosDifference = aabbPos.y - cyl.position.y;
-		float halfHeightSum = aabbHalfSize.y + cyl.halfHeight;
-
-		// Check if the objects are too far from each other along the y-axis
-		if (halfHeightSum < std::fabsf(yPosDifference)) {
-			return false;
-		}
-
-		// Only 2D calculations below
-
-		// Find the point on the aabb closest to the cylinder
-		float closestOnAabbX = std::fminf(std::fmaxf(cyl.position.x, aabbCorners[0].x), aabbCorners[1].x);
-		float closestOnAabbZ = std::fminf(std::fmaxf(cyl.position.z, aabbCorners[0].z), aabbCorners[4].z);
-
-		// Distance from cylinder to closest point on rectangle
-		float distX = closestOnAabbX - cyl.position.x;
-		float distZ = closestOnAabbZ - cyl.position.z;
-		float distSquared = distX * distX + distZ * distZ;
-
-		// True if the distance is smaller than the radius
-		return (distSquared < cyl.radius * cyl.radius);
 	}
 
 	bool Intersection::SphereWithPlane(const Sphere& sphere, const glm::vec3& planeNormal, const float planeDistance) {
@@ -473,35 +451,13 @@ namespace Scuffed {
 		return true;
 	}
 
-	std::vector<glm::vec3> Intersection::getEdges(const glm::vec3 tri[3]) {
-		std::vector<glm::vec3> edges = { tri[1] - tri[0], tri[2] - tri[0], tri[2] - tri[1] };
-		return edges;
-	}
-
-	std::vector<glm::vec3> Intersection::getAxes(const glm::vec3 tri1[3], const glm::vec3 tri2[3]) {
-		std::vector<glm::vec3> axes(11);
-
-		std::vector<glm::vec3> edges1 = getEdges(tri1);
-		std::vector<glm::vec3> edges2 = getEdges(tri2);
-
-		axes[0] = glm::cross(edges1[0], edges1[1]);
-		axes[1] = glm::cross(edges2[0], edges2[1]);
-
-		for (size_t i = 0; i < edges1.size(); i++) {
-			for (size_t j = 0; j < edges2.size(); j++) {
-				axes[2 + i * 3 + j] = glm::cross(edges1[i], edges2[j]);
-			}
-		}
-		return axes;
-	}
-
-	bool Intersection::projectionOverlapTest(glm::vec3& testVec, const glm::vec3 tri1[3], const glm::vec3 tri2[3]) {
+	float Intersection::projectionOverlapTest(glm::vec3& testVec, const std::vector<glm::vec3>& shape1, const std::vector<glm::vec3>& shape2) {
 		testVec = glm::normalize(testVec);
-		float min1 = 9999.0f, min2 = 9999.0f;
-		float max1 = -9999.0f, max2 = -9999.0f;
+		float min1 = INFINITY, min2 = INFINITY;
+		float max1 = -INFINITY, max2 = -INFINITY;
 
-		for (int i = 0; i < 3; i++) {
-			float tempDot1 = glm::dot(tri1[i], testVec);
+		for (int i = 0; i < shape1.size(); i++) {
+			float tempDot1 = glm::dot(shape1[i], testVec);
 
 			if (tempDot1 < min1) {
 				min1 = tempDot1;
@@ -509,8 +465,10 @@ namespace Scuffed {
 			if (tempDot1 > max1) {
 				max1 = tempDot1;
 			}
+		}
 
-			float tempDot2 = glm::dot(tri2[i], testVec);
+		for (int i = 0; i < shape2.size(); i++) {
+			float tempDot2 = glm::dot(shape2[i], testVec);
 
 			if (tempDot2 < min2) {
 				min2 = tempDot2;
@@ -520,48 +478,43 @@ namespace Scuffed {
 			}
 		}
 
-		if (max2 > min1&& max1 > min2) {
-			return true;
+		if (max2 > min1 && max1 > min2) {
+			return glm::min(max2 - min1, max1 - min2);
 		}
-		return false;
+		return -1.f;
 	}
 
-	bool Intersection::SAT(const glm::vec3 tri1[3], const glm::vec3 tri2[3], int earlyExitLevel) {
-		bool returnValue = true;
-		std::vector<glm::vec3> axes = getAxes(tri1, tri2);
+	bool Intersection::SAT(Shape& shape1, Shape& shape2, glm::vec3& intersectionAxis, float& intersectionDepth) {
+		std::vector<glm::vec3> axes;
+		std::vector<glm::vec3> s1Norms = shape1.getNormals();
+		std::vector<glm::vec3> s2Norms = shape2.getNormals();
+		axes.insert(axes.end(), s1Norms.begin(), s1Norms.end());
+		axes.insert(axes.end(), s2Norms.begin(), s2Norms.end());
+
+		std::vector<glm::vec3> s1Edges = shape1.getEdges();
+		std::vector<glm::vec3> s2Edges = shape2.getEdges();
+
+		for (size_t i = 0; i < s1Edges.size(); i++) {
+			for (size_t j = 0; j < s2Edges.size(); j++) {
+				axes.emplace_back();
+				axes.back() = glm::normalize(glm::cross(s1Edges[i], s2Edges[j]));
+			}
+		}
 
 		for (size_t i = 0; i < axes.size(); i++) {
-			if (!projectionOverlapTest(axes[i], tri1, tri2)) {
-				if (earlyExitLevel >= 2) {
-					return false;
-				}
-				else {
-					returnValue = false;
+			float intersection = projectionOverlapTest(axes[i], shape1.getVertices(), shape2.getVertices());
+			if (intersection < 0.f) {
+				return false;
+			}
+			else {
+				if (intersection < intersectionDepth) {
+					intersectionDepth = intersection;
+					intersectionAxis = axes[i];
 				}
 			}
 		}
 
-		return returnValue;
-	}
-
-	bool Intersection::meshVsMeshIntersection(std::vector<glm::vec3> mesh1, std::vector<glm::vec3> mesh2, int earlyExitLevel) {
-		bool returnValue = false;
-
-		for (size_t i = 0; i < mesh1.size(); i += 3) {
-			glm::vec3 tri1[3] = { mesh1[i], mesh1[i + 1], mesh1[i + 2] };
-			for (size_t j = 0; j < mesh2.size(); j += 3) {
-				glm::vec3 tri2[3] = { mesh2[j], mesh2[j + 1], mesh2[j + 2] };
-				if (SAT(tri1, tri2, earlyExitLevel)) {
-					if (earlyExitLevel >= 1) {
-						return true;
-					}
-					else {
-						returnValue = true;
-					}
-				}
-			}
-		}
-		return returnValue;
+		return true;
 	}
 
 }

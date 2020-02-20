@@ -1,10 +1,11 @@
 #pragma once
 
-#include "../DataTypes/BoundingBox.h"
-#include "../DataTypes/Cylinder.h"
 #include "../DataTypes/Sphere.h"
 
+
 namespace Scuffed {
+
+	class Shape;
 
 	class Intersection {
 	public:
@@ -14,7 +15,6 @@ namespace Scuffed {
 		static bool AabbWithTriangle(const glm::vec3& aabbPos, const glm::vec3& aabbHalfSize, const glm::vec3& triPos1, const glm::vec3& triPos2, const glm::vec3& triPos3, glm::vec3* intersectionAxis, float* intersectionDepth);
 		static bool AabbWithPlane(const glm::vec3* aabbCorners, const glm::vec3& planeNormal, const float planeDistance);
 		static bool AabbWithSphere(const glm::vec3* aabbCorners, const Sphere& sphere);
-		static bool AabbWithVerticalCylinder(const glm::vec3& aabbPos, const glm::vec3& aabbHalfSize, const glm::vec3* aabbCorners, const VerticalCylinder& cyl);
 
 		static bool SphereWithPlane(const Sphere& sphere, const glm::vec3& planeNormal, const float planeDistance);
 
@@ -28,6 +28,7 @@ namespace Scuffed {
 		//static bool FrustumWithAabb(const Frustum& frustum, const glm::vec3* aabbCorners);
 
 		static glm::vec3 PointProjectedOnPlane(const glm::vec3& point, const glm::vec3& planeNormal, const float planeDistance);
+
 	private:
 		//Private constructor so an instance can't be created
 		Intersection() {};
@@ -38,17 +39,11 @@ namespace Scuffed {
 
 		static bool SATTest(const glm::vec3& testAxis, const glm::vec3& triPos1, const glm::vec3& triPos2, const glm::vec3& triPos3, const glm::vec3& aabbHalfSize, glm::vec3* intersectionAxis, float* depth);
 	
-	private:
+	public:
 		// ----SAT functions----
-		std::vector<glm::vec3> getEdges(const glm::vec3 tri[3]);
+		static float projectionOverlapTest(glm::vec3& testVec, const std::vector<glm::vec3>& shape1, const std::vector<glm::vec3>& shape2);
 
-		std::vector<glm::vec3> getAxes(const glm::vec3 tri1[3], const glm::vec3 tri2[3]);
-
-		bool projectionOverlapTest(glm::vec3& testVec, const glm::vec3 tri1[3], const glm::vec3 tri2[3]);
-
-		bool SAT(const glm::vec3 tri1[3], const glm::vec3 tri2[3], int earlyExitLevel);
-
-		bool meshVsMeshIntersection(std::vector<glm::vec3> mesh1, std::vector<glm::vec3> mesh2, int earlyExitLevel);
+		static bool SAT(Shape& shape1, Shape& shape2, glm::vec3& intersectionAxis, float& intersectionDepth);
 		// ---------------------
 	};
 
