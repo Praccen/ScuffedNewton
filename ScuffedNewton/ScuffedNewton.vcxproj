@@ -202,7 +202,6 @@
     <ClInclude Include="Src\Interface.h" />
     <ClInclude Include="Src\pch.h" />
     <ClInclude Include="Src\DataTypes\BoundingBox.h" />
-    <ClInclude Include="Src\DataTypes\CollisionShapes.h" />
     <ClInclude Include="Src\DataTypes\Entity.h" />
     <ClInclude Include="Src\Calculations\Intersection.h" />
     <ClInclude Include="Src\DataStructures\Octree.h" />
@@ -241,7 +240,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Src\DataTypes\BoundingBox.cpp" />
-    <ClCompile Include="Src\DataTypes\CollisionShapes.cpp" />
     <ClCompile Include="Src\DataTypes\Entity.cpp" />
     <ClCompile Include="Src\Calculations\Intersection.cpp" />
     <ClCompile Include="Src\DataStructures\Octree.cpp" />

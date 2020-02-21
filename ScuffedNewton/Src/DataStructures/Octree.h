@@ -3,8 +3,6 @@
 #include <glm/glm.hpp>
 #include <vector>
 
-#include "../DataTypes/CollisionShapes.h"
-
 namespace Scuffed {
 
 	class BoundingBox;
@@ -18,41 +16,21 @@ namespace Scuffed {
 		public:
 			CollisionInfo() {
 				intersectionAxis = { 0.0f, 0.0f, 0.0f };
-				intersectionPosition = { 0.0f, 0.0f, 0.0f };
-				shape = nullptr;
+				intersectionDepth = 0.f;
+				//intersectionPosition = { 0.0f, 0.0f, 0.0f };
 				entity = nullptr;
+				shape = nullptr;
 			};
 
 			~CollisionInfo() {
-				if (shape != nullptr) {
-					shape->keeperTracker--;
-					if (shape->keeperTracker == 0) {
-						delete shape;
-					}
-				}
+				
 			};
 
-
-			CollisionInfo(const CollisionInfo& other) {
-				this->intersectionAxis = other.intersectionAxis;
-				this->intersectionPosition = other.intersectionPosition;
-				other.shape->keeperTracker++;
-				this->shape = other.shape;
-				this->entity = other.entity;
-			}
-			CollisionInfo& operator=(const CollisionInfo& other) {
-				this->intersectionAxis = other.intersectionAxis;
-				this->intersectionPosition = other.intersectionPosition;
-				other.shape->keeperTracker++;
-				this->shape = other.shape;
-				this->entity = other.entity;
-				return *this;
-			}
-
 			glm::vec3 intersectionAxis;
-			glm::vec3 intersectionPosition;
-			CollisionShape* shape;
+			float intersectionDepth;
+			//glm::vec3 intersectionPosition;
 			Entity* entity;
+			Shape* shape;
 		};
 
 		struct RayIntersectionInfo {

@@ -12,16 +12,7 @@ namespace Scuffed {
 		m_cornersNeedUpdate = true;
 		prepareCorners();
 
-		glm::vec3 planes[6] = {
-			{m_halfSize.x, 0.f, 0.f},
-			{-m_halfSize.x, 0.f, 0.f},
-			{0.f, m_halfSize.y, 0.f},
-			{0.f, -m_halfSize.y, 0.f},
-			{0.f, 0.f, m_halfSize.z},
-			{0.f, 0.f, -m_halfSize.z}
-		};
-
-		m_box = SN_NEW Box(planes, m_position);
+		m_box = SN_NEW Box(m_halfSize, m_position);
 		m_boxNeedsUpdate = false;
 	}
 

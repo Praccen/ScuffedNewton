@@ -6,6 +6,7 @@ namespace Scuffed {
 
 	class Box : public Shape {
 	public:
+		Box(const glm::vec3& halfSize, const glm::vec3& middle);
 		Box(glm::vec3 planes[6], const glm::vec3& middle); //Assumes Orthogonal
 		virtual ~Box();
 
@@ -16,6 +17,9 @@ namespace Scuffed {
 		virtual std::vector<glm::vec3>& getEdges();
 		virtual std::vector<glm::vec3>& getVertices();
 		virtual glm::vec3& getMiddle();
+
+	private:
+		void init();
 
 	private:
 		std::vector<glm::vec3> m_originalVertices; // Not effected by matrix

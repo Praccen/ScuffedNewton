@@ -8,6 +8,10 @@
 #include "../DataTypes/Entity.h"
 #include "../DataTypes/BoundingBox.h"
 
+#include "../Calculations/Intersection.h"
+
+#include "../Shapes/Box.h"
+
 namespace Scuffed {
 
 	CollisionSystem::CollisionSystem() {
@@ -39,6 +43,10 @@ namespace Scuffed {
 
 			CollisionComponent* collision = e->getComponent<CollisionComponent>();
 
+			for (auto it : collision->collisions) {
+				delete it.shape;
+			}
+
 			collision->collisions.clear();
 
 			collisionUpdate(e, dt);
@@ -58,18 +66,17 @@ namespace Scuffed {
 	}
 
 	void CollisionSystem::collisionUpdate(Entity* e, const float dt) {
-		//Update collision data
+		// Update collision data
 		CollisionComponent* collision = e->getComponent<CollisionComponent>();
-		std::vector<Octree::CollisionInfo> collisions;
 
-		m_octree->getCollisions(e, e->getComponent<BoundingBoxComponent>()->getBoundingBox(), &collisions, collision->doSimpleCollisions);
-		handleCollisions(e, collisions, dt);
+		m_octree->getCollisions(e, e->getComponent<BoundingBoxComponent>()->getBoundingBox(), &collision->collisions, collision->doSimpleCollisions);
+		handleCollisions(e, collision->collisions, dt);
 	}
 
 	const bool CollisionSystem::handleCollisions(Entity* e, std::vector<Octree::CollisionInfo>& collisions, const float dt) {
 		MovementComponent* movement = e->getComponent<MovementComponent>();
 		CollisionComponent* collision = e->getComponent<CollisionComponent>();
-		const BoundingBox* boundingBox = e->getComponent<BoundingBoxComponent>()->getBoundingBox();
+		BoundingBox* boundingBox = e->getComponent<BoundingBoxComponent>()->getBoundingBox();
 
 		bool collisionFound = false;
 		collision->onGround = false;
@@ -79,12 +86,11 @@ namespace Scuffed {
 		if (collisionCount > 0) {
 			std::vector<int> groundIndices;
 			glm::vec3 sumVec(0.0f);
-			std::vector<Octree::CollisionInfo> trueCollisions;
 
-			//Gather info
-			gatherCollisionInformation(e, boundingBox, collisions, trueCollisions, sumVec, groundIndices, dt);
+			// Gather info
+			gatherCollisionInformation(e, boundingBox, collisions, sumVec, groundIndices, dt);
 
-			if (trueCollisions.size() > 0) {
+			if (collisions.size() > 0) {
 				collisionFound = true;
 			}
 
@@ -92,52 +98,45 @@ namespace Scuffed {
 				collision->onGround = true;
 			}
 
-			//Handle true collisions
-			updateVelocityVec(e, movement->velocity, trueCollisions, sumVec, groundIndices, dt);
+			// Handle true collisions
+			updateVelocityVec(e, movement->velocity, collisions, sumVec, groundIndices, dt);
 		}
 
 		return collisionFound;
 	}
 
-	void CollisionSystem::gatherCollisionInformation(Entity* e, const BoundingBox* boundingBox, std::vector<Octree::CollisionInfo>& collisions, std::vector<Octree::CollisionInfo>& trueCollisions, glm::vec3& sumVec, std::vector<int>& groundIndices, const float dt) {
+	void CollisionSystem::gatherCollisionInformation(Entity* e, BoundingBox* boundingBox, std::vector<Octree::CollisionInfo>& collisions, glm::vec3& sumVec, std::vector<int>& groundIndices, const float dt) {
 		CollisionComponent* collision = e->getComponent<CollisionComponent>();
 
-		const size_t collisionCount = collisions.size();
+		size_t collisionCount = collisions.size();
 
 		if (collisionCount > 0) {
-			//Get the actual intersection axises
+			// Get the actual intersection axises
 			for (size_t i = 0; i < collisionCount; i++) {
 				Octree::CollisionInfo& collisionInfo_i = collisions[i];
 
-				glm::vec3 intersectionAxis;
-				float intersectionDepth;
-
-				if (collisionInfo_i.shape->getIntersectionDepthAndAxis(boundingBox, &intersectionAxis, &intersectionDepth)) {
-					collisionInfo_i.intersectionAxis = intersectionAxis;
-
+				if (Intersection::SAT(collisionInfo_i.shape, boundingBox->getBox(), &collisionInfo_i.intersectionAxis, &collisionInfo_i.intersectionDepth)) {
 					sumVec += collisionInfo_i.intersectionAxis;
 
-					collisionInfo_i.intersectionPosition = collisionInfo_i.shape->getIntersectionPosition(boundingBox);
-
-					//Add collision to current collisions for collisionComponent
-					collision->collisions.push_back(collisionInfo_i);
-
-					//Add collision to true collisions
-					trueCollisions.push_back(collisionInfo_i);
-
-					//Save ground collisions
+					// Save ground collisions
 					if (collisionInfo_i.intersectionAxis.y > 0.7f) {
 						bool newGround = true;
 						for (size_t j = 0; j < groundIndices.size(); j++) {
-							if (collisionInfo_i.intersectionAxis == trueCollisions[groundIndices[j]].intersectionAxis) {
+							if (collisionInfo_i.intersectionAxis == collisions[groundIndices[j]].intersectionAxis) {
 								newGround = false;
 							}
 						}
 						if (newGround) {
-							//Save collision for friction calculation
-							groundIndices.push_back((int)trueCollisions.size() - 1);
+							// Save collision for friction calculation
+							groundIndices.push_back((int)i);
 						}
 					}
+				}
+				else {
+					// False collision (should not happen)
+					collisions.erase(collisions.begin() + i);
+					collisionCount--;
+					i--;
 				}
 			}
 		}
@@ -148,38 +147,38 @@ namespace Scuffed {
 
 		const size_t collisionCount = collisions.size();
 
-		//Loop through collisions and handle them
+		// Loop through collisions and handle them
 		for (size_t i = 0; i < collisionCount; i++) {
 			const Octree::CollisionInfo& collisionInfo_i = collisions[i];
 
-			//----Velocity changes from collisions----
+			// ----Velocity changes from collisions----
 
-			//Stop movement towards triangle
+			// Stop movement towards triangle
 			float projectionSize = glm::dot(velocity, -collisionInfo_i.intersectionAxis);
 
 			if (projectionSize > 0.0f) { //Is pushing against wall
-				velocity += collisionInfo_i.intersectionAxis * (projectionSize * (1.0f + collision->bounciness)); //Limit movement towards wall
+				velocity += collisionInfo_i.intersectionAxis * (projectionSize * (1.0f + collision->bounciness)); // Limit movement towards wall
 			}
 
 
-			//Tight angle corner special case
+			// Tight angle corner special case
 			const float dotProduct = glm::dot(collisionInfo_i.intersectionAxis, glm::normalize(sumVec));
-			if (dotProduct < 0.7072f && dotProduct > 0.0f) { //Colliding in a tight angle corner
+			if (dotProduct < 0.7072f && dotProduct > 0.0f) { // Colliding in a tight angle corner
 				glm::vec3 normalToNormal = sumVec - glm::dot(sumVec, collisionInfo_i.intersectionAxis) * collisionInfo_i.intersectionAxis;
 				normalToNormal = glm::normalize(normalToNormal);
 
-				//Stop movement towards corner
+				// Stop movement towards corner
 				projectionSize = glm::dot(velocity, -normalToNormal);
 
 				if (projectionSize > 0.0f) {
 					velocity += normalToNormal * projectionSize * (1.0f + collision->bounciness);
 				}
 			}
-			//----------------------------------------
+			// ----------------------------------------
 		}
 
-		//----Drag----
-		if (collision->onGround) { //Ground drag
+		// ----Drag----
+		if (collision->onGround) { // Ground drag
 			size_t nrOfGroundCollisions = groundIndices.size();
 			for (size_t i = 0; i < nrOfGroundCollisions; i++) {
 				const Octree::CollisionInfo& collisionInfo_ground_i = collisions[groundIndices[i]];
@@ -191,7 +190,7 @@ namespace Scuffed {
 				}
 			}
 		}
-		//------------
+		// ------------
 	}
 
 
@@ -205,7 +204,7 @@ namespace Scuffed {
 			float depth;
 			glm::vec3 axis;
 
-			if (collisionInfo_i.shape->getIntersectionDepthAndAxis(boundingBox, &axis, &depth)) {
+			if (Intersection::SAT(collisionInfo_i.shape, boundingBox->getBox(), &axis, &depth)) {
 				boundingBox->setPosition(boundingBox->getPosition() + axis * (depth - 0.0001f));
 				distance += axis * (depth - 0.0001f);
 			}

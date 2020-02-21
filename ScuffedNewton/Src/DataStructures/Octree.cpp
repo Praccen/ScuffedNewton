@@ -140,9 +140,6 @@ namespace Scuffed {
 								tempChildNode.parentNode = currentNode;
 								currentNode->childNodes.push_back(tempChildNode);
 
-								/*bc->getTransform()->setTranslation(tempChildBoundingBox->getPosition() - glm::vec3(0.0f, tempChildBoundingBox->getHalfSize().y, 0.0f));
-								bc->getTransform()->setScale(tempChildBoundingBox->getHalfSize() * 2.0f);*/
-
 								//Try to put meshes that was in this leaf node in the new child nodes.
 								for (int l = 0; l < currentNode->nrOfEntities; l++) {
 									if (addEntityRec(currentNode->entities[l], &currentNode->childNodes.back())) {
@@ -220,10 +217,9 @@ namespace Scuffed {
 		if (Intersection::SAT(entityBoundingBox->getBox(), shape)) {
 			outCollisionData->emplace_back();
 			outCollisionData->back().entity = meshEntity;
-			// TODO: Fix this scuffed shit
-			shape->setMatrix(meshEntity->getComponent<TransformComponent>()->getMatrixWithoutUpdate());
-			std::vector<glm::vec3> verts = shape->getVertices();
-			outCollisionData->back().shape = SN_NEW CollisionTriangle(verts[0], verts[1], verts[2], glm::normalize(glm::cross(glm::vec3(verts[0] - verts[1]), glm::vec3(verts[0] - verts[2]))));
+			std::vector<glm::vec3>& verts = shape->getVertices();
+			outCollisionData->back().shape = SN_NEW Triangle(verts[0], verts[1], verts[2]);
+			outCollisionData->back().shape->setMatrix(meshEntity->getComponent<TransformComponent>()->getMatrixWithoutUpdate());
 			// std::cout << "Collision detected with " + meshEntity->getId();
 		}
 	}
@@ -233,7 +229,7 @@ namespace Scuffed {
 		BoundingBox* nodeBoundingBox = currentNode->nodeBB;
 
 		// Early exit if Bounding box doesn't collide with the current node
-		if (!Intersection::AabbWithAabb(entityBoundingBox->getPosition(), entityBoundingBox->getHalfSize(), nodeBoundingBox->getPosition(), nodeBoundingBox->getHalfSize())) {
+		if (!Intersection::SAT(entityBoundingBox->getBox(), nodeBoundingBox->getBox())) {
 			return;
 		}
 		//Check against entities
@@ -246,7 +242,7 @@ namespace Scuffed {
 			BoundingBox* otherBoundingBox = currentNode->entities[i]->getComponent<BoundingBoxComponent>()->getBoundingBox();
 
 			// continue if Bounding box doesn't collide with entity bounding box
-			if (!Intersection::AabbWithAabb(entityBoundingBox->getPosition(), entityBoundingBox->getHalfSize(), otherBoundingBox->getPosition(), otherBoundingBox->getHalfSize())) {
+			if (!Intersection::SAT(entityBoundingBox->getBox(), otherBoundingBox->getBox())) {
 				continue;
 			}
 
@@ -292,8 +288,8 @@ namespace Scuffed {
 				Intersection::SAT(entityBoundingBox->getBox(), otherBoundingBox->getBox(), &intersectionAxis, &intersectionDepth);
 
 				outCollisionData->emplace_back();
-				outCollisionData->back().shape = SN_NEW CollisionAABB(otherBoundingBox->getPosition(), otherBoundingBox->getHalfSize(), intersectionAxis);
 				outCollisionData->back().entity = currentNode->entities[i];
+				outCollisionData->back().shape = SN_NEW Box(otherBoundingBox->getHalfSize(), otherBoundingBox->getPosition());
 			}
 		}
 
@@ -316,7 +312,8 @@ namespace Scuffed {
 
 			outIntersectionData->info.emplace_back();
 			outIntersectionData->info.back().entity = meshEntity;
-			outIntersectionData->info.back().shape = SN_NEW CollisionTriangle(v1, v2, v3, glm::normalize(glm::cross(glm::vec3(v1 - v2), glm::vec3(v1 - v3))));
+			outIntersectionData->info.back().shape = SN_NEW Triangle(v1, v2, v3);
+			outIntersectionData->info.back().shape->setMatrix(meshEntity->getComponent<TransformComponent>()->getMatrixWithoutUpdate());
 		}
 	}
 
@@ -389,7 +386,7 @@ namespace Scuffed {
 
 				outIntersectionData->info.emplace_back();
 				outIntersectionData->info.back().entity = currentNode->entities[i];
-				outIntersectionData->info.back().shape = SN_NEW CollisionAABB(collidableBoundingBox->getPosition(), collidableBoundingBox->getHalfSize(), intersectionAxis);
+				outIntersectionData->info.back().shape = SN_NEW Box(collidableBoundingBox->getHalfSize(), collidableBoundingBox->getPosition());
 			}
 		}
 

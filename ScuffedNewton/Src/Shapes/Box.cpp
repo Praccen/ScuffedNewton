@@ -1,18 +1,37 @@
 #include "../pch.h"
 #include "Box.h"
 
+Scuffed::Box::Box(const glm::vec3& halfSize, const glm::vec3& middle) {
+	init();
+
+	glm::vec3 planes[6] = {
+			{halfSize.x, 0.f, 0.f},
+			{-halfSize.x, 0.f, 0.f},
+			{0.f, halfSize.y, 0.f},
+			{0.f, -halfSize.y, 0.f},
+			{0.f, 0.f, halfSize.z},
+			{0.f, 0.f, -halfSize.z}
+	};
+
+	setData(planes, middle);
+}
+
 Scuffed::Box::Box(glm::vec3 planes[6], const glm::vec3& middle) { //Assumes Orthogonal
-	m_edges.resize(0);
-	m_planes.resize(6);
-	m_originalVertices.resize(8);
-	m_normals.resize(6);
-	m_vertices.resize(8);
+	init();
 
 	setData(planes, middle);
 }
 
 Scuffed::Box::~Box() {
 
+}
+
+void Scuffed::Box::init() {
+	m_edges.resize(0);
+	m_planes.resize(6);
+	m_originalVertices.resize(8);
+	m_normals.resize(6);
+	m_vertices.resize(8);
 }
 
 void Scuffed::Box::setData(glm::vec3 planes[6], const glm::vec3& middle) {

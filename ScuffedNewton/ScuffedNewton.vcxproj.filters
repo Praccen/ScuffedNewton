@@ -30,9 +30,6 @@
     <ClInclude Include="Src\DataTypes\BoundingBox.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Src\DataTypes\CollisionShapes.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Src\DataTypes\Entity.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -129,9 +126,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Src\DataTypes\BoundingBox.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\DataTypes\CollisionShapes.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Src\DataTypes\Entity.cpp">
