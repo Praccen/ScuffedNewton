@@ -108,13 +108,13 @@
     <ClInclude Include="Src\Interface.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Calculations\Shape.h">
+    <ClInclude Include="Src\Shapes\Box.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Calculations\Triangle.h">
+    <ClInclude Include="Src\Shapes\Shape.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Calculations\Box.h">
+    <ClInclude Include="Src\Shapes\Triangle.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -200,13 +200,13 @@
     <ClCompile Include="Src\Interface.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Calculations\Shape.cpp">
+    <ClCompile Include="Src\Shapes\Box.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Calculations\Triangle.cpp">
+    <ClCompile Include="Src\Shapes\Shape.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Calculations\Box.cpp">
+    <ClCompile Include="Src\Shapes\Triangle.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

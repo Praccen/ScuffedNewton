@@ -5,6 +5,9 @@
 #include "../DataTypes/Entity.h"
 #include "../DataTypes/Mesh.h"
 #include "../Components/Components.h"
+#include "../Shapes/Box.h"
+#include "../Shapes/Triangle.h"
+#include "../Shapes/Shape.h"
 
 #include "../Utils/Utils.h"
 
@@ -213,18 +216,21 @@ namespace Scuffed {
 		}
 	}
 
-	void Octree::getCollisionData(const BoundingBox* entityBoundingBox, Entity* meshEntity, const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2, std::vector<CollisionInfo>* outCollisionData, const bool checkBackfaces) {
-		if (Intersection::AabbWithTriangle(entityBoundingBox->getPosition(), entityBoundingBox->getHalfSize(), v0, v1, v2, checkBackfaces)) {
+	void Octree::getCollisionData(BoundingBox* entityBoundingBox, Entity* meshEntity, Shape* shape, std::vector<CollisionInfo>* outCollisionData, const bool checkBackfaces) {
+		if (Intersection::SAT(entityBoundingBox->getBox(), shape)) {
 			outCollisionData->emplace_back();
 			outCollisionData->back().entity = meshEntity;
-			outCollisionData->back().shape = SN_NEW CollisionTriangle(v0, v1, v2, glm::normalize(glm::cross(glm::vec3(v0 - v1), glm::vec3(v0 - v2))));
-			//std::cout << "Collision detected with " + meshEntity->getId();
+			// TODO: Fix this scuffed shit
+			shape->setMatrix(meshEntity->getComponent<TransformComponent>()->getMatrixWithoutUpdate());
+			std::vector<glm::vec3> verts = shape->getVertices();
+			outCollisionData->back().shape = SN_NEW CollisionTriangle(verts[0], verts[1], verts[2], glm::normalize(glm::cross(glm::vec3(verts[0] - verts[1]), glm::vec3(verts[0] - verts[2]))));
+			// std::cout << "Collision detected with " + meshEntity->getId();
 		}
 	}
 
 	// Shouldn't modify any components
-	void Octree::getCollisionsRec(Entity* entity, const BoundingBox* entityBoundingBox, Node* currentNode, std::vector<CollisionInfo>* outCollisionData, const bool doSimpleCollisions, const bool checkBackfaces) {
-		const BoundingBox* nodeBoundingBox = currentNode->nodeBB;
+	void Octree::getCollisionsRec(Entity* entity, BoundingBox* entityBoundingBox, Node* currentNode, std::vector<CollisionInfo>* outCollisionData, const bool doSimpleCollisions, const bool checkBackfaces) {
+		BoundingBox* nodeBoundingBox = currentNode->nodeBB;
 
 		// Early exit if Bounding box doesn't collide with the current node
 		if (!Intersection::AabbWithAabb(entityBoundingBox->getPosition(), entityBoundingBox->getHalfSize(), nodeBoundingBox->getPosition(), nodeBoundingBox->getHalfSize())) {
@@ -237,7 +243,7 @@ namespace Scuffed {
 				continue;
 			}
 
-			const BoundingBox* otherBoundingBox = currentNode->entities[i]->getComponent<BoundingBoxComponent>()->getBoundingBox();
+			BoundingBox* otherBoundingBox = currentNode->entities[i]->getComponent<BoundingBoxComponent>()->getBoundingBox();
 
 			// continue if Bounding box doesn't collide with entity bounding box
 			if (!Intersection::AabbWithAabb(entityBoundingBox->getPosition(), entityBoundingBox->getHalfSize(), otherBoundingBox->getPosition(), otherBoundingBox->getHalfSize())) {
@@ -256,33 +262,31 @@ namespace Scuffed {
 					transformMatrix = transform->getMatrixWithoutUpdate();
 				}
 
+				entityBoundingBox->getBox()->setMatrix(glm::inverse(transformMatrix));
+
 				//for (unsigned int j = 0; j < model->getModel()->getNumberOfMeshes(); j++) {
 				if (int numIndices = mesh->mesh->getNumberOfIndices() > 0) { // Has indices
 					for (int j = 0; j < numIndices; j += 3) {
-						glm::vec3 v0, v1, v2;
-						v0 = glm::vec3(transformMatrix * glm::vec4(mesh->mesh->getVertexPosition(mesh->mesh->getVertexIndex(j)), 1.0f));
-						v1 = glm::vec3(transformMatrix * glm::vec4(mesh->mesh->getVertexPosition(mesh->mesh->getVertexIndex(j + 1)), 1.0f));
-						v2 = glm::vec3(transformMatrix * glm::vec4(mesh->mesh->getVertexPosition(mesh->mesh->getVertexIndex(j + 2)), 1.0f));
-						getCollisionData(entityBoundingBox, currentNode->entities[i], v0, v1, v2, outCollisionData, checkBackfaces);
+						Triangle triangle(mesh->mesh->getVertexPosition(mesh->mesh->getVertexIndex(j)), mesh->mesh->getVertexPosition(mesh->mesh->getVertexIndex(j + 1)), mesh->mesh->getVertexPosition(mesh->mesh->getVertexIndex(j + 2)));
+						getCollisionData(entityBoundingBox, currentNode->entities[i], &triangle, outCollisionData, checkBackfaces);
 					}
 				}
 				else if (int numVertices = mesh->mesh->getNumberOfVertices() > 0) {
 					for (int j = 0; j < mesh->mesh->getNumberOfVertices(); j += 3) {
-						glm::vec3 v0, v1, v2;
-						v0 = glm::vec3(transformMatrix * glm::vec4(mesh->mesh->getVertexPosition(j), 1.0f));
-						v1 = glm::vec3(transformMatrix * glm::vec4(mesh->mesh->getVertexPosition(j + 1), 1.0f));
-						v2 = glm::vec3(transformMatrix * glm::vec4(mesh->mesh->getVertexPosition(j + 2), 1.0f));
-						getCollisionData(entityBoundingBox, currentNode->entities[i], v0, v1, v2, outCollisionData, checkBackfaces);
+						Triangle triangle(mesh->mesh->getVertexPosition(j), mesh->mesh->getVertexPosition(j + 1), mesh->mesh->getVertexPosition(j + 2));
+						getCollisionData(entityBoundingBox, currentNode->entities[i], &triangle, outCollisionData, checkBackfaces);
 					}
 				}
 				//}
+
+				entityBoundingBox->getBox()->setMatrix(glm::mat4(1.0f)); //Reset bounding box matrix to identity
 			}
 			else { // No model or simple collision opportunity
 			 // Collide with bounding box
 				glm::vec3 intersectionAxis;
 				float intersectionDepth;
 
-				Intersection::AabbWithAabb(entityBoundingBox->getPosition(), entityBoundingBox->getHalfSize(), otherBoundingBox->getPosition(), otherBoundingBox->getHalfSize(), &intersectionAxis, &intersectionDepth);
+				Intersection::SAT(entityBoundingBox->getBox(), otherBoundingBox->getBox(), &intersectionAxis, &intersectionDepth);
 
 				outCollisionData->emplace_back();
 				outCollisionData->back().shape = SN_NEW CollisionAABB(otherBoundingBox->getPosition(), otherBoundingBox->getHalfSize(), intersectionAxis);
@@ -494,7 +498,7 @@ namespace Scuffed {
 		pruneTreeRec(&m_baseNode);
 	}
 
-	void Octree::getCollisions(Entity* entity, const BoundingBox* entityBoundingBox, std::vector<CollisionInfo>* outCollisionData, const bool doSimpleCollisions, const bool checkBackfaces) {
+	void Octree::getCollisions(Entity* entity, BoundingBox* entityBoundingBox, std::vector<CollisionInfo>* outCollisionData, const bool doSimpleCollisions, const bool checkBackfaces) {
 		getCollisionsRec(entity, entityBoundingBox, &m_baseNode, outCollisionData, doSimpleCollisions, checkBackfaces);
 	}
 
