@@ -22,8 +22,8 @@ namespace Scuffed {
 				shape = nullptr;
 			};
 
-			~CollisionInfo() {
-				
+			virtual ~CollisionInfo() {
+
 			};
 
 			glm::vec3 intersectionAxis;
@@ -71,7 +71,7 @@ namespace Scuffed {
 
 	public:
 		Octree(Model* boundingBoxModel = nullptr);
-		~Octree();
+		virtual ~Octree();
 
 		virtual void addEntity(Entity* newEntity);
 		virtual void addEntities(std::vector<Entity*>* newEntities);

@@ -27,7 +27,7 @@ namespace Scuffed {
 
 	public:
 		BoundingBox();
-		~BoundingBox();
+		virtual ~BoundingBox();
 
 		virtual const glm::vec3& getPosition() const;
 		virtual const glm::vec3& getHalfSize() const;

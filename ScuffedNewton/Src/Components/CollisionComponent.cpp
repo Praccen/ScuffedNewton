@@ -13,7 +13,9 @@ namespace Scuffed {
 	}
 
 	CollisionComponent::~CollisionComponent() {
-
+		for (auto it : collisions) {
+			delete it.shape;
+		}
 	}
 
 }

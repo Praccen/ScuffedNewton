@@ -30,7 +30,7 @@ namespace Scuffed {
 		static void Barycentric(const glm::vec3& p, const glm::vec3& a, const glm::vec3& b, const glm::vec3& c, float& outU, float& outV, float& outW);
 		static bool OnTriangle(const float u, const float v, const float w);
 
-		static bool SATTest(const glm::vec3& testAxis, const glm::vec3& triPos1, const glm::vec3& triPos2, const glm::vec3& triPos3, const glm::vec3& aabbHalfSize, glm::vec3* intersectionAxis, float* depth);
+		static float dot(const glm::vec3& v1, const glm::vec3& v2);
 	
 	public:
 		// ----SAT functions----

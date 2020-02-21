@@ -223,48 +223,37 @@ namespace Scuffed {
 		return ((0.0f <= v && v <= 1.0f) && (0.0f <= w && w <= 1.0f) && (0.0f <= u && u <= 1.0f));
 	}
 
-	bool Intersection::SATTest(const glm::vec3& testAxis, const glm::vec3& triPos1, const glm::vec3& triPos2, const glm::vec3& triPos3, const glm::vec3& aabbSize, glm::vec3* intersectionAxis, float* depth) {
-		glm::vec3 p = glm::vec3(glm::dot(testAxis, triPos1), glm::dot(testAxis, triPos2), glm::dot(testAxis, triPos3));
-		float r = aabbSize.x * glm::abs(testAxis.x) + aabbSize.y * glm::abs(testAxis.y) + aabbSize.z * glm::abs(testAxis.z);
-
-		float tempDepth = glm::min(r - glm::min(p.x, glm::min(p.y, p.z)), glm::max(p.x, glm::max(p.y, p.z)) + r);
-
-		if (tempDepth < 0.0f) {
-			return false;
-		}
-		else {
-			//Save depth along axis if lower than previous
-			if (tempDepth < *depth) {
-				*depth = tempDepth;
-				*intersectionAxis = testAxis;
-			}
-		}
-		return true;
+	float Intersection::dot(const glm::vec3& v1, const glm::vec3& v2) {
+		return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
 	}
 
 	float Intersection::projectionOverlapTest(glm::vec3& testVec, const std::vector<glm::vec3>& shape1, const std::vector<glm::vec3>& shape2) {
 		float min1 = INFINITY, min2 = INFINITY;
 		float max1 = -INFINITY, max2 = -INFINITY;
 
-		for (size_t i = 0; i < shape1.size(); i++) {
-			float tempDot1 = glm::dot(shape1[i], testVec);
+		float tempDot;
 
-			if (tempDot1 < min1) {
-				min1 = tempDot1;
+		size_t shape1Size = shape1.size();
+		for (size_t i = 0; i < shape1Size; i++) {
+			tempDot = dot(shape1[i], testVec);
+
+			if (tempDot < min1) {
+				min1 = tempDot;
 			}
-			if (tempDot1 > max1) {
-				max1 = tempDot1;
+			if (tempDot > max1) {
+				max1 = tempDot;
 			}
 		}
 
-		for (size_t i = 0; i < shape2.size(); i++) {
-			float tempDot2 = glm::dot(shape2[i], testVec);
+		size_t shape2Size = shape2.size();
+		for (size_t i = 0; i < shape2Size; i++) {
+			float tempDot = dot(shape2[i], testVec);
 
-			if (tempDot2 < min2) {
-				min2 = tempDot2;
+			if (tempDot < min2) {
+				min2 = tempDot;
 			}
-			if (tempDot2 > max2) {
-				max2 = tempDot2;
+			if (tempDot > max2) {
+				max2 = tempDot;
 			}
 		}
 
