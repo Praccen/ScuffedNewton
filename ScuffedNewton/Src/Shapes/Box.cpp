@@ -2,6 +2,12 @@
 #include "Box.h"
 
 Scuffed::Box::Box(glm::vec3 planes[6], const glm::vec3& middle) { //Assumes Orthogonal
+	m_edges.resize(0);
+	m_planes.resize(6);
+	m_originalVertices.resize(8);
+	m_normals.resize(6);
+	m_vertices.resize(8);
+
 	setData(planes, middle);
 }
 
@@ -12,8 +18,6 @@ Scuffed::Box::~Box() {
 void Scuffed::Box::setData(glm::vec3 planes[6], const glm::vec3& middle) {
 	matrix = glm::mat4(1.f);
 	m_middle = middle;
-
-	m_planes.resize(6);
 
 	for (int i = 0; i < 6; i++) {
 		m_planes[i] = planes[i];
@@ -33,8 +37,6 @@ void Scuffed::Box::setData(glm::vec3 planes[6], const glm::vec3& middle) {
 		}
 	}
 
-	m_originalVertices.resize(8);
-
 	// Find corners
 	for (int i = 0; i < 2; i++) {
 		for (int j = 0; j < 2; j++) {
@@ -44,6 +46,8 @@ void Scuffed::Box::setData(glm::vec3 planes[6], const glm::vec3& middle) {
 		}
 	}
 
+	m_normalsNeedsUpdate = true;
+	m_verticesNeedsUpdate = true;
 }
 
 void Scuffed::Box::setMatrix(const glm::mat4& newMatrix) {
@@ -65,19 +69,17 @@ void Scuffed::Box::setMatrix(const glm::mat4& newMatrix) {
 
 	m_middle = glm::vec3(matrix * glm::vec4(m_middle, 1.0f));
 
-	m_normals.clear();
-	m_vertices.clear();
+	m_normalsNeedsUpdate = true;
+	m_verticesNeedsUpdate = true;
 }
 
 std::vector<glm::vec3>& Scuffed::Box::getNormals() {
-	if (m_normals.size() == 0) {
-		m_normals.resize(6);
-
+	if (m_normalsNeedsUpdate) {
 		// Save normalized vectors
 		for (int i = 0; i < 6; i++) {
-			glm::vec3 norm = glm::normalize(m_planes[i]);
-			m_normals[i] = norm;
+			m_normals[i] = glm::normalize(m_planes[i]);
 		}
+		m_normalsNeedsUpdate = false;
 	}
 	return m_normals;
 }
@@ -87,13 +89,12 @@ std::vector<glm::vec3>& Scuffed::Box::getEdges() {
 }
 
 std::vector<glm::vec3>& Scuffed::Box::getVertices() {
-	if (m_vertices.size() == 0) {
-		m_vertices.resize(8);
-
+	if (m_verticesNeedsUpdate) {
 		// Find corners
 		for (int i = 0; i < 8; i++) {
 			m_vertices[i] = matrix * glm::vec4(m_originalVertices[i], 1.0f);
 		}
+		m_verticesNeedsUpdate = false;
 	}
 	return m_vertices;
 }

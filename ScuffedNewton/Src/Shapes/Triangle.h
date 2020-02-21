@@ -6,9 +6,10 @@ namespace Scuffed {
 
 	class Triangle : public Shape {
 	public:
-		Triangle(const glm::vec3 vertices[3]);
 		Triangle(const glm::vec3& v1, const glm::vec3& v2, const glm::vec3& v3);
 		virtual ~Triangle();
+
+		virtual void setData(const glm::vec3& v1, const glm::vec3& v2, const glm::vec3& v3);
 
 		virtual void setMatrix(const glm::mat4& newMatrix);
 		virtual std::vector<glm::vec3>& getNormals();
@@ -21,6 +22,9 @@ namespace Scuffed {
 		std::vector<glm::vec3> m_edges;
 		std::vector<glm::vec3> m_normals;
 		glm::vec3 m_middle;
+
+		bool m_edgesNeedsUpdate;
+		bool m_normalsNeedsUpdate;
 	};
 
 }

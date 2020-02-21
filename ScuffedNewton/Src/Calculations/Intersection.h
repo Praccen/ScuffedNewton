@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 #include "../DataTypes/Sphere.h"
 
 
@@ -43,8 +45,12 @@ namespace Scuffed {
 		// ----SAT functions----
 		static float projectionOverlapTest(glm::vec3& testVec, const std::vector<glm::vec3>& shape1, const std::vector<glm::vec3>& shape2);
 
-		static bool SAT(Shape* shape1, Shape* shape2, glm::vec3* intersectionAxis = nullptr, float* intersectionDepth = nullptr);
+		static bool SAT(Shape* shape1, Shape* shape2);
+		static bool SAT(Shape* shape1, Shape* shape2, glm::vec3* intersectionAxis, float* intersectionDepth);
 		// ---------------------
+
+	private:
+		static std::vector<glm::vec3> m_axes;
 	};
 
 }

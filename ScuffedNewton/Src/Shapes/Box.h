@@ -27,6 +27,9 @@ namespace Scuffed {
 		std::vector<glm::vec3> m_edges;
 		
 		glm::vec3 m_middle;
+
+		bool m_normalsNeedsUpdate;
+		bool m_verticesNeedsUpdate;
 	};
 
 }
