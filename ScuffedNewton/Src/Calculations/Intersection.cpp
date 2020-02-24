@@ -231,13 +231,13 @@ namespace Scuffed {
 #endif
 	}
 
-	float Intersection::projectionOverlapTest(const glm::vec3& testVec, const std::vector<glm::vec3>& shape1, const std::vector<glm::vec3>& shape2) {
+	float Intersection::projectionOverlapTest(const glm::vec3& testVec, const std::vector<glm::vec3>& vertices1, const std::vector<glm::vec3>& vertices2) {
 		float min1 = INFINITY, min2 = INFINITY;
 		float max1 = -INFINITY, max2 = -INFINITY;
 
 		float tempDot;
 
-		for (const auto& vert: shape1) {
+		for (const auto& vert: vertices1) {
 			tempDot = dot(vert, testVec);
 
 			if (tempDot < min1) {
@@ -248,7 +248,7 @@ namespace Scuffed {
 			}
 		}
 
-		for (const auto& vert : shape2) {
+		for (const auto& vert : vertices2) {
 			tempDot = dot(vert, testVec);
 
 			if (tempDot < min2) {
@@ -288,7 +288,86 @@ namespace Scuffed {
 		glm::vec3 testVec;
 
 		// Calculate cross vectors
-		for (const auto& e1: s1Edges) {
+		for (const auto& e1 : s1Edges) {
+			for (const auto& e2 : s2Edges) {
+				if (e1 != e2 && e1 != -e2) {
+					testVec = glm::normalize(glm::cross(e1, e2));
+					float intersection = projectionOverlapTest(testVec, shape1->getVertices(), shape2->getVertices());
+					if (intersection < 0.f) {
+						return false;
+					}
+				}
+			}
+		}
+
+		return true;
+	}
+
+	float Intersection::continousOverlapTest(const glm::vec3& testVec, const std::vector<glm::vec3>& vertices1, const std::vector<glm::vec3>& vertices2, const glm::vec3& relativeVel, float& timeFirst, float& timeLast) {
+		float speed = dot(testVec, relativeVel);
+
+		float min1 = INFINITY, min2 = INFINITY;
+		float max1 = -INFINITY, max2 = -INFINITY;
+
+		float tempDot;
+
+		for (const auto& vert : vertices1) {
+			tempDot = dot(vert, testVec);
+
+			if (tempDot < min1) {
+				min1 = tempDot;
+			}
+			if (tempDot > max1) {
+				max1 = tempDot;
+			}
+		}
+
+		for (const auto& vert : vertices2) {
+			tempDot = dot(vert, testVec);
+
+			if (tempDot < min2) {
+				min2 = tempDot;
+			}
+			if (tempDot > max2) {
+				max2 = tempDot;
+			}
+		}
+
+		//TODO: continue with https://www.geometrictools.com/Documentation/MethodOfSeparatingAxes.pdf implementation
+	}
+
+	bool Intersection::SAT(Shape* shape1, Shape* shape2, const glm::vec3& vel1, const glm::vec3& vel2) {
+		// Treat shape2 as stationary and shape1 as moving
+		glm::vec3 relativeVel = vel1 - vel2;
+
+		float timeFirst = 0;
+		float timeLast = INFINITY;
+
+		const std::vector<glm::vec3>& s1Norms = shape1->getNormals();
+		for (const auto& it : s1Norms) {
+			float intersection = continousOverlapTest(it, shape1->getVertices(), shape2->getVertices(), relativeVel, timeFirst, timeLast);
+			if (intersection < 0.f) {
+				return false;
+			}
+
+			float speed = dot(it, relativeVel);
+		}
+
+		const std::vector<glm::vec3>& s2Norms = shape2->getNormals();
+		for (const auto& it : s2Norms) {
+			float intersection = projectionOverlapTest(it, shape1->getVertices(), shape2->getVertices());
+			if (intersection < 0.f) {
+				return false;
+			}
+		}
+
+		const std::vector<glm::vec3>& s1Edges = shape1->getEdges();
+		const std::vector<glm::vec3>& s2Edges = shape2->getEdges();
+
+		glm::vec3 testVec;
+
+		// Calculate cross vectors
+		for (const auto& e1 : s1Edges) {
 			for (const auto& e2 : s2Edges) {
 				if (e1 != e2 && e1 != -e2) {
 					testVec = glm::normalize(glm::cross(e1, e2));

@@ -9,8 +9,9 @@
 - Make it possible to render bounding boxes in some way
 - Replace glm::dot's with Intersection::dot's. Also see if implementing own version of cross, normalize etc is faster than glm.
 - Replace [] indexing with iterators
-- Add support for multiple meshes
+- Add support for multiple meshes in the mesh component / mesh class.
 
 
 --Done :D--
 - Do inverse model matrix multiplications for AABB instead of multiplying every vertex by the model matrix (might have to implement other than AABB-triangle for this since inverse model matrix multiplication might scew AABB to other shape)
+- General SAT solution for collisions
