@@ -29,16 +29,16 @@ namespace Scuffed {
 
 		static void Barycentric(const glm::vec3& p, const glm::vec3& a, const glm::vec3& b, const glm::vec3& c, float& outU, float& outV, float& outW);
 		static bool OnTriangle(const float u, const float v, const float w);
-
-		static float dot(const glm::vec3& v1, const glm::vec3& v2);
 	
 	public:
 		// ----SAT functions----
-		static float projectionOverlapTest(glm::vec3& testVec, const std::vector<glm::vec3>& shape1, const std::vector<glm::vec3>& shape2);
+		static float projectionOverlapTest(const glm::vec3& testVec, const std::vector<glm::vec3>& shape1, const std::vector<glm::vec3>& shape2);
 
 		static bool SAT(Shape* shape1, Shape* shape2);
 		static bool SAT(Shape* shape1, Shape* shape2, glm::vec3* intersectionAxis, float* intersectionDepth);
 		// ---------------------
+
+		static float dot(const glm::vec3& v1, const glm::vec3& v2);
 	};
 
 }

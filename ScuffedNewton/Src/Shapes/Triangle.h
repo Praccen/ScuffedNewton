@@ -25,6 +25,7 @@ namespace Scuffed {
 
 		bool m_edgesNeedsUpdate;
 		bool m_normalsNeedsUpdate;
+		bool m_middleNeedsUpdate;
 	};
 
 }

@@ -224,18 +224,21 @@ namespace Scuffed {
 	}
 
 	float Intersection::dot(const glm::vec3& v1, const glm::vec3& v2) {
+#ifdef _DEBUG
 		return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
+#else
+		return glm::dot(v1, v2);
+#endif
 	}
 
-	float Intersection::projectionOverlapTest(glm::vec3& testVec, const std::vector<glm::vec3>& shape1, const std::vector<glm::vec3>& shape2) {
+	float Intersection::projectionOverlapTest(const glm::vec3& testVec, const std::vector<glm::vec3>& shape1, const std::vector<glm::vec3>& shape2) {
 		float min1 = INFINITY, min2 = INFINITY;
 		float max1 = -INFINITY, max2 = -INFINITY;
 
 		float tempDot;
 
-		size_t shape1Size = shape1.size();
-		for (size_t i = 0; i < shape1Size; i++) {
-			tempDot = dot(shape1[i], testVec);
+		for (const auto& vert: shape1) {
+			tempDot = dot(vert, testVec);
 
 			if (tempDot < min1) {
 				min1 = tempDot;
@@ -245,9 +248,8 @@ namespace Scuffed {
 			}
 		}
 
-		size_t shape2Size = shape2.size();
-		for (size_t i = 0; i < shape2Size; i++) {
-			float tempDot = dot(shape2[i], testVec);
+		for (const auto& vert : shape2) {
+			tempDot = dot(vert, testVec);
 
 			if (tempDot < min2) {
 				min2 = tempDot;
@@ -264,32 +266,32 @@ namespace Scuffed {
 	}
 
 	bool Intersection::SAT(Shape* shape1, Shape* shape2) {
-		std::vector<glm::vec3>& s1Norms = shape1->getNormals();
-		for (auto it : s1Norms) {
+		const std::vector<glm::vec3>& s1Norms = shape1->getNormals();
+		for (const auto& it : s1Norms) {
 			float intersection = projectionOverlapTest(it, shape1->getVertices(), shape2->getVertices());
 			if (intersection < 0.f) {
 				return false;
 			}
 		}
 
-		std::vector<glm::vec3>& s2Norms = shape2->getNormals();
-		for (auto it : s2Norms) {
+		const std::vector<glm::vec3>& s2Norms = shape2->getNormals();
+		for (const auto& it : s2Norms) {
 			float intersection = projectionOverlapTest(it, shape1->getVertices(), shape2->getVertices());
 			if (intersection < 0.f) {
 				return false;
 			}
 		}
 
-		std::vector<glm::vec3>& s1Edges = shape1->getEdges();
-		std::vector<glm::vec3>& s2Edges = shape2->getEdges();
+		const std::vector<glm::vec3>& s1Edges = shape1->getEdges();
+		const std::vector<glm::vec3>& s2Edges = shape2->getEdges();
 
 		glm::vec3 testVec;
 
 		// Calculate cross vectors
-		for (size_t i = 0; i < s1Edges.size(); i++) {
-			for (size_t j = 0; j < s2Edges.size(); j++) {
-				if (s1Edges[i] != s2Edges[j] && s1Edges[i] != -s2Edges[j]) {
-					testVec = glm::normalize(glm::cross(s1Edges[i], s2Edges[j]));
+		for (const auto& e1: s1Edges) {
+			for (const auto& e2 : s2Edges) {
+				if (e1 != e2 && e1 != -e2) {
+					testVec = glm::normalize(glm::cross(e1, e2));
 					float intersection = projectionOverlapTest(testVec, shape1->getVertices(), shape2->getVertices());
 					if (intersection < 0.f) {
 						return false;
@@ -304,8 +306,8 @@ namespace Scuffed {
 	bool Intersection::SAT(Shape* shape1, Shape* shape2, glm::vec3* intersectionAxis, float* intersectionDepth) {
 		*intersectionDepth = INFINITY;
 
-		std::vector<glm::vec3>& s1Norms = shape1->getNormals();
-		for (auto it : s1Norms) {
+		const std::vector<glm::vec3>& s1Norms = shape1->getNormals();
+		for (const auto& it : s1Norms) {
 			float intersection = projectionOverlapTest(it, shape1->getVertices(), shape2->getVertices());
 			if (intersection < 0.f) {
 				return false;
@@ -319,8 +321,8 @@ namespace Scuffed {
 			}
 		}
 
-		std::vector<glm::vec3>& s2Norms = shape2->getNormals();
-		for (auto it : s2Norms) {
+		const std::vector<glm::vec3>& s2Norms = shape2->getNormals();
+		for (const auto& it : s2Norms) {
 			float intersection = projectionOverlapTest(it, shape1->getVertices(), shape2->getVertices());
 			if (intersection < 0.f) {
 				return false;
@@ -334,16 +336,16 @@ namespace Scuffed {
 			}
 		}
 
-		std::vector<glm::vec3>& s1Edges = shape1->getEdges();
-		std::vector<glm::vec3>& s2Edges = shape2->getEdges();
+		const std::vector<glm::vec3>& s1Edges = shape1->getEdges();
+		const std::vector<glm::vec3>& s2Edges = shape2->getEdges();
 
 		glm::vec3 testVec;
 
 		// Calculate cross vectors
-		for (size_t i = 0; i < s1Edges.size(); i++) {
-			for (size_t j = 0; j < s2Edges.size(); j++) {
-				if (s1Edges[i] != s2Edges[j] && s1Edges[i] != -s2Edges[j]) {
-					testVec = glm::normalize(glm::cross(s1Edges[i], s2Edges[j]));
+		for (const auto& e1 : s1Edges) {
+			for (const auto& e2 : s2Edges) {
+				if (e1 != e2 && e1 != -e2) {
+					testVec = glm::normalize(glm::cross(e1, e2));
 					float intersection = projectionOverlapTest(testVec, shape1->getVertices(), shape2->getVertices());
 					if (intersection < 0.f) {
 						return false;

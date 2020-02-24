@@ -21,10 +21,9 @@ namespace Scuffed {
 		m_vertices[1] = v2;
 		m_vertices[2] = v3;
 
-		m_middle = (m_vertices[0] + m_vertices[1] + m_vertices[2]) / 3.0f;
-
 		m_normalsNeedsUpdate = true;
 		m_edgesNeedsUpdate = true;
+		m_middleNeedsUpdate = true;
 	}
 
 	void Triangle::setMatrix(const glm::mat4& newMatrix) {
@@ -38,11 +37,9 @@ namespace Scuffed {
 			m_vertices[i] = glm::vec3(matrix * glm::vec4(m_vertices[i], 1.0f));
 		}
 
-		m_middle = (m_vertices[0] + m_vertices[1] + m_vertices[2]) / 3.0f;
-
-
 		m_normalsNeedsUpdate = true;
 		m_edgesNeedsUpdate = true;
+		m_middleNeedsUpdate = true;
 	}
 
 	std::vector<glm::vec3>& Triangle::getNormals() {
@@ -69,6 +66,10 @@ namespace Scuffed {
 	}
 
 	glm::vec3& Triangle::getMiddle() {
+		if (m_middleNeedsUpdate) {
+			m_middle = (m_vertices[0] + m_vertices[1] + m_vertices[2]) / 3.0f;
+			m_middleNeedsUpdate = false;
+		}
 		return m_middle;
 	}
 

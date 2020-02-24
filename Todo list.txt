@@ -1,6 +1,6 @@
+- Continous collision detection using SAT instead of swept sphere
 - Narrow phase hierarchy (octree)
 - Mesh-mesh collision using SAT and possible speedups.
-- Continous collision detection using SAT instead of swept sphere
 - Dynamic rigid body collisions (Remove ragdoll component)
 - Add support for OBB's
 - Add support for Bounding spheres
@@ -8,6 +8,8 @@
 - Make interface pretty and user friendly
 - Make it possible to render bounding boxes in some way
 - Replace glm::dot's with Intersection::dot's. Also see if implementing own version of cross, normalize etc is faster than glm.
+- Replace [] indexing with iterators
+- Add support for multiple meshes
 
 
 --Done :D--

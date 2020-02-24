@@ -30,7 +30,7 @@ namespace Scuffed {
 			float intersectionDepth;
 			//glm::vec3 intersectionPosition;
 			Entity* entity;
-			Shape* shape;
+			std::shared_ptr<Shape> shape;
 		};
 
 		struct RayIntersectionInfo {

@@ -2,14 +2,13 @@
 
 #include "CollisionSystem.h"
 
-#include "../Components/Components.h"
+#include <memory>
 
-#include "../DataStructures/Octree.h"
-#include "../DataTypes/Entity.h"
 #include "../DataTypes/BoundingBox.h"
-
+#include "../Components/Components.h"
+#include "../DataTypes/Entity.h"
 #include "../Calculations/Intersection.h"
-
+#include "../DataStructures/Octree.h"
 #include "../Shapes/Box.h"
 
 namespace Scuffed {
@@ -32,20 +31,14 @@ namespace Scuffed {
 
 	void CollisionSystem::update(float dt) {
 		// prepare matrixes and bounding boxes
-		for (auto e : entities) {
+		for (auto& e : entities) {
 			e->getComponent<BoundingBoxComponent>()->getBoundingBox()->prepareCorners();
 		}
 
 		// ======================== Collision Update ======================================
 
-		for (size_t i = 0; i < entities.size(); ++i) {
-			Entity* e = entities[i];
-
+		for (auto& e: entities) {
 			CollisionComponent* collision = e->getComponent<CollisionComponent>();
-
-			for (auto it : collision->collisions) {
-				delete it.shape;
-			}
 
 			collision->collisions.clear();
 
@@ -54,14 +47,10 @@ namespace Scuffed {
 
 		// ======================== Surface from collisions ======================================
 
-		for (size_t i = 0; i < entities.size(); ++i) {
-			Entity* e = entities[i];
-
+		for (auto& e: entities) {
 			CollisionComponent* collision = e->getComponent<CollisionComponent>();
 
-			if (m_octree) {
-				surfaceFromCollision(e, e->getComponent<BoundingBoxComponent>()->getBoundingBox(), collision->collisions);
-			}
+			surfaceFromCollision(e, e->getComponent<BoundingBoxComponent>()->getBoundingBox(), collision->collisions);
 		}
 	}
 
@@ -115,7 +104,7 @@ namespace Scuffed {
 			for (size_t i = 0; i < collisionCount; i++) {
 				Octree::CollisionInfo& collisionInfo_i = collisions[i];
 
-				if (Intersection::SAT(collisionInfo_i.shape, boundingBox->getBox(), &collisionInfo_i.intersectionAxis, &collisionInfo_i.intersectionDepth)) {
+				if (Intersection::SAT(collisionInfo_i.shape.get(), boundingBox->getBox(), &collisionInfo_i.intersectionAxis, &collisionInfo_i.intersectionDepth)) {
 					sumVec += collisionInfo_i.intersectionAxis;
 
 					// Save ground collisions
@@ -204,7 +193,7 @@ namespace Scuffed {
 			float depth;
 			glm::vec3 axis;
 
-			if (Intersection::SAT(collisionInfo_i.shape, boundingBox->getBox(), &axis, &depth)) {
+			if (Intersection::SAT(collisionInfo_i.shape.get(), boundingBox->getBox(), &axis, &depth)) {
 				boundingBox->setPosition(boundingBox->getPosition() + axis * (depth - 0.0001f));
 				distance += axis * (depth - 0.0001f);
 			}

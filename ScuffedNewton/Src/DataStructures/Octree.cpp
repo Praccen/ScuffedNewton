@@ -218,7 +218,7 @@ namespace Scuffed {
 			outCollisionData->emplace_back();
 			outCollisionData->back().entity = meshEntity;
 			std::vector<glm::vec3>& verts = shape->getVertices();
-			outCollisionData->back().shape = SN_NEW Triangle(verts[0], verts[1], verts[2]);
+			outCollisionData->back().shape = std::make_shared<Triangle>(verts[0], verts[1], verts[2]);
 			outCollisionData->back().shape->setMatrix(meshEntity->getComponent<TransformComponent>()->getMatrixWithoutUpdate());
 			// std::cout << "Collision detected with " + meshEntity->getId();
 		}
@@ -233,13 +233,13 @@ namespace Scuffed {
 			return;
 		}
 		//Check against entities
-		for (int i = 0; i < currentNode->nrOfEntities; i++) {
+		for (auto& e: currentNode->entities) {
 			//Don't let an entity collide with itself
-			if (entity->getId() == currentNode->entities[i]->getId()) {
+			if (entity->getId() == e->getId()) {
 				continue;
 			}
 
-			BoundingBox* otherBoundingBox = currentNode->entities[i]->getComponent<BoundingBoxComponent>()->getBoundingBox();
+			BoundingBox* otherBoundingBox = e->getComponent<BoundingBoxComponent>()->getBoundingBox();
 
 			// continue if Bounding box doesn't collide with entity bounding box
 			if (!Intersection::SAT(entityBoundingBox->getBox(), otherBoundingBox->getBox())) {
@@ -247,9 +247,9 @@ namespace Scuffed {
 			}
 
 			// Get collision
-			const MeshComponent* mesh = currentNode->entities[i]->getComponent<MeshComponent>();
-			TransformComponent* transform = currentNode->entities[i]->getComponent<TransformComponent>();
-			const CollidableComponent* collidable = currentNode->entities[i]->getComponent<CollidableComponent>();
+			const MeshComponent* mesh = e->getComponent<MeshComponent>();
+			TransformComponent* transform = e->getComponent<TransformComponent>();
+			const CollidableComponent* collidable = e->getComponent<CollidableComponent>();
 
 			if (mesh && !(doSimpleCollisions && collidable->allowSimpleCollision)) {
 				// Entity has a model. Check collision with meshes
@@ -267,13 +267,14 @@ namespace Scuffed {
 				if (int numIndices = mesh->mesh->getNumberOfIndices() > 0) { // Has indices
 					for (int j = 0; j < numIndices; j += 3) {
 						triangle.setData(mesh->mesh->getVertexPosition(mesh->mesh->getVertexIndex(j)), mesh->mesh->getVertexPosition(mesh->mesh->getVertexIndex(j + 1)), mesh->mesh->getVertexPosition(mesh->mesh->getVertexIndex(j + 2)));
-						getCollisionData(entityBoundingBox, currentNode->entities[i], &triangle, outCollisionData, checkBackfaces);
+						getCollisionData(entityBoundingBox, e, &triangle, outCollisionData, checkBackfaces);
 					}
 				}
-				else if (int numVertices = mesh->mesh->getNumberOfVertices() > 0) {
-					for (int j = 0; j < mesh->mesh->getNumberOfVertices(); j += 3) {
+				else if (mesh->mesh->getNumberOfVertices() > 0) {
+					int numVertices = mesh->mesh->getNumberOfVertices();
+					for (int j = 0; j < numVertices; j += 3) {
 						triangle.setData(mesh->mesh->getVertexPosition(j), mesh->mesh->getVertexPosition(j + 1), mesh->mesh->getVertexPosition(j + 2));
-						getCollisionData(entityBoundingBox, currentNode->entities[i], &triangle, outCollisionData, checkBackfaces);
+						getCollisionData(entityBoundingBox, e, &triangle, outCollisionData, checkBackfaces);
 					}
 				}
 				//}
@@ -288,14 +289,14 @@ namespace Scuffed {
 				Intersection::SAT(entityBoundingBox->getBox(), otherBoundingBox->getBox(), &intersectionAxis, &intersectionDepth);
 
 				outCollisionData->emplace_back();
-				outCollisionData->back().entity = currentNode->entities[i];
-				outCollisionData->back().shape = SN_NEW Box(otherBoundingBox->getHalfSize(), otherBoundingBox->getPosition());
+				outCollisionData->back().entity = e;
+				outCollisionData->back().shape = std::make_shared<Box>(otherBoundingBox->getHalfSize(), otherBoundingBox->getPosition());
 			}
 		}
 
 		//Check for children
-		for (unsigned int i = 0; i < currentNode->childNodes.size(); i++) {
-			getCollisionsRec(entity, entityBoundingBox, &currentNode->childNodes[i], outCollisionData, doSimpleCollisions, checkBackfaces);
+		for (auto& it: currentNode->childNodes) {
+			getCollisionsRec(entity, entityBoundingBox, &it, outCollisionData, doSimpleCollisions, checkBackfaces);
 		}
 	}
 
@@ -312,7 +313,7 @@ namespace Scuffed {
 
 			outIntersectionData->info.emplace_back();
 			outIntersectionData->info.back().entity = meshEntity;
-			outIntersectionData->info.back().shape = SN_NEW Triangle(v1, v2, v3);
+			outIntersectionData->info.back().shape = std::make_shared<Triangle>(v1, v2, v3);
 			outIntersectionData->info.back().shape->setMatrix(meshEntity->getComponent<TransformComponent>()->getMatrixWithoutUpdate());
 		}
 	}
@@ -386,7 +387,7 @@ namespace Scuffed {
 
 				outIntersectionData->info.emplace_back();
 				outIntersectionData->info.back().entity = currentNode->entities[i];
-				outIntersectionData->info.back().shape = SN_NEW Box(collidableBoundingBox->getHalfSize(), collidableBoundingBox->getPosition());
+				outIntersectionData->info.back().shape = std::make_shared<Box>(collidableBoundingBox->getHalfSize(), collidableBoundingBox->getPosition());
 			}
 		}
 
