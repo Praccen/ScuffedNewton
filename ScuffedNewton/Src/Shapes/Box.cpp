@@ -73,7 +73,7 @@ void Scuffed::Box::setMatrix(const glm::mat4& newMatrix) {
 	// Bring back to no transform
 	glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(matrix)));
 	for (int i = 0; i < 6; i++) {
-		m_planes[i] = glm::vec3(glm::inverse(normalMatrix) * glm::vec4(m_planes[i], 1.0f));
+		m_planes[i] = glm::vec3(glm::inverse(normalMatrix) * m_planes[i]);
 	}
 
 	m_middle = glm::vec3(glm::inverse(matrix) * glm::vec4(m_middle, 1.0f));
@@ -83,7 +83,7 @@ void Scuffed::Box::setMatrix(const glm::mat4& newMatrix) {
 	normalMatrix = glm::transpose(glm::inverse(glm::mat3(matrix)));
 	// Apply new transform
 	for (int i = 0; i < 6; i++) {
-		m_planes[i] = glm::vec3(normalMatrix * glm::vec4(m_planes[i], 1.0f));
+		m_planes[i] = glm::vec3(normalMatrix * m_planes[i]);
 	}
 
 	m_middle = glm::vec3(matrix * glm::vec4(m_middle, 1.0f));
