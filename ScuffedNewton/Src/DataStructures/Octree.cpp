@@ -309,7 +309,8 @@ namespace Scuffed {
 		}
 
 		// Early exit if Bounding box doesn't collide with the current node
-		if (Intersection::continousSAT(entityBoundingBox->getBox(), nodeBoundingBox->getBox(), entityVel, glm::vec3(0.f), dt) > collisionTime) {
+		float tempCollisionTime = Intersection::continousSAT(entityBoundingBox->getBox(), nodeBoundingBox->getBox(), entityVel, glm::vec3(0.f), dt);
+		if (tempCollisionTime < 0.f || tempCollisionTime > collisionTime ) {
 			return;
 		}
 
@@ -332,8 +333,9 @@ namespace Scuffed {
 				otherEntityVel = { 0.f, 0.f, 0.f };
 			}
 
+			tempCollisionTime = Intersection::continousSAT(entityBoundingBox->getBox(), otherBoundingBox->getBox(), entityVel, otherEntityVel, dt);
 			// continue if Bounding box doesn't collide with entity bounding box
-			if (Intersection::continousSAT(entityBoundingBox->getBox(), otherBoundingBox->getBox(), entityVel, otherEntityVel, dt) > collisionTime) {
+			if (tempCollisionTime < 0.f || tempCollisionTime > collisionTime) {
 				continue;
 			}
 
@@ -367,7 +369,8 @@ namespace Scuffed {
 						if (time >= 0.f && time < collisionTime) {
 							collisionTime = time;
 							collisionInfo.entity = e;
-							collisionInfo.shape = std::make_shared<Triangle>(triangle.getVertices());
+							std::vector<glm::vec3>& verts = triangle.getVertices();
+							collisionInfo.shape = std::make_shared<Triangle>(verts[0], verts[1], verts[2]);
 							collisionInfo.shape->setMatrix(transformMatrix);
 						}
 					}
@@ -383,7 +386,8 @@ namespace Scuffed {
 						if (time >= 0.f && time < collisionTime) {
 							collisionTime = time;
 							collisionInfo.entity = e;
-							collisionInfo.shape = std::make_shared<Triangle>(triangle.getVertices());
+							std::vector<glm::vec3>& verts = triangle.getVertices();
+							collisionInfo.shape = std::make_shared<Triangle>(verts[0], verts[1], verts[2]);
 							collisionInfo.shape->setMatrix(transformMatrix);
 						}
 					}
@@ -394,7 +398,7 @@ namespace Scuffed {
 			}
 			else { // No model or simple collision opportunity
 				// Collide with bounding box
-				collisionTime = Intersection::continousSAT(entityBoundingBox->getBox(), otherBoundingBox->getBox(), entityVel, otherEntityVel, dt);
+				collisionTime = tempCollisionTime;
 
 				collisionInfo.entity = e;
 				collisionInfo.shape = std::make_shared<Box>(otherBoundingBox->getHalfSize(), otherBoundingBox->getPosition());
@@ -610,7 +614,7 @@ namespace Scuffed {
 		getCollisionsRec(entity, entityBoundingBox, &m_baseNode, outCollisionData, doSimpleCollisions, checkBackfaces);
 	}
 
-	void Octree::getNextContinousCollision(Entity* entity, CollisionInfo& outCollisionInfo, float& collisionTime, const float& dt, const bool doSimpleCollisions = false, const bool checkBackfaces = false) {
+	void Octree::getNextContinousCollision(Entity* entity, CollisionInfo& outCollisionInfo, float& collisionTime, const float& dt, const bool doSimpleCollisions, const bool checkBackfaces) {
 		getNextContinousCollisionRec(entity, &m_baseNode, outCollisionInfo, collisionTime, dt, doSimpleCollisions, checkBackfaces);
 	}
 

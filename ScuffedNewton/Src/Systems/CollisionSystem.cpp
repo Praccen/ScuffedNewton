@@ -39,10 +39,13 @@ namespace Scuffed {
 
 		for (auto& e: entities) {
 			CollisionComponent* collision = e->getComponent<CollisionComponent>();
+			MovementComponent* movement = e->getComponent<MovementComponent>();
 
 			collision->collisions.clear();
 
-			collisionUpdate(e, dt);
+			//collisionUpdate(e, dt);
+			movement->updateableDt = dt;
+			continousCollisionUpdate(e, movement->updateableDt);
 		}
 
 		// ======================== Surface from collisions ======================================
@@ -60,6 +63,34 @@ namespace Scuffed {
 
 		m_octree->getCollisions(e, e->getComponent<BoundingBoxComponent>()->getBoundingBox(), &collision->collisions, collision->doSimpleCollisions);
 		handleCollisions(e, collision->collisions, dt);
+	}
+
+	void CollisionSystem::continousCollisionUpdate(Entity* e, float& dt) {
+		BoundingBox* boundingBox = e->getComponent<BoundingBoxComponent>()->getBoundingBox();
+		CollisionComponent* collision = e->getComponent<CollisionComponent>();
+		MovementComponent* movement = e->getComponent<MovementComponent>();
+		TransformComponent* transform = e->getComponent<TransformComponent>();
+
+		float time = INFINITY;
+
+		collision->collisions.emplace_back();
+		m_octree->getNextContinousCollision(e, collision->collisions.back(), time, dt, collision->doSimpleCollisions);
+
+		while (time < dt) {
+			boundingBox->setPosition(boundingBox->getPosition() + movement->velocity * time);
+			transform->translate(movement->velocity * time);
+
+			dt -= time;
+
+			if (!handleCollisions(e, collision->collisions, 0.f)) {
+				std::cout << "What?\n";
+			}
+
+			m_octree->getNextContinousCollision(e, collision->collisions.back(), time, dt, collision->doSimpleCollisions);
+		}
+
+		collision->collisions.clear();
+		
 	}
 
 	const bool CollisionSystem::handleCollisions(Entity* e, std::vector<Octree::CollisionInfo>& collisions, const float dt) {
