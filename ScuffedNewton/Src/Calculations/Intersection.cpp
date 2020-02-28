@@ -259,7 +259,7 @@ namespace Scuffed {
 			}
 		}
 
-		if (max2 > min1&& max1 > min2) {
+		if (max2 >= min1 && max1 >= min2) {
 			return glm::min(max2 - min1, max1 - min2);
 		}
 		return -1.f;

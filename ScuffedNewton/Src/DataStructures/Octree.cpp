@@ -366,7 +366,7 @@ namespace Scuffed {
 						// TODO: create function that does this, similar to getCollisionData
 						float time = Intersection::continousSAT(entityBoundingBox->getBox(), &triangle, entityVel, otherEntityVel, dt);
 						
-						if (time >= 0.f && time < collisionTime) {
+						if (time > 0.f && time < collisionTime) {
 							collisionTime = time;
 							collisionInfo.entity = e;
 							std::vector<glm::vec3>& verts = triangle.getVertices();
@@ -383,7 +383,7 @@ namespace Scuffed {
 						// TODO: create function that does this, similar to getCollisionData
 						float time = Intersection::continousSAT(entityBoundingBox->getBox(), &triangle, entityVel, otherEntityVel, dt);
 
-						if (time >= 0.f && time < collisionTime) {
+						if (time > 0.f && time < collisionTime) {
 							collisionTime = time;
 							collisionInfo.entity = e;
 							std::vector<glm::vec3>& verts = triangle.getVertices();
@@ -397,11 +397,13 @@ namespace Scuffed {
 				entityBoundingBox->getBox()->setMatrix(glm::mat4(1.0f)); //Reset bounding box matrix to identity
 			}
 			else { // No model or simple collision opportunity
-				// Collide with bounding box
-				collisionTime = tempCollisionTime;
+				if (tempCollisionTime > 0.f) {
+					// Collide with bounding box
+					collisionTime = tempCollisionTime;
 
-				collisionInfo.entity = e;
-				collisionInfo.shape = std::make_shared<Box>(otherBoundingBox->getHalfSize(), otherBoundingBox->getPosition());
+					collisionInfo.entity = e;
+					collisionInfo.shape = std::make_shared<Box>(otherBoundingBox->getHalfSize(), otherBoundingBox->getPosition());
+				}
 			}
 		}
 
