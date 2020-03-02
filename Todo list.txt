@@ -1,4 +1,5 @@
 - Continous collision detection using SAT instead of swept sphere
+- Fix "sticky" collisions where the intersection axis is pointing the wrong way
 - Narrow phase hierarchy (octree)
 - Mesh-mesh collision using SAT and possible speedups.
 - Dynamic rigid body collisions (Remove ragdoll component)

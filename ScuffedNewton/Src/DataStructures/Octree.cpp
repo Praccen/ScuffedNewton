@@ -353,7 +353,10 @@ namespace Scuffed {
 
 				entityBoundingBox->getBox()->setMatrix(glm::inverse(transformMatrix));
 
-				entityVel = glm::transpose(glm::inverse(glm::mat3(glm::inverse(transformMatrix)))) * entityVel;
+				glm::mat3 normalMatrix = glm::mat3(glm::transpose(transformMatrix));
+
+				entityVel = normalMatrix * entityVel;
+				otherEntityVel = normalMatrix * otherEntityVel;
 
 				// Triangle to set mesh data to avoid creating new shapes for each triangle in mesh
 				Triangle triangle(glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(0.0f));
@@ -362,7 +365,6 @@ namespace Scuffed {
 				if (int numIndices = mesh->mesh->getNumberOfIndices() > 0) { // Has indices
 					for (int j = 0; j < numIndices; j += 3) {
 						triangle.setData(mesh->mesh->getVertexPosition(mesh->mesh->getVertexIndex(j)), mesh->mesh->getVertexPosition(mesh->mesh->getVertexIndex(j + 1)), mesh->mesh->getVertexPosition(mesh->mesh->getVertexIndex(j + 2)));
-						
 						// TODO: create function that does this, similar to getCollisionData
 						float time = Intersection::continousSAT(entityBoundingBox->getBox(), &triangle, entityVel, otherEntityVel, dt);
 						

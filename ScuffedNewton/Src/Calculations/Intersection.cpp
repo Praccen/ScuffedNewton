@@ -444,14 +444,14 @@ namespace Scuffed {
 
 		const std::vector<glm::vec3>& s1Norms = shape1->getNormals();
 		for (const auto& it : s1Norms) {
-			if (!continousOverlapTest(it, shape1->getVertices(), shape2->getVertices(), relativeVel, timeFirst, timeLast, dt)) {
+			if (!continousOverlapTest(glm::normalize(it), shape1->getVertices(), shape2->getVertices(), relativeVel, timeFirst, timeLast, dt)) {
 				return -1.0f;
 			}
 		}
 
 		const std::vector<glm::vec3>& s2Norms = shape2->getNormals();
 		for (const auto& it : s2Norms) {
-			if (!continousOverlapTest(it, shape1->getVertices(), shape2->getVertices(), relativeVel, timeFirst, timeLast, dt)) {
+			if (!continousOverlapTest(glm::normalize(it), shape1->getVertices(), shape2->getVertices(), relativeVel, timeFirst, timeLast, dt)) {
 				return -1.0f;
 			}
 		}
