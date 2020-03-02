@@ -436,22 +436,22 @@ namespace Scuffed {
 	}
 
 	float Intersection::continousSAT(Shape* shape1, Shape* shape2, const glm::vec3& vel1, const glm::vec3& vel2, const float& dt) {
-		// Treat shape2 as stationary and shape1 as moving
-		glm::vec3 relativeVel = vel1 - vel2;
+		// Treat shape1 as stationary and shape2 as moving
+		glm::vec3 relativeVel = vel2 - vel1;
 
 		float timeFirst = 0;
 		float timeLast = INFINITY;
 
 		const std::vector<glm::vec3>& s1Norms = shape1->getNormals();
 		for (const auto& it : s1Norms) {
-			if (!continousOverlapTest(glm::normalize(it), shape1->getVertices(), shape2->getVertices(), relativeVel, timeFirst, timeLast, dt)) {
+			if (!continousOverlapTest(it, shape1->getVertices(), shape2->getVertices(), relativeVel, timeFirst, timeLast, dt)) {
 				return -1.0f;
 			}
 		}
 
 		const std::vector<glm::vec3>& s2Norms = shape2->getNormals();
 		for (const auto& it : s2Norms) {
-			if (!continousOverlapTest(glm::normalize(it), shape1->getVertices(), shape2->getVertices(), relativeVel, timeFirst, timeLast, dt)) {
+			if (!continousOverlapTest(it, shape1->getVertices(), shape2->getVertices(), relativeVel, timeFirst, timeLast, dt)) {
 				return -1.0f;
 			}
 		}
