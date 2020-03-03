@@ -348,15 +348,17 @@ namespace Scuffed {
 				// Entity has a model. Check collision with meshes
 				glm::mat4 transformMatrix(1.0f);
 				if (transform) {
-					transformMatrix = transform->getMatrixWithoutUpdate();
+					transformMatrix = transform->getMatrixWithUpdate();
 				}
 
 				entityBoundingBox->getBox()->setMatrix(glm::inverse(transformMatrix));
 
-				glm::mat3 normalMatrix = glm::mat3(glm::transpose(transformMatrix));
-
-				entityVel = normalMatrix * entityVel;
-				otherEntityVel = normalMatrix * otherEntityVel;
+				//Convert velocities to local space for mesh
+				glm::vec3 zeroPoint = glm::inverse(transformMatrix) * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+				entityVel = glm::inverse(transformMatrix) * glm::vec4(entityVel, 1.0f);
+				entityVel = entityVel - zeroPoint;
+				otherEntityVel = glm::inverse(transformMatrix) * glm::vec4(otherEntityVel, 1.0f);
+				otherEntityVel = otherEntityVel - zeroPoint;
 
 				// Triangle to set mesh data to avoid creating new shapes for each triangle in mesh
 				Triangle triangle(glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(0.0f));
@@ -365,6 +367,7 @@ namespace Scuffed {
 				if (int numIndices = mesh->mesh->getNumberOfIndices() > 0) { // Has indices
 					for (int j = 0; j < numIndices; j += 3) {
 						triangle.setData(mesh->mesh->getVertexPosition(mesh->mesh->getVertexIndex(j)), mesh->mesh->getVertexPosition(mesh->mesh->getVertexIndex(j + 1)), mesh->mesh->getVertexPosition(mesh->mesh->getVertexIndex(j + 2)));
+						
 						// TODO: create function that does this, similar to getCollisionData
 						float time = Intersection::continousSAT(entityBoundingBox->getBox(), &triangle, entityVel, otherEntityVel, dt);
 						
@@ -381,7 +384,7 @@ namespace Scuffed {
 					int numVertices = mesh->mesh->getNumberOfVertices();
 					for (int j = 0; j < numVertices; j += 3) {
 						triangle.setData(mesh->mesh->getVertexPosition(j), mesh->mesh->getVertexPosition(j + 1), mesh->mesh->getVertexPosition(j + 2));
-						
+
 						// TODO: create function that does this, similar to getCollisionData
 						float time = Intersection::continousSAT(entityBoundingBox->getBox(), &triangle, entityVel, otherEntityVel, dt);
 

@@ -46,17 +46,17 @@ namespace Scuffed {
 			continousCollisionUpdate(e, movement->updateableDt);
 			movement->oldVelocity = movement->velocity;
 
-			/*collision->collisions.clear();
-			collisionUpdate(e, dt);*/
+			collision->collisions.clear();
+			collisionUpdate(e, dt);
 		}
 
 		// ======================== Surface from collisions ======================================
 
-		/*for (auto& e : entities) {
+		for (auto& e : entities) {
 			CollisionComponent* collision = e->getComponent<CollisionComponent>();
 
 			surfaceFromCollision(e, e->getComponent<BoundingBoxComponent>()->getBoundingBox(), collision->collisions);
-		}*/
+		}
 	}
 
 	void CollisionSystem::collisionUpdate(Entity* e, const float dt) {
@@ -84,20 +84,19 @@ namespace Scuffed {
 			transform->translate(movement->velocity * time);
 
 			dt -= time;
-			movement->velocity = { 0.f, 0.f, 0.f };
+			/*movement->velocity = { 0.f, 0.f, 0.f };
 			movement->constantAcceleration = { 0.f, 0.f, 0.f };
 			movement->updateableDt = 0.f;
-			movement->oldMovement = { 0.f, 0.f, 0.f };
+			movement->oldMovement = { 0.f, 0.f, 0.f };*/
 
 
-			//if (!handleCollisions(e, collision->collisions, 0.f)) { // Removes the collision from collision->collisions
-			//	std::cout << "What?\n";
-			//	collision->collisions.emplace_back(); // Re add an element at the back
-			//	//movement->velocity = { 0.f, 0.f, 0.f };
-			//}
+			if (!handleCollisions(e, collision->collisions, 0.f)) { // Removes the collision from collision->collisions
+				std::cout << "What?\n";
+				collision->collisions.emplace_back(); // Re add an element at the back
+			}
 
-			/*time = INFINITY;
-			m_octree->getNextContinousCollision(e, collision->collisions.back(), time, dt, collision->doSimpleCollisions);*/
+			time = INFINITY;
+			m_octree->getNextContinousCollision(e, collision->collisions.back(), time, dt, collision->doSimpleCollisions);
 		}
 
 		collision->collisions.clear();

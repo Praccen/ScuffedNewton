@@ -35,6 +35,7 @@ void Scuffed::Box::init() {
 }
 
 void Scuffed::Box::setData(glm::vec3 planes[6], const glm::vec3& middle) {
+	glm::mat4 tempMatrix = matrix;
 	matrix = glm::mat4(1.f);
 	m_middle = middle;
 
@@ -67,6 +68,8 @@ void Scuffed::Box::setData(glm::vec3 planes[6], const glm::vec3& middle) {
 
 	m_normalsNeedsUpdate = true;
 	m_verticesNeedsUpdate = true;
+
+	setMatrix(tempMatrix);
 }
 
 void Scuffed::Box::setMatrix(const glm::mat4& newMatrix) {
