@@ -1,18 +1,19 @@
-- Continous collision detection using SAT instead of swept sphere
-- Fix "sticky" collisions where the intersection axis is pointing the wrong way
+- Fix "sticky" collisions where the intersection axis is pointing the wrong way. Happens on corners. Also gets stuck on the middle line of a quad sometimes
 - Narrow phase hierarchy (octree)
 - Mesh-mesh collision using SAT and possible speedups.
 - Dynamic rigid body collisions (Remove ragdoll component)
-- Add support for OBB's
-- Add support for Bounding spheres
-- Add support for Capsules
 - Make interface pretty and user friendly
 - Make it possible to render bounding boxes in some way
 - Replace glm::dot's with Intersection::dot's. Also see if implementing own version of cross, normalize etc is faster than glm.
 - Replace [] indexing with iterators
 - Add support for multiple meshes in the mesh component / mesh class.
+- Add inverse matrix multiplication for ray intersections instead of multiplying every vertex of a mesh with the model matrix
+- Add support for Bounding spheres
+- Add support for Capsules
 
 
 --Done :D--
 - Do inverse model matrix multiplications for AABB instead of multiplying every vertex by the model matrix (might have to implement other than AABB-triangle for this since inverse model matrix multiplication might scew AABB to other shape)
+- Add support for OBB's
 - General SAT solution for collisions
+- Continous collision detection using SAT instead of swept sphere

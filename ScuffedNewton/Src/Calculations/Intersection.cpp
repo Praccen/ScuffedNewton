@@ -232,15 +232,13 @@ namespace Scuffed {
 	}
 
 	float Intersection::projectionOverlapTest(const glm::vec3& testVec, const std::vector<glm::vec3>& vertices1, const std::vector<glm::vec3>& vertices2) {
-		glm::vec3 normTestVec = glm::normalize(testVec);
-		
 		float min1 = INFINITY, min2 = INFINITY;
 		float max1 = -INFINITY, max2 = -INFINITY;
 
 		float tempDot;
 
 		for (const auto& vert : vertices1) {
-			tempDot = dot(vert, normTestVec);
+			tempDot = dot(vert, testVec);
 
 			if (tempDot < min1) {
 				min1 = tempDot;
@@ -251,7 +249,7 @@ namespace Scuffed {
 		}
 
 		for (const auto& vert : vertices2) {
-			tempDot = dot(vert, normTestVec);
+			tempDot = dot(vert, testVec);
 
 			if (tempDot < min2) {
 				min2 = tempDot;
@@ -367,15 +365,13 @@ namespace Scuffed {
 	}
 
 	bool Intersection::continousOverlapTest(const glm::vec3& testVec, const std::vector<glm::vec3>& vertices1, const std::vector<glm::vec3>& vertices2, const glm::vec3& relativeVel, float& timeFirst, float& timeLast, const float& timeMax) {
-		glm::vec3 normTestVec = glm::normalize(testVec);
-		
 		float min1 = INFINITY, min2 = INFINITY;
 		float max1 = -INFINITY, max2 = -INFINITY;
 
 		float tempDot;
 
 		for (const auto& vert : vertices1) {
-			tempDot = dot(vert, normTestVec);
+			tempDot = dot(vert, testVec);
 
 			if (tempDot < min1) {
 				min1 = tempDot;
@@ -386,7 +382,7 @@ namespace Scuffed {
 		}
 
 		for (const auto& vert : vertices2) {
-			tempDot = dot(vert, normTestVec);
+			tempDot = dot(vert, testVec);
 
 			if (tempDot < min2) {
 				min2 = tempDot;
@@ -399,7 +395,7 @@ namespace Scuffed {
 		//Following found here: https://www.geometrictools.com/Documentation/MethodOfSeparatingAxes.pdf
 
 		float T;
-		float speed = dot(normTestVec, relativeVel);
+		float speed = dot(testVec, relativeVel);
 
 		if (max2 < min1) { // Interval (2) initially on ‘left’ of interval (1)
 			if (speed <= 0) { return false; } // Intervals moving apart

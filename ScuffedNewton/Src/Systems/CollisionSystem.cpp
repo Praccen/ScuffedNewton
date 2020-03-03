@@ -147,7 +147,7 @@ namespace Scuffed {
 
 				if (Intersection::SAT(boundingBox->getBox(), collisionInfo_i.shape.get(), &collisionInfo_i.intersectionAxis, &collisionInfo_i.intersectionDepth)) {
 					if (glm::dot(collisionInfo_i.intersectionAxis, boundingBox->getPosition() - collisionInfo_i.shape->getMiddle()) < 0.f) {
-						// Flip intersection axis if it is pointing wrong way
+						 // Flip intersection axis if it is pointing wrong way
 						collisionInfo_i.intersectionAxis = -collisionInfo_i.intersectionAxis;
 					}
 
