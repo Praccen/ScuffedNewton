@@ -79,19 +79,13 @@ namespace Scuffed {
 		m_octree->getNextContinousCollision(e, collision->collisions.back(), time, dt, collision->doSimpleCollisions);
 
 		while (time < dt && time > 0.f) {
-			//time *= 1.01f;
+			time += 0.000001f; //Avoids getting 0 intersection depth both along normal and edge of a shape.
  			boundingBox->setPosition(boundingBox->getPosition() + movement->velocity * time);
 			transform->translate(movement->velocity * time);
-
 			dt -= time;
-			/*movement->velocity = { 0.f, 0.f, 0.f };
-			movement->constantAcceleration = { 0.f, 0.f, 0.f };
-			movement->updateableDt = 0.f;
-			movement->oldMovement = { 0.f, 0.f, 0.f };*/
-
 
 			if (!handleCollisions(e, collision->collisions, 0.f)) { // Removes the collision from collision->collisions
-				std::cout << "What?\n";
+				//std::cout << "What?\n";
 				collision->collisions.emplace_back(); // Re add an element at the back
 			}
 
