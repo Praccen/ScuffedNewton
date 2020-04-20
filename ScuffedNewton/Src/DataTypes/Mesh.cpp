@@ -13,6 +13,8 @@ namespace Scuffed {
 
 		m_indices = nullptr;
 		m_nrOfIndices = 0;
+
+		m_softLimitTriangles = 20;
 	}
 
 	Mesh::~Mesh() {
@@ -69,6 +71,41 @@ namespace Scuffed {
 
 	int Mesh::getNumberOfIndices() {
 		return m_nrOfIndices;
+	}
+
+	void Mesh::setUpOctree() {
+		glm::vec3 minVals{INFINITY};
+		glm::vec3 maxVals{-INFINITY};
+
+		if (m_nrOfIndices > 0) { // Has indices
+			for (int i = 0; i < m_nrOfIndices; i++) {
+				glm::vec3 position = getVertexPosition(m_indices[i]);
+				for (int j = 0; j < 3; j++) {
+					if (position[j] < minVals[j]) {
+						minVals[j] = position[j];
+					}
+					if (position[j] > maxVals[j]) {
+						maxVals[j] = position[j];
+					}
+				}
+			}
+		}
+		else if (int numVertices = getNumberOfVertices() > 0) {
+			for (int i = 0; i < numVertices; i++) {
+				glm::vec3 position = getVertexPosition(i);
+				for (int j = 0; j < 3; j++) {
+					if (position[j] < minVals[j]) {
+						minVals[j] = position[j];
+					}
+					if (position[j] > maxVals[j]) {
+						maxVals[j] = position[j];
+					}
+				}
+			}
+		}
+
+		m_baseNode.nodeBB = SN_NEW BoundingBox();
+		m_baseNode.nodeBB->setHalfSize((maxVals - minVals) / 2.0f);
 	}
 
 }

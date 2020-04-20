@@ -18,9 +18,9 @@ namespace Scuffed {
 		virtual int getNumberOfIndices();
 
 	public:
-		struct ObbNode {
-			std::vector<ObbNode> childNodes;
-			ObbNode* parentNode = nullptr;
+		struct OctNode {
+			std::vector<OctNode> childNodes;
+			OctNode* parentNode = nullptr;
 			BoundingBox* nodeBB = nullptr;
 			int nrOfTriangles = 0;
 			std::vector<size_t> triangleStarts;
@@ -37,6 +37,10 @@ namespace Scuffed {
 		int* m_indices;
 		int m_nrOfIndices;
 
-		ObbNode m_baseNode;	
+		OctNode m_baseNode;
+		int m_softLimitTriangles;
+
+	private:
+		void setUpOctree();
 	};
 }
