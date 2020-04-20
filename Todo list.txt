@@ -1,7 +1,7 @@
-- Collision manifolds
 - Mesh-mesh collision using SAT and possible speedups.
-- Dynamic rigid body collisions (Remove ragdoll component)
 - Narrow phase hierarchy (octree)
+- Collision manifolds
+- Dynamic rigid body collisions (Remove ragdoll component)
 - Make interface pretty and user friendly
 - Make it possible to render bounding boxes in some way
 - Replace glm::dot's with Intersection::dot's. Also see if implementing own version of cross, normalize etc is faster than glm.
