@@ -17,7 +17,17 @@ namespace Scuffed {
 		virtual int getNumberOfVertices();
 		virtual int getNumberOfIndices();
 
+	public:
+		struct ObbNode {
+			std::vector<ObbNode> childNodes;
+			ObbNode* parentNode = nullptr;
+			BoundingBox* nodeBB = nullptr;
+			int nrOfTriangles = 0;
+			std::vector<size_t> triangleStarts;
+		};
+
 	private:
+
 		void* m_data;
 		size_t m_size;
 		size_t m_vertexSize;
@@ -26,5 +36,7 @@ namespace Scuffed {
 
 		int* m_indices;
 		int m_nrOfIndices;
+
+		ObbNode m_baseNode;	
 	};
 }
