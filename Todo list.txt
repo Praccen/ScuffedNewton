@@ -1,5 +1,6 @@
+- Multipurpose octree storage class
+- Narrow phase hierarchy (using the multipurpose octree)
 - Mesh-mesh collision using SAT and possible speedups.
-- Narrow phase hierarchy (octree)
 - Collision manifolds
 - Dynamic rigid body collisions (Remove ragdoll component)
 - Make interface pretty and user friendly
