@@ -81,9 +81,9 @@ namespace Scuffed {
 		for (int i = 0; i < 8; i++) {
 			glm::vec3 distanceVec = corners[i] - testNode->nodeBB->getPosition();
 
-			if (distanceVec.x <= -testNodeHalfSize.x || distanceVec.x >= testNodeHalfSize.x ||
-				distanceVec.y <= -testNodeHalfSize.y || distanceVec.y >= testNodeHalfSize.y ||
-				distanceVec.z <= -testNodeHalfSize.z || distanceVec.z >= testNodeHalfSize.z) {
+			if (distanceVec.x < -testNodeHalfSize.x || distanceVec.x > testNodeHalfSize.x ||
+				distanceVec.y < -testNodeHalfSize.y || distanceVec.y > testNodeHalfSize.y ||
+				distanceVec.z < -testNodeHalfSize.z || distanceVec.z > testNodeHalfSize.z) {
 				directionVec = distanceVec;
 				i = 8;
 			}
@@ -262,22 +262,23 @@ namespace Scuffed {
 
 				entityBoundingBox->getBox()->setMatrix(glm::inverse(transformMatrix));
 
+				// Get triangles to test collision against from narrow phase octree in mesh
+				std::vector<int> triangles;
+				mesh->mesh->getTrianglesForCollisionTesting(triangles, entityBoundingBox->getBox());
+
 				// Triangle to set mesh data to avoid creating new shapes for each triangle in mesh
 				Triangle triangle(glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(0.0f));
 
 				//for (unsigned int j = 0; j < model->getModel()->getNumberOfMeshes(); j++) {
-				if (int numIndices = mesh->mesh->getNumberOfIndices() > 0) { // Has indices
-					for (int j = 0; j < numIndices; j += 3) {
-						triangle.setData(mesh->mesh->getVertexPosition(mesh->mesh->getVertexIndex(j)), mesh->mesh->getVertexPosition(mesh->mesh->getVertexIndex(j + 1)), mesh->mesh->getVertexPosition(mesh->mesh->getVertexIndex(j + 2)));
-						getCollisionData(entityBoundingBox, e, &triangle, outCollisionData, checkBackfaces);
+				int numTriangles = triangles.size();
+				for (int j = 0; j < numTriangles; j++) {
+					if (mesh->mesh->getNumberOfIndices() > 0) { // Has indices
+						triangle.setData(mesh->mesh->getVertexPosition(mesh->mesh->getVertexIndex(triangles[j])), mesh->mesh->getVertexPosition(mesh->mesh->getVertexIndex(triangles[j] + 1)), mesh->mesh->getVertexPosition(mesh->mesh->getVertexIndex(triangles[j] + 2)));
 					}
-				}
-				else if (mesh->mesh->getNumberOfVertices() > 0) {
-					int numVertices = mesh->mesh->getNumberOfVertices();
-					for (int j = 0; j < numVertices; j += 3) {
-						triangle.setData(mesh->mesh->getVertexPosition(j), mesh->mesh->getVertexPosition(j + 1), mesh->mesh->getVertexPosition(j + 2));
-						getCollisionData(entityBoundingBox, e, &triangle, outCollisionData, checkBackfaces);
+					else if (mesh->mesh->getNumberOfVertices() > 0) {
+						triangle.setData(mesh->mesh->getVertexPosition(triangles[j]), mesh->mesh->getVertexPosition(triangles[j] + 1), mesh->mesh->getVertexPosition(triangles[j] + 2));
 					}
+					getCollisionData(entityBoundingBox, e, &triangle, outCollisionData, checkBackfaces);
 				}
 				//}
 
@@ -364,7 +365,8 @@ namespace Scuffed {
 				Triangle triangle(glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(0.0f));
 
 				//for (unsigned int j = 0; j < model->getModel()->getNumberOfMeshes(); j++) {
-				if (int numIndices = mesh->mesh->getNumberOfIndices() > 0) { // Has indices
+				if (mesh->mesh->getNumberOfIndices() > 0) { // Has indices
+					int numIndices = mesh->mesh->getNumberOfIndices();
 					for (int j = 0; j < numIndices; j += 3) {
 						triangle.setData(mesh->mesh->getVertexPosition(mesh->mesh->getVertexIndex(j)), mesh->mesh->getVertexPosition(mesh->mesh->getVertexIndex(j + 1)), mesh->mesh->getVertexPosition(mesh->mesh->getVertexIndex(j + 2)));
 						
@@ -474,7 +476,8 @@ namespace Scuffed {
 				}
 
 				//for (unsigned int j = 0; j < model->getModel()->getNumberOfMeshes(); j++) {
-				if (int numIndices = mesh->mesh->getNumberOfIndices() > 0) { // Has indices
+				if (mesh->mesh->getNumberOfIndices() > 0) { // Has indices
+					int numIndices = mesh->mesh->getNumberOfIndices();
 					for (int j = 0; j < numIndices; j += 3) {
 						glm::vec3 v0, v1, v2;
 						v0 = glm::vec3(transformMatrix * glm::vec4(mesh->mesh->getVertexPosition(mesh->mesh->getVertexIndex(j)), 1.0f));
@@ -483,8 +486,9 @@ namespace Scuffed {
 						getIntersectionData(rayStart, rayDir, currentNode->entities[i], v0, v1, v2, outIntersectionData, padding, checkBackfaces);
 					}
 				}
-				else if (int numVertices = mesh->mesh->getNumberOfVertices() > 0) {
-					for (int j = 0; j < mesh->mesh->getNumberOfVertices(); j += 3) {
+				else if (mesh->mesh->getNumberOfVertices() > 0) {
+					int numVertices = mesh->mesh->getNumberOfVertices();
+					for (int j = 0; j < numVertices; j += 3) {
 						glm::vec3 v0, v1, v2;
 						v0 = glm::vec3(transformMatrix * glm::vec4(mesh->mesh->getVertexPosition(j), 1.0f));
 						v1 = glm::vec3(transformMatrix * glm::vec4(mesh->mesh->getVertexPosition(j + 1), 1.0f));

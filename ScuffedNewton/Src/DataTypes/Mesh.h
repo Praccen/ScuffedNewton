@@ -3,6 +3,8 @@
 #include <glm/vec3.hpp>
 
 namespace Scuffed {
+	class Box;
+
 	class Mesh {
 	public:
 		Mesh();
@@ -37,6 +39,9 @@ namespace Scuffed {
 			std::vector<int> triangles;
 		};
 
+		void getTrianglesForCollisionTesting(std::vector<int>& triangles, Box* box);
+		//TODO: void getTrianglesForContinousCollisionTesting(std::vector<int>& triangles, Box* box);
+
 	private:
 		// ----Narrow phase octree----
 		OctNode m_baseNode;
@@ -48,6 +53,9 @@ namespace Scuffed {
 		bool addTriangleRec(int triangle, OctNode* node);
 		void expandBaseNode(glm::vec3 direction);
 		glm::vec3 findCornerOutside(int triangle, OctNode* testNode);
+		void clean(OctNode* node);
+
+		void getTrianglesForCollisionTestingRec(std::vector<int> &triangles, Box* box, OctNode* node);
 		// ---------------------------
 	};
 }

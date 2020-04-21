@@ -1,6 +1,8 @@
 #include "../pch.h"
 
 #include "Mesh.h"
+#include "../Shapes/Box.h"
+#include "../Calculations/Intersection.h"
 
 namespace Scuffed {
 
@@ -15,10 +17,11 @@ namespace Scuffed {
 		m_nrOfIndices = 0;
 
 		m_softLimitTriangles = 20;
+		m_minimumNodeHalfSize = 1.0f;
 	}
 
 	Mesh::~Mesh() {
-
+		clean(&m_baseNode);
 	}
 
 	void Mesh::loadData(void* data, size_t size, size_t vertexSize, size_t positionOffset, size_t positionSize) {
@@ -27,11 +30,17 @@ namespace Scuffed {
 		m_vertexSize = vertexSize;
 		m_positionOffset = positionOffset;
 		m_positionSize = positionSize;
+
+		clean(&m_baseNode);
+		setUpOctree();
 	}
 
 	void Mesh::loadIndices(int* indices, int nrOfIndices) {
 		m_indices = indices;
 		m_nrOfIndices = nrOfIndices;
+
+		clean(&m_baseNode);
+		setUpOctree();
 	}
 
 	glm::vec3 Mesh::getVertexPosition(int vertexIndex) {
@@ -73,9 +82,15 @@ namespace Scuffed {
 		return m_nrOfIndices;
 	}
 
+	void Mesh::getTrianglesForCollisionTesting(std::vector<int> &triangles, Box* box) {
+		getTrianglesForCollisionTestingRec(triangles, box, &m_baseNode);
+	}
+
 	void Mesh::setUpOctree() {
-		glm::vec3 minVals{INFINITY};
-		glm::vec3 maxVals{-INFINITY};
+		glm::vec3 minVals(INFINITY);
+		glm::vec3 maxVals(-INFINITY);
+
+		std::vector<int> trianglesToAdd;
 
 		if (m_nrOfIndices > 0) { // Has indices
 			for (int i = 0; i < m_nrOfIndices; i++) {
@@ -88,9 +103,14 @@ namespace Scuffed {
 						maxVals[j] = position[j];
 					}
 				}
+				if (i % 3 == 0) {
+					trianglesToAdd.emplace_back();
+					trianglesToAdd.back() = i;
+				}
 			}
 		}
-		else if (int numVertices = getNumberOfVertices() > 0) {
+		else if (getNumberOfVertices() > 0) {
+			int numVertices = getNumberOfVertices();
 			for (int i = 0; i < numVertices; i++) {
 				glm::vec3 position = getVertexPosition(i);
 				for (int j = 0; j < 3; j++) {
@@ -101,6 +121,10 @@ namespace Scuffed {
 						maxVals[j] = position[j];
 					}
 				}
+				if (i % 3 == 0) {
+					trianglesToAdd.emplace_back();
+					trianglesToAdd.back() = i;
+				}
 			}
 		}
 
@@ -109,6 +133,8 @@ namespace Scuffed {
 		m_baseNode.nodeBB->setPosition(minVals + m_baseNode.nodeBB->getHalfSize());
 
 		m_minimumNodeHalfSize = m_baseNode.nodeBB->getHalfSize().x / 20.0f;
+
+		addTrianglesToOctree(trianglesToAdd);
 	}
 
 	bool Mesh::addTriangleRec(int triangle, OctNode* currentNode) {
@@ -245,15 +271,37 @@ namespace Scuffed {
 				distanceVec = getVertexPosition(triangle + i) - testNode->nodeBB->getPosition();
 			}
 
-			if (distanceVec.x <= -testNodeHalfSize.x || distanceVec.x >= testNodeHalfSize.x ||
-				distanceVec.y <= -testNodeHalfSize.y || distanceVec.y >= testNodeHalfSize.y ||
-				distanceVec.z <= -testNodeHalfSize.z || distanceVec.z >= testNodeHalfSize.z) {
+			if (distanceVec.x < -testNodeHalfSize.x || distanceVec.x > testNodeHalfSize.x ||
+				distanceVec.y < -testNodeHalfSize.y || distanceVec.y > testNodeHalfSize.y ||
+				distanceVec.z < -testNodeHalfSize.z || distanceVec.z > testNodeHalfSize.z) {
 				directionVec = distanceVec;
 				i = 3;
 			}
 		}
 
 		return directionVec;
+	}
+
+	void Mesh::clean(OctNode* node) {
+		for (size_t i = 0; i < node->childNodes.size(); i++) {
+			clean(&node->childNodes[i]);
+		}
+		node->childNodes.clear();
+		if (node->nodeBB) {
+			delete node->nodeBB;
+			node->nodeBB = nullptr;
+		}
+	}
+
+	void Mesh::getTrianglesForCollisionTestingRec(std::vector<int>& triangles, Box* box, OctNode* node) {
+		if (Intersection::SAT(node->nodeBB->getBox(), box)) {
+			triangles.insert(triangles.end(), node->triangles.begin(), node->triangles.end());
+
+			int nrOfChildNodes = node->childNodes.size();
+			for (int i = 0; i < nrOfChildNodes; i++) {
+				getTrianglesForCollisionTestingRec(triangles, box, &node->childNodes[i]);
+			}
+		}
 	}
 
 	

@@ -1,7 +1,8 @@
-- Narrow phase hierarchy (using the multipurpose octree)
+- Narrow phase hierarchy
 - Mesh-mesh collision using SAT and possible speedups.
 - Collision manifolds
 - Take movement into consideration when updating broad phase octree.
+- Fix "sticky" collisions where the intersection axis is pointing the wrong way. Happens on corners. Also gets stuck on the middle line of a quad sometimes
 - Dynamic rigid body collisions (Remove ragdoll component)
 - Make interface pretty and user friendly
 - Make it possible to render bounding boxes in some way
@@ -18,4 +19,3 @@
 - Add support for OBB's
 - General SAT solution for collisions
 - Continous collision detection using SAT instead of swept sphere
-- Fix "sticky" collisions where the intersection axis is pointing the wrong way. Happens on corners. Also gets stuck on the middle line of a quad sometimes
