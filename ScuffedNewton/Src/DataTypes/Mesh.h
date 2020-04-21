@@ -18,6 +18,7 @@ namespace Scuffed {
 		virtual int getNumberOfIndices();
 
 	private:
+
 		void* m_data;
 		size_t m_size;
 		size_t m_vertexSize;
@@ -26,5 +27,27 @@ namespace Scuffed {
 
 		int* m_indices;
 		int m_nrOfIndices;
+
+	public:
+		struct OctNode {
+			std::vector<OctNode> childNodes;
+			OctNode* parentNode = nullptr;
+			BoundingBox* nodeBB = nullptr;
+			int nrOfTriangles = 0;
+			std::vector<int> triangles;
+		};
+
+	private:
+		// ----Narrow phase octree----
+		OctNode m_baseNode;
+		int m_softLimitTriangles;
+		float m_minimumNodeHalfSize;
+		
+		void setUpOctree();
+		void addTrianglesToOctree(std::vector<int> trianglesToAdd);
+		bool addTriangleRec(int triangle, OctNode* node);
+		void expandBaseNode(glm::vec3 direction);
+		glm::vec3 findCornerOutside(int triangle, OctNode* testNode);
+		// ---------------------------
 	};
 }

@@ -3,6 +3,8 @@
 #include <glm/vec3.hpp>
 
 namespace Scuffed {
+	
+	class Box;
 
 	class BoundingBox {
 	private:
@@ -13,8 +15,11 @@ namespace Scuffed {
 
 		bool m_hasChanged;
 		bool m_cornersNeedUpdate;
+		bool m_boxNeedsUpdate;
 
 		void updateCorners();
+
+		Box* m_box;
 
 	private:
 		friend class Octree;
@@ -22,7 +27,7 @@ namespace Scuffed {
 
 	public:
 		BoundingBox();
-		~BoundingBox();
+		virtual ~BoundingBox();
 
 		virtual const glm::vec3& getPosition() const;
 		virtual const glm::vec3& getHalfSize() const;
@@ -34,6 +39,8 @@ namespace Scuffed {
 
 		virtual void setPosition(const glm::vec3& position);
 		virtual void setHalfSize(const glm::vec3& size);
+
+		virtual Box* getBox();
 	};
 
 }

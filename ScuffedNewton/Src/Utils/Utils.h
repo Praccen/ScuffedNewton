@@ -18,7 +18,6 @@ namespace Scuffed {
 			CollisionComponent,
 			MovementComponent,
 			MeshComponent,
-			RagdollComponent,
 			SpeedLimitComponent,
 			TransformComponent
 		}; // Change in switch cases in entity virtual functions if this changes
@@ -30,9 +29,6 @@ namespace Scuffed {
 		~Utils();
 
 		static Utils* instance();
-
-		template<typename ComponentType>
-		ComponentType getTypeFromInt(int componentNumber);
 
 		int GetEntityIdCounter(bool increase = false);
 	private:

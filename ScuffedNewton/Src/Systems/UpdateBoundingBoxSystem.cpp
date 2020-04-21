@@ -59,11 +59,6 @@ namespace Scuffed {
 		else {
 			boundingBox->getBoundingBox()->setPosition(transform->getTranslation() + glm::vec3(0.0f, boundingBox->getBoundingBox()->getHalfSize().y, 0.0f));
 		}
-
-		//transform->setTranslation(boundingBox->getBoundingBox()->getPosition() - glm::vec3(0.0f, boundingBox->getBoundingBox()->getHalfSize().y, 0.0f));
-		//transform->setScale(boundingBox->getBoundingBox()->getHalfSize() * 2.0f);
-		/*boundingBox->getTransform()->setTranslation(boundingBox->getBoundingBox()->getPosition() - glm::vec3(0.0f, boundingBox->getBoundingBox()->getHalfSize().y, 0.0f));
-		boundingBox->getTransform()->setScale(boundingBox->getBoundingBox()->getHalfSize() * 2.0f);*/
 	}
 
 	void UpdateBoundingBoxSystem::recalculateBoundingBoxPosition(Entity* e) {
@@ -71,21 +66,6 @@ namespace Scuffed {
 		TransformComponent* transform = e->getComponent<TransformComponent>();
 		glm::mat4 transformationMatrix = transform->getMatrixWithUpdate();
 		boundingBox->getBoundingBox()->setPosition(glm::vec3(transformationMatrix[3]) + glm::vec3(0.0f, boundingBox->getBoundingBox()->getHalfSize().y, 0.0f));
-		//transform->setTranslation(boundingBox->getBoundingBox()->getPosition() - glm::vec3(0.0f, boundingBox->getBoundingBox()->getHalfSize().y, 0.0f));
-		//transform->setScale(boundingBox->getBoundingBox()->getHalfSize() * 2.0f);
-		/*boundingBox->getTransform()->setTranslation(boundingBox->getBoundingBox()->getPosition() - glm::vec3(0.0f, boundingBox->getBoundingBox()->getHalfSize().y, 0.0f));
-		boundingBox->getTransform()->setScale(boundingBox->getBoundingBox()->getHalfSize() * 2.0f);*/
-	}
-
-	void UpdateBoundingBoxSystem::updateRagdollBoundingBoxes(Entity* e) {
-		RagdollComponent* ragdollComp = e->getComponent<RagdollComponent>();
-		TransformComponent* transComp = e->getComponent<TransformComponent>();
-
-		for (size_t i = 0; i < ragdollComp->contactPoints.size(); i++) {
-			ragdollComp->contactPoints[i].boundingBox.setPosition(glm::vec3(transComp->getMatrixWithUpdate() * glm::vec4(ragdollComp->contactPoints[i].localOffSet, 1.0f)));
-			ragdollComp->contactPoints[i].transform.setTranslation(ragdollComp->contactPoints[i].boundingBox.getPosition() - glm::vec3(0.0f, ragdollComp->contactPoints[i].boundingBox.getHalfSize().y, 0.0f));
-			ragdollComp->contactPoints[i].transform.setScale(ragdollComp->contactPoints[i].boundingBox.getHalfSize() * 2.0f);
-		}
 	}
 
 	bool UpdateBoundingBoxSystem::addEntity(Entity* entity) {
@@ -106,11 +86,6 @@ namespace Scuffed {
 				}
 				else if (change > 0) {
 					recalculateBoundingBoxPosition(e);
-				}
-
-				if (e->hasComponent<RagdollComponent>()) {
-					recalculateBoundingBoxFully(e);
-					updateRagdollBoundingBoxes(e);
 				}
 			}
 		}

@@ -34,11 +34,6 @@ namespace Scuffed {
 			// Reset additional acceleration
 			movement->accelerationToAdd = glm::vec3(0.0f);
 
-			// Rotation
-			if (movement->rotation != glm::vec3(0.0f)) {
-				transform->rotate(movement->rotation * dt);
-			}
-
 			// Set initial value which might be changed in CollisionSystem
 			movement->updateableDt = dt;
 		}

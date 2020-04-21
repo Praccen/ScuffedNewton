@@ -1,6 +1,7 @@
 #include "../pch.h"
 
 #include "BoundingBox.h"
+#include "../Shapes/Box.h"
 
 namespace Scuffed {
 
@@ -10,10 +11,13 @@ namespace Scuffed {
 		m_hasChanged = false;
 		m_cornersNeedUpdate = true;
 		prepareCorners();
+
+		m_box = SN_NEW Box(m_halfSize, m_position);
+		m_boxNeedsUpdate = false;
 	}
 
 	BoundingBox::~BoundingBox() {
-
+		delete m_box;
 	}
 
 	void BoundingBox::updateCorners() {
@@ -62,12 +66,33 @@ namespace Scuffed {
 		m_position = position;
 		m_hasChanged = true;
 		m_cornersNeedUpdate = true;
+		m_boxNeedsUpdate = true;
 	}
 
 	void BoundingBox::setHalfSize(const glm::vec3& size) {
 		m_halfSize = size;
 		m_hasChanged = true;
 		m_cornersNeedUpdate = true;
+		m_boxNeedsUpdate = true;
+	}
+
+	Box* BoundingBox::getBox() {
+		if (m_boxNeedsUpdate) {
+			glm::vec3 planes[6] = {
+			{m_halfSize.x, 0.f, 0.f},
+			{-m_halfSize.x, 0.f, 0.f},
+			{0.f, m_halfSize.y, 0.f},
+			{0.f, -m_halfSize.y, 0.f},
+			{0.f, 0.f, m_halfSize.z},
+			{0.f, 0.f, -m_halfSize.z}
+			};
+
+			m_box->setData(planes, m_position);
+
+			m_boxNeedsUpdate = false;
+		}
+
+		return m_box;
 	}
 
 }
