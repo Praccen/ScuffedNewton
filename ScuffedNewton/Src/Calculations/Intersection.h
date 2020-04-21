@@ -1,23 +1,16 @@
 #pragma once
 
-#include "../DataTypes/BoundingBox.h"
-#include "../DataTypes/Cylinder.h"
+#include <vector>
+
 #include "../DataTypes/Sphere.h"
+
 
 namespace Scuffed {
 
+	class Shape;
+
 	class Intersection {
 	public:
-		static bool AabbWithAabb(const glm::vec3& aabb1Pos, const glm::vec3& aabb1HalfSize, const glm::vec3& aabb2Pos, const glm::vec3& aabb2HalfSize);
-		static bool AabbWithAabb(const glm::vec3& aabb1Pos, const glm::vec3& aabb1HalfSize, const glm::vec3& aabb2Pos, const glm::vec3& aabb2HalfSize, glm::vec3* intersectionAxis, float* intersectionDepth);
-		static bool AabbWithTriangle(const glm::vec3& aabbPos, const glm::vec3& aabbHalfSize, const glm::vec3& triPos1, const glm::vec3& triPos2, const glm::vec3& triPos3, const bool checkBackfaces = false);
-		static bool AabbWithTriangle(const glm::vec3& aabbPos, const glm::vec3& aabbHalfSize, const glm::vec3& triPos1, const glm::vec3& triPos2, const glm::vec3& triPos3, glm::vec3* intersectionAxis, float* intersectionDepth);
-		static bool AabbWithPlane(const glm::vec3* aabbCorners, const glm::vec3& planeNormal, const float planeDistance);
-		static bool AabbWithSphere(const glm::vec3* aabbCorners, const Sphere& sphere);
-		static bool AabbWithVerticalCylinder(const glm::vec3& aabbPos, const glm::vec3& aabbHalfSize, const glm::vec3* aabbCorners, const VerticalCylinder& cyl);
-
-		static bool SphereWithPlane(const Sphere& sphere, const glm::vec3& planeNormal, const float planeDistance);
-
 		static float RayWithAabb(const glm::vec3& rayStart, const glm::vec3& rayVec, const glm::vec3& aabbPos, const glm::vec3& aabbHalfSize, glm::vec3* intersectionAxis = nullptr);
 		static float RayWithTriangle(const glm::vec3& rayStart, const glm::vec3& rayDir, const glm::vec3& triPos1, const glm::vec3& triPos2, const glm::vec3& triPos3);
 		static float RayWithPlane(const glm::vec3& rayStart, const glm::vec3& rayDir, const glm::vec3& planeNormal, const float planeDistance);
@@ -28,6 +21,7 @@ namespace Scuffed {
 		//static bool FrustumWithAabb(const Frustum& frustum, const glm::vec3* aabbCorners);
 
 		static glm::vec3 PointProjectedOnPlane(const glm::vec3& point, const glm::vec3& planeNormal, const float planeDistance);
+
 	private:
 		//Private constructor so an instance can't be created
 		Intersection() {};
@@ -35,20 +29,17 @@ namespace Scuffed {
 
 		static void Barycentric(const glm::vec3& p, const glm::vec3& a, const glm::vec3& b, const glm::vec3& c, float& outU, float& outV, float& outW);
 		static bool OnTriangle(const float u, const float v, const float w);
-
-		static bool SATTest(const glm::vec3& testAxis, const glm::vec3& triPos1, const glm::vec3& triPos2, const glm::vec3& triPos3, const glm::vec3& aabbHalfSize, glm::vec3* intersectionAxis, float* depth);
 	
-	private:
+	public:
+		static float dot(const glm::vec3& v1, const glm::vec3& v2);
+
 		// ----SAT functions----
-		std::vector<glm::vec3> getEdges(const glm::vec3 tri[3]);
+		static float projectionOverlapTest(const glm::vec3& testVec, const std::vector<glm::vec3>& vertices1, const std::vector<glm::vec3>& vertices2);
+		static bool SAT(Shape* shape1, Shape* shape2);
+		static bool SAT(Shape* shape1, Shape* shape2, glm::vec3* intersectionAxis, float* intersectionDepth);
 
-		std::vector<glm::vec3> getAxes(const glm::vec3 tri1[3], const glm::vec3 tri2[3]);
-
-		bool projectionOverlapTest(glm::vec3& testVec, const glm::vec3 tri1[3], const glm::vec3 tri2[3]);
-
-		bool SAT(const glm::vec3 tri1[3], const glm::vec3 tri2[3], int earlyExitLevel);
-
-		bool meshVsMeshIntersection(std::vector<glm::vec3> mesh1, std::vector<glm::vec3> mesh2, int earlyExitLevel);
+		static bool continousOverlapTest(const glm::vec3& testVec, const std::vector<glm::vec3>& vertices1, const std::vector<glm::vec3>& vertices2, const glm::vec3& relativeVel, float& timeFirst, float& timeLast, const float& timeMax);
+		static float continousSAT(Shape* shape1, Shape* shape2, const glm::vec3& vel1, const glm::vec3& vel2, const float& dt);
 		// ---------------------
 	};
 

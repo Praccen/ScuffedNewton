@@ -28,6 +28,11 @@ namespace Scuffed {
 			TransformComponent* transform = e->getComponent<TransformComponent>();
 			MovementComponent* movement = e->getComponent<MovementComponent>();
 
+			// Rotation
+			if (movement->rotation != glm::vec3(0.0f)) {
+				transform->rotate(movement->rotation * dt);
+			}
+
 			// Apply air drag
 			float saveY = movement->velocity.y;
 			movement->velocity.y = 0;

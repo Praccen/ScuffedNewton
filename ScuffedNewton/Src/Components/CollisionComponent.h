@@ -11,7 +11,6 @@ namespace Scuffed {
 
 		float drag;
 		float bounciness;
-		float padding;
 		bool onGround;
 		bool doSimpleCollisions;
 
