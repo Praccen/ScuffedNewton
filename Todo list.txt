@@ -1,15 +1,15 @@
 ----Essentials----
 - Mesh-mesh collision using SAT and possible speedups.
 - Collision manifolds
-- Take movement into consideration when updating broad phase octree.
 - Dynamic rigid body collisions
+- Take movement into consideration when updating broad phase octree.
 - Fix "sticky" collisions where the intersection axis is pointing the wrong way. Happens on corners. Also gets stuck on the middle line of a quad sometimes
-- Multi-thread the SAT
+- Multi-thread stuff
 ------------------
 
 ----Improvements possible----
-- Find which bounding boxes / objects are colliding first in continous collisions before going into triangles.
 - Keep a list of all current collisions, double check those every frame instead of going into static collision check. Should make it possible to use only continous collision pass.
+- Find which bounding boxes / objects are colliding first in continous collisions before going into triangles.
 - Replace glm::dot's with Intersection::dot's. Also see if implementing own version of cross, normalize etc is faster than glm.
 - Replace [] indexing with iterators
 - Make interface pretty and user friendly

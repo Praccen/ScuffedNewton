@@ -42,12 +42,11 @@ namespace Scuffed {
 			MovementComponent* movement = e->getComponent<MovementComponent>();
 
 			collision->collisions.clear();
+			collisionUpdate(e, dt);
+
 			movement->updateableDt = dt;
 			continousCollisionUpdate(e, movement->updateableDt);
 			movement->oldVelocity = movement->velocity;
-
-			collision->collisions.clear();
-			collisionUpdate(e, dt);
 		}
 
 		// ======================== Surface from collisions ======================================
@@ -85,17 +84,14 @@ namespace Scuffed {
 			transform->translate(movement->velocity * time + additionalMovement);
 			dt -= time;
 
-			if (!handleCollisions(e, collision->collisions, 0.f)) { // Removes the collision from collision->collisions
-				//std::cout << "What?\n";
-				collision->collisions.emplace_back(); // Re add an element at the back
-			}
+			handleCollisions(e, collision->collisions, 0.f);
 
+			collision->collisions.emplace_back(); // Add a new element at the back
 			time = INFINITY;
 			m_octree->getNextContinousCollision(e, collision->collisions.back(), time, dt, collision->doSimpleCollisions);
 		}
 
-		collision->collisions.clear();
-		
+		collision->collisions.pop_back();
 	}
 
 	const bool CollisionSystem::handleCollisions(Entity* e, std::vector<Octree::CollisionInfo>& collisions, const float dt) {
