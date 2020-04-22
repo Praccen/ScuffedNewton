@@ -16,7 +16,7 @@ namespace Scuffed {
 		m_indices = nullptr;
 		m_nrOfIndices = 0;
 
-		m_softLimitTriangles = 20;
+		m_softLimitTriangles = 10;
 		m_minimumNodeHalfSize = 1.0f;
 	}
 
@@ -136,7 +136,7 @@ namespace Scuffed {
 		m_baseNode.nodeBB->setHalfSize((maxVals - minVals) / 2.0f);
 		m_baseNode.nodeBB->setPosition(minVals + m_baseNode.nodeBB->getHalfSize());
 
-		m_minimumNodeHalfSize = m_baseNode.nodeBB->getHalfSize().x / 20.0f;
+		m_minimumNodeHalfSize = m_baseNode.nodeBB->getHalfSize().x / 30.0f; 
 
 		addTrianglesToOctree(trianglesToAdd);
 	}

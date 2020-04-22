@@ -1,25 +1,30 @@
+----Essentials----
 - Mesh-mesh collision using SAT and possible speedups.
 - Collision manifolds
 - Take movement into consideration when updating broad phase octree.
-- Find which bounding boxes / objects are colliding first in continous collisions before going into triangles.
-- Fix "sticky" collisions where the intersection axis is pointing the wrong way. Happens on corners. Also gets stuck on the middle line of a quad sometimes
 - Dynamic rigid body collisions
-- Make interface pretty and user friendly
-- Make it possible to render bounding boxes in some way
+- Fix "sticky" collisions where the intersection axis is pointing the wrong way. Happens on corners. Also gets stuck on the middle line of a quad sometimes
+- Multi-thread the SAT
+------------------
+
+----Improvements possible----
+- Find which bounding boxes / objects are colliding first in continous collisions before going into triangles.
+- Keep a list of all current collisions, double check those every frame instead of going into static collision check. Should make it possible to use only continous collision pass.
 - Replace glm::dot's with Intersection::dot's. Also see if implementing own version of cross, normalize etc is faster than glm.
 - Replace [] indexing with iterators
+- Make interface pretty and user friendly
+- Make it possible to render bounding boxes in some way
 - Add support for multiple meshes in the mesh component / mesh class.
 - Add inverse matrix multiplication for ray intersections instead of multiplying every vertex of a mesh with the model matrix
-- Add support for Bounding spheres
+- Add support for Spheres
 - Add support for Capsules
 - Add option for left or right handed triangles
-- Multi-thread the SAT
-- Keep a list of all current collisions, double check those every frame instead of going into static collision check. Should make it possible to use only continous collision pass.
+-----------------------------
 
-
---Done :D--
+----Done :D----
 - Do inverse model matrix multiplications for AABB instead of multiplying every vertex by the model matrix (might have to implement other than AABB-triangle for this since inverse model matrix multiplication might scew AABB to other shape)
 - Add support for OBB's
 - General SAT solution for collisions
 - Continous collision detection using SAT instead of swept sphere
 - Narrow phase hierarchy
+---------------
