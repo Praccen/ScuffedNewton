@@ -83,7 +83,11 @@ namespace Scuffed {
 	}
 
 	void Mesh::getTrianglesForCollisionTesting(std::vector<int> &triangles, Box* box) {
-		getTrianglesForCollisionTestingRec(triangles, box, &m_baseNode);
+		collisionTrianglesRec(triangles, box, &m_baseNode);
+	}
+
+	void Mesh::getTrianglesForContinousCollisionTesting(std::vector<int>& triangles, Box* box, glm::vec3& boxVel, glm::vec3& meshVel, const float maxTime) {
+		continousCollisionTrianglesRec(triangles, box, boxVel, meshVel, &m_baseNode, maxTime);
 	}
 
 	void Mesh::setUpOctree() {
@@ -267,7 +271,7 @@ namespace Scuffed {
 			if (m_nrOfIndices > 0) { // Has indices
 				distanceVec = getVertexPosition(m_indices[triangle + i]) - testNode->nodeBB->getPosition();
 			}
-			else if (getNumberOfVertices() > 0) {
+			else {
 				distanceVec = getVertexPosition(triangle + i) - testNode->nodeBB->getPosition();
 			}
 
@@ -293,17 +297,26 @@ namespace Scuffed {
 		}
 	}
 
-	void Mesh::getTrianglesForCollisionTestingRec(std::vector<int>& triangles, Box* box, OctNode* node) {
+	void Mesh::collisionTrianglesRec(std::vector<int>& triangles, Box* box, OctNode* node) {
 		if (Intersection::SAT(node->nodeBB->getBox(), box)) {
 			triangles.insert(triangles.end(), node->triangles.begin(), node->triangles.end());
 
 			int nrOfChildNodes = node->childNodes.size();
 			for (int i = 0; i < nrOfChildNodes; i++) {
-				getTrianglesForCollisionTestingRec(triangles, box, &node->childNodes[i]);
+				collisionTrianglesRec(triangles, box, &node->childNodes[i]);
 			}
 		}
 	}
 
-	
+	void Mesh::continousCollisionTrianglesRec(std::vector<int>& triangles, Box* box, glm::vec3& boxVel, glm::vec3& meshVel, OctNode* node, const float maxTime) {
+		if (Intersection::continousSAT(box, node->nodeBB->getBox(), boxVel, meshVel, maxTime) >= 0.f) {
+			triangles.insert(triangles.end(), node->triangles.begin(), node->triangles.end());
+
+			int nrOfChildNodes = node->childNodes.size();
+			for (int i = 0; i < nrOfChildNodes; i++) {
+				continousCollisionTrianglesRec(triangles, box, boxVel, meshVel, &node->childNodes[i], maxTime);
+			}
+		}
+	}
 
 }

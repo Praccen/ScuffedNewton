@@ -40,7 +40,7 @@ namespace Scuffed {
 		};
 
 		void getTrianglesForCollisionTesting(std::vector<int>& triangles, Box* box);
-		//TODO: void getTrianglesForContinousCollisionTesting(std::vector<int>& triangles, Box* box);
+		void getTrianglesForContinousCollisionTesting(std::vector<int>& triangles, Box* box, glm::vec3 &boxVel, glm::vec3 &meshVel, const float maxTime);
 
 	private:
 		// ----Narrow phase octree----
@@ -55,7 +55,8 @@ namespace Scuffed {
 		glm::vec3 findCornerOutside(int triangle, OctNode* testNode);
 		void clean(OctNode* node);
 
-		void getTrianglesForCollisionTestingRec(std::vector<int> &triangles, Box* box, OctNode* node);
+		void collisionTrianglesRec(std::vector<int> &triangles, Box* box, OctNode* node);
+		void continousCollisionTrianglesRec(std::vector<int>& triangles, Box* box, glm::vec3& boxVel, glm::vec3& meshVel, OctNode* node, const float maxTime);
 		// ---------------------------
 	};
 }

@@ -79,9 +79,10 @@ namespace Scuffed {
 		m_octree->getNextContinousCollision(e, collision->collisions.back(), time, dt, collision->doSimpleCollisions);
 
 		while (time < dt && time > 0.f) {
-			time += 0.000001f; //Avoids getting 0 intersection depth both along normal and edge of a shape.
- 			boundingBox->setPosition(boundingBox->getPosition() + movement->velocity * time);
-			transform->translate(movement->velocity * time);
+			//time += 0.000001f; 
+			glm::vec3 additionalMovement = glm::normalize(movement->velocity) * 0.01f; //Avoids getting 0 intersection depth both along normal and edge of a shape.
+ 			boundingBox->setPosition(boundingBox->getPosition() + movement->velocity * time + additionalMovement);
+			transform->translate(movement->velocity * time + additionalMovement);
 			dt -= time;
 
 			if (!handleCollisions(e, collision->collisions, 0.f)) { // Removes the collision from collision->collisions

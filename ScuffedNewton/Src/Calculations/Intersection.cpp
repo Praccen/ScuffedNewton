@@ -364,7 +364,7 @@ namespace Scuffed {
 		return true;
 	}
 
-	bool Intersection::continousOverlapTest(const glm::vec3& testVec, const std::vector<glm::vec3>& vertices1, const std::vector<glm::vec3>& vertices2, const glm::vec3& relativeVel, float& timeFirst, float& timeLast, const float& timeMax) {
+	bool Intersection::continousOverlapTest(const glm::vec3& testVec, const std::vector<glm::vec3>& vertices1, const std::vector<glm::vec3>& vertices2, const glm::vec3& relativeVel, float& timeFirst, float& timeLast, const float timeMax) {
 		float min1 = INFINITY, min2 = INFINITY;
 		float max1 = -INFINITY, max2 = -INFINITY;
 
@@ -435,7 +435,7 @@ namespace Scuffed {
 		return true;
 	}
 
-	float Intersection::continousSAT(Shape* shape1, Shape* shape2, const glm::vec3& vel1, const glm::vec3& vel2, const float& dt) {
+	float Intersection::continousSAT(Shape* shape1, Shape* shape2, const glm::vec3& vel1, const glm::vec3& vel2, const float dt) {
 		// Treat shape1 as stationary and shape2 as moving
 		glm::vec3 relativeVel = vel2 - vel1;
 

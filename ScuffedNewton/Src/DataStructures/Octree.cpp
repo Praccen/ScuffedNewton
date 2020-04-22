@@ -271,11 +271,14 @@ namespace Scuffed {
 
 				//for (unsigned int j = 0; j < model->getModel()->getNumberOfMeshes(); j++) {
 				int numTriangles = triangles.size();
+				bool hasIndices = mesh->mesh->getNumberOfIndices() > 0;
+				bool hasVertices = mesh->mesh->getNumberOfVertices() > 0;
+
 				for (int j = 0; j < numTriangles; j++) {
-					if (mesh->mesh->getNumberOfIndices() > 0) { // Has indices
+					if (hasIndices) { // Has indices
 						triangle.setData(mesh->mesh->getVertexPosition(mesh->mesh->getVertexIndex(triangles[j])), mesh->mesh->getVertexPosition(mesh->mesh->getVertexIndex(triangles[j] + 1)), mesh->mesh->getVertexPosition(mesh->mesh->getVertexIndex(triangles[j] + 2)));
 					}
-					else if (mesh->mesh->getNumberOfVertices() > 0) {
+					else if (hasVertices) {
 						triangle.setData(mesh->mesh->getVertexPosition(triangles[j]), mesh->mesh->getVertexPosition(triangles[j] + 1), mesh->mesh->getVertexPosition(triangles[j] + 2));
 					}
 					getCollisionData(entityBoundingBox, e, &triangle, outCollisionData, checkBackfaces);
@@ -361,42 +364,35 @@ namespace Scuffed {
 				otherEntityVel = glm::inverse(transformMatrix) * glm::vec4(otherEntityVel, 1.0f);
 				otherEntityVel = otherEntityVel - zeroPoint;
 
+				// Get triangles to test continous collision against from narrow phase octree in mesh
+				std::vector<int> triangles;
+				mesh->mesh->getTrianglesForContinousCollisionTesting(triangles, entityBoundingBox->getBox(), entityVel, otherEntityVel, dt);
+
 				// Triangle to set mesh data to avoid creating new shapes for each triangle in mesh
 				Triangle triangle(glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(0.0f));
 
 				//for (unsigned int j = 0; j < model->getModel()->getNumberOfMeshes(); j++) {
-				if (mesh->mesh->getNumberOfIndices() > 0) { // Has indices
-					int numIndices = mesh->mesh->getNumberOfIndices();
-					for (int j = 0; j < numIndices; j += 3) {
-						triangle.setData(mesh->mesh->getVertexPosition(mesh->mesh->getVertexIndex(j)), mesh->mesh->getVertexPosition(mesh->mesh->getVertexIndex(j + 1)), mesh->mesh->getVertexPosition(mesh->mesh->getVertexIndex(j + 2)));
-						
-						// TODO: create function that does this, similar to getCollisionData
-						float time = Intersection::continousSAT(entityBoundingBox->getBox(), &triangle, entityVel, otherEntityVel, dt);
-						
-						if (time > 0.f && time < collisionTime) {
-							collisionTime = time;
-							collisionInfo.entity = e;
-							std::vector<glm::vec3>& verts = triangle.getVertices();
-							collisionInfo.shape = std::make_shared<Triangle>(verts[0], verts[1], verts[2]);
-							collisionInfo.shape->setMatrix(transformMatrix);
-						}
+				int numTriangles = triangles.size();
+				bool hasIndices = mesh->mesh->getNumberOfIndices() > 0;
+				bool hasVertices = mesh->mesh->getNumberOfVertices() > 0;
+
+				for (int j = 0; j < numTriangles; j++) {
+					if (hasIndices) { // Has indices
+						triangle.setData(mesh->mesh->getVertexPosition(mesh->mesh->getVertexIndex(triangles[j])), mesh->mesh->getVertexPosition(mesh->mesh->getVertexIndex(triangles[j] + 1)), mesh->mesh->getVertexPosition(mesh->mesh->getVertexIndex(triangles[j] + 2)));
 					}
-				}
-				else if (mesh->mesh->getNumberOfVertices() > 0) {
-					int numVertices = mesh->mesh->getNumberOfVertices();
-					for (int j = 0; j < numVertices; j += 3) {
-						triangle.setData(mesh->mesh->getVertexPosition(j), mesh->mesh->getVertexPosition(j + 1), mesh->mesh->getVertexPosition(j + 2));
+					else if (hasVertices) {
+						triangle.setData(mesh->mesh->getVertexPosition(triangles[j]), mesh->mesh->getVertexPosition(triangles[j] + 1), mesh->mesh->getVertexPosition(triangles[j] + 2));
+					}
 
-						// TODO: create function that does this, similar to getCollisionData
-						float time = Intersection::continousSAT(entityBoundingBox->getBox(), &triangle, entityVel, otherEntityVel, dt);
+					// TODO: create function that does this, similar to getCollisionData
+					float time = Intersection::continousSAT(entityBoundingBox->getBox(), &triangle, entityVel, otherEntityVel, dt);
 
-						if (time > 0.f && time < collisionTime) {
-							collisionTime = time;
-							collisionInfo.entity = e;
-							std::vector<glm::vec3>& verts = triangle.getVertices();
-							collisionInfo.shape = std::make_shared<Triangle>(verts[0], verts[1], verts[2]);
-							collisionInfo.shape->setMatrix(transformMatrix);
-						}
+					if (time > 0.f && time < collisionTime) {
+						collisionTime = time;
+						collisionInfo.entity = e;
+						std::vector<glm::vec3>& verts = triangle.getVertices();
+						collisionInfo.shape = std::make_shared<Triangle>(verts[0], verts[1], verts[2]);
+						collisionInfo.shape->setMatrix(transformMatrix);
 					}
 				}
 				//}

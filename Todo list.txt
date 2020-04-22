@@ -1,9 +1,9 @@
-- Narrow phase hierarchy
 - Mesh-mesh collision using SAT and possible speedups.
 - Collision manifolds
 - Take movement into consideration when updating broad phase octree.
+- Find which bounding boxes / objects are colliding first in continous collisions before going into triangles.
 - Fix "sticky" collisions where the intersection axis is pointing the wrong way. Happens on corners. Also gets stuck on the middle line of a quad sometimes
-- Dynamic rigid body collisions (Remove ragdoll component)
+- Dynamic rigid body collisions
 - Make interface pretty and user friendly
 - Make it possible to render bounding boxes in some way
 - Replace glm::dot's with Intersection::dot's. Also see if implementing own version of cross, normalize etc is faster than glm.
@@ -12,6 +12,9 @@
 - Add inverse matrix multiplication for ray intersections instead of multiplying every vertex of a mesh with the model matrix
 - Add support for Bounding spheres
 - Add support for Capsules
+- Add option for left or right handed triangles
+- Multi-thread the SAT
+- Keep a list of all current collisions, double check those every frame instead of going into static collision check. Should make it possible to use only continous collision pass.
 
 
 --Done :D--
@@ -19,3 +22,4 @@
 - Add support for OBB's
 - General SAT solution for collisions
 - Continous collision detection using SAT instead of swept sphere
+- Narrow phase hierarchy
