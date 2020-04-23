@@ -1,6 +1,7 @@
 #include "../pch.h"
 #include <algorithm>
 #include <iterator>
+#include <map>
 
 #include "Intersection.h"
 
@@ -307,7 +308,7 @@ namespace Scuffed {
 		float min1 = INFINITY, min2 = INFINITY;
 		float max1 = -INFINITY, max2 = -INFINITY;
 
-		std::vector<glm::vec3> min1Points, min2Points, max1Points, max2Points;
+		std::vector<glm::vec3> min1Points, min2Points, max1Points, max2Points, manifold;
 
 		float tempDot;
 
@@ -362,8 +363,52 @@ namespace Scuffed {
 		}
 		
 		if (max2 - min1 < max1 - min2) { // Use max2Points and min1Points
-			if (max2Points.size() == 1 || min1Points.size() == 1) {
+			if (max2Points.size() == 1) {
 				// Point - something intersection. Use the point as contact set
+				manifold.emplace_back(max2Points[0]);
+			}
+			else if (min1Points.size() == 1) {
+				// Point - something intersection. Use the point as contact set
+				manifold.emplace_back(max2Points[0]);
+			}
+			else if (max2Points.size() == 2) {
+				if (min1Points.size() == 2) {
+					// Line - Line intersection.
+
+					glm::vec3 max2Line = max2Points[1] - max2Points[0];
+					float tempDot = dot(glm::normalize(max2Line), glm::normalize(min1Points[1] - min1Points[0]));
+					if (tempDot == 1.0f || tempDot == -1.0f) {
+						// Points are all on the same line. Find two points in the middle.
+						std::map<float, glm::vec3> points;
+						points[0.0f] = max2Points[0];
+						points[glm::pow(glm::length(max2Line), 2.0f)] = max2Points[1];
+						points[dot(min1Points[0] - max2Points[0], max2Line)] = min1Points[0];
+						points[dot(min1Points[1] - max2Points[0], max2Line)] = min1Points[1];
+
+						int counter = 0;
+						for (std::map<float, glm::vec3>::const_iterator it = points.begin(); it != points.end(); ++it) {
+							counter++;
+
+							if (counter == 1 || (points.size() == 4 && counter == 2)) {
+								manifold.emplace_back(it->second);
+							}
+						}
+					}
+					else {
+						// Lines are crossing. Find intersection
+						glm::vec3 line2Norm = glm::normalize(max2Line);
+						float distMinPoint0 = glm::length(min1Points[0] - (max2Points[0] + dot(min1Points[0], line2Norm)));
+						float distMinPoint1 = glm::length(min1Points[1] - (max2Points[0] + dot(min1Points[1], line2Norm)));
+						float progress = distMinPoint0 / (distMinPoint0 + distMinPoint1);
+						manifold.emplace_back(min1Points[0] + (min1Points[1] - min1Points[0]) * progress);
+					}
+				}
+				else if (min1Points.size() == 3) {
+					// Line - Triangle intersection.
+				}
+			}
+			else if (min1Points.size() == 2) {
+
 			}
 		}
 		else { // Use max1Points and min2Points
