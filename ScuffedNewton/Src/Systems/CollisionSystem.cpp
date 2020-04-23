@@ -42,11 +42,12 @@ namespace Scuffed {
 			MovementComponent* movement = e->getComponent<MovementComponent>();
 
 			collision->collisions.clear();
-			collisionUpdate(e, dt);
 
 			movement->updateableDt = dt;
 			continousCollisionUpdate(e, movement->updateableDt);
 			movement->oldVelocity = movement->velocity;
+
+			collisionUpdate(e, dt);
 		}
 
 		// ======================== Surface from collisions ======================================
@@ -84,7 +85,7 @@ namespace Scuffed {
 			transform->translate(movement->velocity * time + additionalMovement);
 			dt -= time;
 
-			handleCollisions(e, collision->collisions, 0.f);
+			handleCollisions(e, collision->collisions, 0.f); //Doesn't need to be all collision->collisions. Would work with just the new one.
 
 			collision->collisions.emplace_back(); // Add a new element at the back
 			time = INFINITY;
