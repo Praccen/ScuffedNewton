@@ -36,6 +36,7 @@ namespace Scuffed {
 		// ----SAT functions----
 		static float projectionOverlapTest(const glm::vec3& testVec, const std::vector<glm::vec3>& vertices1, const std::vector<glm::vec3>& vertices2);
 		static bool SAT(Shape* shape1, Shape* shape2);
+		static std::vector<glm::vec3> getManifold(const glm::vec3& testVec, const std::vector<glm::vec3>& vertices1, const std::vector<glm::vec3>& vertices2);
 		static bool SAT(Shape* shape1, Shape* shape2, glm::vec3* intersectionAxis, float* intersectionDepth);
 
 		static bool continousOverlapTest(const glm::vec3& testVec, const std::vector<glm::vec3>& vertices1, const std::vector<glm::vec3>& vertices2, const glm::vec3& relativeVel, float& timeFirst, float& timeLast, const float timeMax);

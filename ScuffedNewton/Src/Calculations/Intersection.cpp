@@ -303,6 +303,75 @@ namespace Scuffed {
 		return true;
 	}
 
+	std::vector<glm::vec3> Intersection::getManifold(const glm::vec3& testVec, const std::vector<glm::vec3>& vertices1, const std::vector<glm::vec3>& vertices2) {
+		float min1 = INFINITY, min2 = INFINITY;
+		float max1 = -INFINITY, max2 = -INFINITY;
+
+		std::vector<glm::vec3> min1Points, min2Points, max1Points, max2Points;
+
+		float tempDot;
+
+		for (const auto& vert : vertices1) {
+			tempDot = dot(vert, testVec);
+
+			if (tempDot < min1) {
+				min1 = tempDot;
+				min1Points.clear();
+				min1Points.emplace_back();
+				min1Points.back() = vert;
+			} 
+			else if (tempDot == min1) {
+				min1Points.emplace_back();
+				min1Points.back() = vert;
+			}
+			if (tempDot > max1) {
+				max1 = tempDot;
+				max1Points.clear();
+				max1Points.emplace_back();
+				max1Points.back() = vert;
+			}
+			else if (tempDot == max1) {
+				max1Points.emplace_back();
+				max1Points.back() = vert;
+			}
+		}
+
+		for (const auto& vert : vertices2) {
+			tempDot = dot(vert, testVec);
+
+			if (tempDot < min2) {
+				min2 = tempDot;
+				min2Points.clear();
+				min2Points.emplace_back();
+				min2Points.back() = vert;
+			}
+			else if (tempDot == min2) {
+				min2Points.emplace_back();
+				min2Points.back() = vert;
+			}
+			if (tempDot > max2) {
+				max2 = tempDot;
+				max2Points.clear();
+				max2Points.emplace_back();
+				max2Points.back() = vert;
+			}
+			else if (tempDot == max2) {
+				max2Points.emplace_back();
+				max2Points.back() = vert;
+			}
+		}
+		
+		if (max2 - min1 < max1 - min2) { // Use max2Points and min1Points
+			if (max2Points.size() == 1 || min1Points.size() == 1) {
+				// Point - something intersection. Use the point as contact set
+			}
+		}
+		else { // Use max1Points and min2Points
+
+		}
+
+	}
+
 	bool Intersection::SAT(Shape* shape1, Shape* shape2, glm::vec3* intersectionAxis, float* intersectionDepth) {
 		*intersectionDepth = INFINITY;
 
