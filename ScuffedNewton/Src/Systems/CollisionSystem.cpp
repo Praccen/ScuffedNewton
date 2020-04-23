@@ -63,7 +63,7 @@ namespace Scuffed {
 		// Update collision data
 		CollisionComponent* collision = e->getComponent<CollisionComponent>();
 
-		m_octree->getCollisions(e, e->getComponent<BoundingBoxComponent>()->getBoundingBox(), &collision->collisions, collision->doSimpleCollisions);
+		m_octree->getCollisions(e, e->getComponent<BoundingBoxComponent>()->getBoundingBox(), &collision->collisions, collision->doSimpleCollisions); //Should not have to be done
 		handleCollisions(e, collision->collisions, dt);
 	}
 
