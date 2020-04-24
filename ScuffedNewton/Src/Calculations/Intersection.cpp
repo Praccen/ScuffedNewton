@@ -405,6 +405,26 @@ namespace Scuffed {
 				}
 				else if (min1Points.size() == 3) {
 					// Line - Triangle intersection.
+					glm::vec3 aPoint = min1Points[0] + glm::cross(min1Points[1] - min1Points[0], min1Points[2] - min1Points[0]);
+					if (RayWithTriangle(aPoint, max2Points[0] - aPoint, min1Points[0], min1Points[1], min1Points[2]) >= 0.f) {
+						// max2Points[0] is inside triangle
+						manifold.emplace_back(max2Points[0]);
+
+						if (RayWithTriangle(aPoint, max2Points[1] - aPoint, min1Points[0], min1Points[1], min1Points[2]) >= 0.f) {
+							// max2Points[1] is inside triangle
+							manifold.emplace_back(max2Points[0]);
+						}
+						else {
+							// max2Points[1] is not inside triangle
+						}
+					}
+					else {
+						// max2Points[0] is not inside triangle
+
+
+					}
+
+					
 				}
 			}
 			else if (min1Points.size() == 2) {
