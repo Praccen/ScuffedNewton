@@ -224,6 +224,112 @@ namespace Scuffed {
 		return ((0.0f <= v && v <= 1.0f) && (0.0f <= w && w <= 1.0f) && (0.0f <= u && u <= 1.0f));
 	}
 
+	std::vector<glm::vec3>  Intersection::coPlanarLineSegmentsIntersection(const glm::vec3& l1p1, const glm::vec3& l1p2, const glm::vec3& l2p1, const glm::vec3& l2p2) {
+		std::vector<glm::vec3> manifold;
+
+		// Line - Line intersection.
+		glm::vec3 line = l2p2 - l2p1;
+		float tempDot = dot(glm::normalize(line), glm::normalize(l1p2 - l1p1));
+		if (tempDot == 1.0f || tempDot == -1.0f) {
+			// Points are all on the same line. Find two points in the middle.
+			std::map<float, glm::vec3> points;
+			points[0.0f] = l2p1;
+			points[glm::pow(glm::length(line), 2.0f)] = l2p2;
+			points[dot(l1p1 - l2p1, line)] = l1p1;
+			points[dot(l1p2 - l2p1, line)] = l1p2;
+
+			int counter = 0;
+			for (std::map<float, glm::vec3>::const_iterator it = points.begin(); it != points.end(); ++it) {
+				counter++;
+
+				if (counter == 1 || (points.size() == 4 && counter == 2)) {
+					manifold.emplace_back(it->second);
+				}
+			}
+	}
+		else {
+			// Lines are crossing. Find intersection
+			glm::vec3 lineNorm = glm::normalize(line);
+			float distMinPoint0 = glm::length(l1p1 - (l2p1 + dot(l1p1, lineNorm)));
+			float distMinPoint1 = glm::length(l1p2 - (l2p1 + dot(l1p2, lineNorm)));
+			float progress = distMinPoint0 / (distMinPoint0 + distMinPoint1);
+			manifold.emplace_back(l1p1 + (l1p2 - l1p1) * progress);
+		}
+	}
+
+	std::vector<glm::vec3> Intersection::coPlanarLineSegmentTriangleIntersection(const glm::vec3& lp1, const glm::vec3& lp2, const glm::vec3& tp1, const glm::vec3& tp2, const glm::vec3& tp3) {
+		std::vector<glm::vec3> manifold;
+		glm::vec3 aPoint = tp1 + glm::cross(tp2 - tp1, tp3 - tp1);
+		if (RayWithTriangle(aPoint, lp1 - aPoint, tp1, tp2, tp3) >= 0.f) {
+			// max2Points[0] is inside triangle
+			manifold.emplace_back(lp1);
+
+			if (RayWithTriangle(aPoint, lp2 - aPoint, tp1, tp2, tp3) >= 0.f) {
+				// max2Points[1] is inside triangle
+				manifold.emplace_back(lp2);
+		}
+			else {
+				// max2Points[1] is not inside triangle
+				std::vector<glm::vec3> intersections;
+				for (int i = 0; i < 3; i++) {
+					intersections = coPlanarLineSegmentsIntersection(lp1, lp2, min1Points[i], min1Points[(i + 1) % 3]);
+					if (intersections.size() == 1) {
+						manifold.emplace_back(intersections[0]);
+					}
+					else if (intersections.size() == 2) {
+						manifold.emplace_back(intersections[0]);
+						manifold.emplace_back(intersections[1]);
+					}
+					i = 3;
+				}
+
+			}
+	}
+		else {
+			// max2Points[0] is not inside triangle
+
+			if (RayWithTriangle(aPoint, max2Points[1] - aPoint, min1Points[0], min1Points[1], min1Points[2]) >= 0.f) {
+				// max2Points[1] is inside triangle
+				manifold.emplace_back(max2Points[0]);
+
+				std::vector<glm::vec3> intersections;
+				for (int i = 0; i < 3; i++) {
+					intersections = coPlanarLineSegmentsIntersection(max2Points[1], max2Points[0], min1Points[i], min1Points[(i + 1) % 3]);
+					if (intersections.size() == 1) {
+						manifold.emplace_back(intersections[0]);
+					}
+					else if (intersections.size() == 2) {
+						manifold.emplace_back(intersections[0]);
+						manifold.emplace_back(intersections[1]);
+					}
+					i = 3;
+				}
+			}
+			else {
+				// both points are outside triangle
+				std::vector<glm::vec3> intersections;
+				int counter = 0;
+				for (int i = 0; i < 3; i++) {
+					intersections = coPlanarLineSegmentsIntersection(max2Points[1], max2Points[0], min1Points[i], min1Points[(i + 1) % 3]);
+					if (intersections.size() == 1) {
+						manifold.emplace_back(intersections[0]);
+						counter++;
+					}
+					else if (intersections.size() == 2) {
+						for (int j = 0; j < counter; j++) {
+							manifold.pop_back();
+						}
+						manifold.emplace_back(intersections[0]);
+						manifold.emplace_back(intersections[1]);
+						i = 3;
+					}
+
+				}
+			}
+
+		}
+	}
+
 	float Intersection::dot(const glm::vec3& v1, const glm::vec3& v2) {
 #ifdef _DEBUG
 		return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
@@ -373,58 +479,15 @@ namespace Scuffed {
 			}
 			else if (max2Points.size() == 2) {
 				if (min1Points.size() == 2) {
-					// Line - Line intersection.
-
-					glm::vec3 max2Line = max2Points[1] - max2Points[0];
-					float tempDot = dot(glm::normalize(max2Line), glm::normalize(min1Points[1] - min1Points[0]));
-					if (tempDot == 1.0f || tempDot == -1.0f) {
-						// Points are all on the same line. Find two points in the middle.
-						std::map<float, glm::vec3> points;
-						points[0.0f] = max2Points[0];
-						points[glm::pow(glm::length(max2Line), 2.0f)] = max2Points[1];
-						points[dot(min1Points[0] - max2Points[0], max2Line)] = min1Points[0];
-						points[dot(min1Points[1] - max2Points[0], max2Line)] = min1Points[1];
-
-						int counter = 0;
-						for (std::map<float, glm::vec3>::const_iterator it = points.begin(); it != points.end(); ++it) {
-							counter++;
-
-							if (counter == 1 || (points.size() == 4 && counter == 2)) {
-								manifold.emplace_back(it->second);
-							}
-						}
-					}
-					else {
-						// Lines are crossing. Find intersection
-						glm::vec3 line2Norm = glm::normalize(max2Line);
-						float distMinPoint0 = glm::length(min1Points[0] - (max2Points[0] + dot(min1Points[0], line2Norm)));
-						float distMinPoint1 = glm::length(min1Points[1] - (max2Points[0] + dot(min1Points[1], line2Norm)));
-						float progress = distMinPoint0 / (distMinPoint0 + distMinPoint1);
-						manifold.emplace_back(min1Points[0] + (min1Points[1] - min1Points[0]) * progress);
+					// Line segment - line segment
+					std::vector<glm::vec3> intersections = coPlanarLineSegmentsIntersection(min1Points[0], min1Points[1], max2Points[0], max2Points[1]);
+					for (size_t i = 0; i < intersections.size(); i++) {
+						manifold.emplace_back(intersections[i]);
 					}
 				}
 				else if (min1Points.size() == 3) {
 					// Line - Triangle intersection.
-					glm::vec3 aPoint = min1Points[0] + glm::cross(min1Points[1] - min1Points[0], min1Points[2] - min1Points[0]);
-					if (RayWithTriangle(aPoint, max2Points[0] - aPoint, min1Points[0], min1Points[1], min1Points[2]) >= 0.f) {
-						// max2Points[0] is inside triangle
-						manifold.emplace_back(max2Points[0]);
-
-						if (RayWithTriangle(aPoint, max2Points[1] - aPoint, min1Points[0], min1Points[1], min1Points[2]) >= 0.f) {
-							// max2Points[1] is inside triangle
-							manifold.emplace_back(max2Points[0]);
-						}
-						else {
-							// max2Points[1] is not inside triangle
-						}
-					}
-					else {
-						// max2Points[0] is not inside triangle
-
-
-					}
-
-					
+					std::vector<glm::vec3> intersections = coPlanarLineSegmentTriangleIntersection(max2Points[0], max2Points[1], min1Points[0], min1Points[1], min1Points[2]);
 				}
 			}
 			else if (min1Points.size() == 2) {

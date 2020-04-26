@@ -30,6 +30,8 @@ namespace Scuffed {
 		static void Barycentric(const glm::vec3& p, const glm::vec3& a, const glm::vec3& b, const glm::vec3& c, float& outU, float& outV, float& outW);
 		static bool OnTriangle(const float u, const float v, const float w);
 	
+		static std::vector<glm::vec3> coPlanarLineSegmentsIntersection(const glm::vec3& l1p1, const glm::vec3& l1p2, const glm::vec3& l2p1, const glm::vec3& l2p2);
+		static std::vector<glm::vec3> coPlanarLineSegmentTriangleIntersection(const glm::vec3& lp1, const glm::vec3& lp2, const glm::vec3& tp1, const glm::vec3& tp2, const glm::vec3& tp3);
 	public:
 		static float dot(const glm::vec3& v1, const glm::vec3& v2);
 
