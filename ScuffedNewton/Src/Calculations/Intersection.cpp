@@ -263,77 +263,94 @@ namespace Scuffed {
 		if (RayWithTriangle(aPoint, lp1 - aPoint, tp1, tp2, tp3) >= 0.f) {
 			// lp1 is inside triangle
 			manifold.emplace_back(lp1);
+		}
 
-			if (RayWithTriangle(aPoint, lp2 - aPoint, tp1, tp2, tp3) >= 0.f) {
-				// lp2 is inside triangle
-				manifold.emplace_back(lp2);
-			}
-			else {
-				// lp2 is not inside triangle
-				glm::vec3 points[3]{ tp1, tp2, tp3 };
-				std::vector<glm::vec3> intersections;
-				for (int i = 0; i < 3; i++) {
-					intersections = coPlanarLineSegmentsIntersection(lp1, lp2, points[i], points[(i + 1) % 3]);
-					if (intersections.size() == 1) {
-						manifold.emplace_back(intersections[0]);
-						i = 3;
-					}
-					else if (intersections.size() == 2) {
-						manifold.clear();
-						manifold.emplace_back(intersections[0]);
-						manifold.emplace_back(intersections[1]);
-						i = 3;
-					}
+		if (RayWithTriangle(aPoint, lp2 - aPoint, tp1, tp2, tp3) >= 0.f) {
+			// lp2 is inside triangle
+			manifold.emplace_back(lp2);
+		}
+
+		if (manifold.size() < 2) {
+			glm::vec3 points[3]{ tp1, tp2, tp3 };
+			std::vector<glm::vec3> intersections;
+			for (int i = 0; i < 3; i++) {
+				intersections = coPlanarLineSegmentsIntersection(lp1, lp2, points[i], points[(i + 1) % 3]);
+				if (intersections.size() == 1) {
+					manifold.emplace_back(intersections[0]);
+				}
+				else if (intersections.size() == 2) {
+					return intersections;
 				}
 
 			}
 		}
-		else {
-			// lp1 is not inside triangle
 
-			if (RayWithTriangle(aPoint, lp2 - aPoint, tp1, tp2, tp3) >= 0.f) {
-				// max2Points[1] is inside triangle
-				manifold.emplace_back(lp2);
-
-				glm::vec3 points[3]{ tp1, tp2, tp3 };
-				std::vector<glm::vec3> intersections;
-				for (int i = 0; i < 3; i++) {
-					intersections = coPlanarLineSegmentsIntersection(lp1, lp2, points[i], points[(i + 1) % 3]);
-					if (intersections.size() == 1) {
-						manifold.emplace_back(intersections[0]);
-						i = 3;
-					}
-					else if (intersections.size() == 2) {
-						manifold.clear();
-						manifold.emplace_back(intersections[0]);
-						manifold.emplace_back(intersections[1]);
-						i = 3;
-					}
-				}
-			}
-			else {
-				// both points are outside triangle
-				glm::vec3 points[3]{ tp1, tp2, tp3 };
-				std::vector<glm::vec3> intersections;
-				for (int i = 0; i < 3; i++) {
-					intersections = coPlanarLineSegmentsIntersection(lp1, lp2, points[i], points[(i + 1) % 3]);
-					if (intersections.size() == 1) {
-						manifold.emplace_back(intersections[0]);
-					}
-					else if (intersections.size() == 2) {
-						manifold.clear();
-						manifold.emplace_back(intersections[0]);
-						manifold.emplace_back(intersections[1]);
-						i = 3;
-					}
-
-				}
-			}
-		}
+		return manifold;
 	}
 
 	std::vector<glm::vec3> Intersection::coPlanarLineSegmentQuadIntersection(const glm::vec3& lp1, const glm::vec3& lp2, const glm::vec3& qp1, const glm::vec3& qp2, const glm::vec3& qp3, const glm::vec3& qp4) {
-		return std::vector<glm::vec3>();
+		std::vector<glm::vec3> manifold;
+
+		//Sort the points of the quad to be able to find the edges
+		glm::vec3 middle = (qp1 + qp2 + qp3 + qp4) / 4.0f;
+
+		std::vector<glm::vec3> corners = { qp1, qp2, qp3, qp4 };
+
+		for (int i = 0; i < 3; i++) {
+			glm::vec3 normalVec = glm::normalize(corners[i + 1] - corners[0]);
+
+			glm::vec3 dirVec1 = corners[(i + 1) % 3 + 1] - corners[0] + normalVec * dot(normalVec, corners[(i + 1) % 3 + 1] - corners[0]);
+			glm::vec3 dirVec2 = corners[(i + 2) % 3 + 1] - corners[0] + normalVec * dot(normalVec, corners[(i + 2) % 3 + 1] - corners[0]);
+
+			if (dot(dirVec1, dirVec2) < 0.f) { // Diagonal
+				if (i != 1) {
+					// Needs reorderning
+					std::swap(corners[i + 1], corners[(i + 1) % 3 + 1]); // Fix order
+				}
+				i = 3;
+			}
+		}
+
+		glm::vec3 aPoint = glm::cross(corners[1] - corners[0], corners[2] - corners[0]);
+		if (RayWithTriangle(aPoint, lp1 - aPoint, corners[0], corners[1], corners[2]) >= 0.f || RayWithTriangle(aPoint, lp1 - aPoint, corners[2], corners[0], corners[3]) >= 0.f) {
+			// Line point 1 is inside quad
+			manifold.emplace_back(lp1);
+		}
+
+		if (RayWithTriangle(aPoint, lp2 - aPoint, corners[0], corners[1], corners[2]) >= 0.f || RayWithTriangle(aPoint, lp2 - aPoint, corners[2], corners[0], corners[3]) >= 0.f) {
+			// Line point 2 is inside quad
+			manifold.emplace_back(lp2);
+		}
+
+		if (manifold.size() < 2) {
+			for (int i = 0; i < 4; i++) {
+				std::vector<glm::vec3> intersection = coPlanarLineSegmentsIntersection(lp1, lp2, corners[i], corners[(i + 1) % 4]);
+				if (intersection.size() == 1) {
+					manifold.emplace_back(intersection[0]);
+				}
+				else if (intersection.size() == 2) {
+					return intersection;
+				}
+			}
+		}
+
+		return manifold;
+	}
+
+	std::vector<glm::vec3> Intersection::coPlanarTrianglesIntersection(const glm::vec3& t1p1, const glm::vec3& t1p2, const glm::vec3& t1p3, const glm::vec3& t2p1, const glm::vec3& t2p2, const glm::vec3& t2p3) {
+		std::vector<glm::vec3> manifold;
+
+		glm::vec3 t1[3]{ t1p1, t1p2, t1p3 };
+		glm::vec3 t2[3]{ t2p1, t2p2, t2p3 };
+
+		for (int i = 0; i < 3; i++) {
+			for (int j = 0; j < 3; j++) {
+				/*std::vector<glm::vec3> intersections = coPlanarLineSegmentTriangleIntersection(t1[(i + 1) % 3], t1[i], t2[(j + 1) % 3], t2[j]);
+				manifold.insert(manifold.end(), intersections.begin(), intersections.end());*/
+			}
+		}
+
+		return manifold;
 	}
 
 	float Intersection::dot(const glm::vec3& v1, const glm::vec3& v2) {
@@ -520,6 +537,7 @@ namespace Scuffed {
 		else if (points1.size() == 3) {
 			if (points2.size() == 3) {
 				// Triangle - triangle intersection
+				manifold = coPlanarTrianglesIntersection(points1[0], points1[1], points1[2], points2[0], points2[1], points2[2]);
 			}
 			else if (points2.size() == 4) {
 				// Triangle - Quad intersection
