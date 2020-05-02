@@ -235,6 +235,11 @@ namespace Scuffed {
 			std::map<float, glm::vec3> points;
 			points[0.0f] = l2p1;
 			points[glm::pow(glm::length(line), 2.0f)] = l2p2;
+			if ((dot(l1p1 - l2p1, line) < 0.f && dot(l1p2 - l2p1, line) < 0.f) || (dot(l1p1 - l2p1, line) > glm::pow(glm::length(line), 2.f) && dot(l1p2 - l2p1, line) > glm::pow(glm::length(line), 2.f))) {
+				// Lines are not intersecting
+				return manifold;
+			}
+
 			points[dot(l1p1 - l2p1, line)] = l1p1;
 			points[dot(l1p2 - l2p1, line)] = l1p2;
 
@@ -253,8 +258,14 @@ namespace Scuffed {
 			float distMinPoint0 = glm::length(l1p1 - (l2p1 + dot(l1p1, lineNorm)));
 			float distMinPoint1 = glm::length(l1p2 - (l2p1 + dot(l1p2, lineNorm)));
 			float progress = distMinPoint0 / (distMinPoint0 + distMinPoint1);
+			if (glm::length((l1p1 + (l1p2 - l1p1) * progress) - l2p1) > glm::length(l2p2 - l2p1)) {
+				// Lines are not intersecting
+				return manifold;
+			}
+
 			manifold.emplace_back(l1p1 + (l1p2 - l1p1) * progress);
 		}
+		return manifold;
 	}
 
 	std::vector<glm::vec3> Intersection::coPlanarLineSegmentTriangleIntersection(const glm::vec3& lp1, const glm::vec3& lp2, const glm::vec3& tp1, const glm::vec3& tp2, const glm::vec3& tp3) {
