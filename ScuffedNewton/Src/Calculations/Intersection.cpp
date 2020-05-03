@@ -255,8 +255,14 @@ namespace Scuffed {
 		else {
 			// Lines are crossing. Find intersection
 			glm::vec3 lineNorm = glm::normalize(line);
-			float distMinPoint0 = glm::length(l1p1 - (l2p1 + dot(l1p1, lineNorm)));
-			float distMinPoint1 = glm::length(l1p2 - (l2p1 + dot(l1p2, lineNorm)));
+			glm::vec3 pointOffset1 = l1p1 - (l2p1 + dot(l1p1, lineNorm));
+			glm::vec3 pointOffset2 = l1p2 - (l2p1 + dot(l1p2, lineNorm));
+			if (dot(pointOffset1, pointOffset2) < 0.f) {
+				// Offsets to the same side. Lines are not intersecting
+				return manifold;
+			}
+			float distMinPoint0 = glm::length(pointOffset1);
+			float distMinPoint1 = glm::length(pointOffset2);
 			float progress = distMinPoint0 / (distMinPoint0 + distMinPoint1);
 			if (glm::length((l1p1 + (l1p2 - l1p1) * progress) - l2p1) > glm::length(l2p2 - l2p1)) {
 				// Lines are not intersecting
@@ -355,10 +361,8 @@ namespace Scuffed {
 		glm::vec3 t2[3]{ t2p1, t2p2, t2p3 };
 
 		for (int i = 0; i < 3; i++) {
-			for (int j = 0; j < 3; j++) {
-				/*std::vector<glm::vec3> intersections = coPlanarLineSegmentTriangleIntersection(t1[(i + 1) % 3], t1[i], t2[(j + 1) % 3], t2[j]);
-				manifold.insert(manifold.end(), intersections.begin(), intersections.end());*/
-			}
+			std::vector<glm::vec3> intersections = coPlanarLineSegmentTriangleIntersection(t1[i], t1[(i + 1) % 3], t2[0], t2[1], t2[2]);
+			manifold.insert(manifold.end(), intersections.begin(), intersections.end());
 		}
 
 		return manifold;
