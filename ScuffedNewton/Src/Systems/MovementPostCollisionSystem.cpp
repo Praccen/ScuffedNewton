@@ -103,7 +103,7 @@ namespace Scuffed {
 					for (size_t k = j; k < collision->manifolds.size(); k++) {
 						if (Intersection::RayWithTriangle(transform->getCenter(), movement->constantAcceleration, collision->manifolds[i], collision->manifolds[j], collision->manifolds[k])) {
 							// Center of mass is above collision manifold area
-							return;
+ 							return;
 						}
 					}
 				}
@@ -113,7 +113,7 @@ namespace Scuffed {
 			std::cout << "Manifold offset not found (lacks implementation)\n";
 		}
 
-		movement->rotation + glm::cross(manifoldOffset, glm::vec3(0.0f, 1.0f, 0.0f));
+		//movement->rotation += glm::cross(manifoldOffset, glm::vec3(0.0f, 1.0f, 0.0f));
 	}
 
 }

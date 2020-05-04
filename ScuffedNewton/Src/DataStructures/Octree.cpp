@@ -301,7 +301,7 @@ namespace Scuffed {
 		}
 	}
 
-	void Octree::getNextContinousCollisionRec(Entity* entity, Node* currentNode, CollisionInfo& collisionInfo, float& collisionTime, const float& dt, const bool doSimpleCollisions, const bool checkBackfaces) {
+	void Octree::getNextContinousCollisionRec(Entity* entity, Node* currentNode, std::vector<CollisionInfo>& collisionInfo, float& collisionTime, const float& dt, const bool doSimpleCollisions, const bool checkBackfaces) {
 		BoundingBox* nodeBoundingBox = currentNode->nodeBB;
 		BoundingBox* entityBoundingBox = entity->getComponent<BoundingBoxComponent>()->getBoundingBox();
 		MovementComponent* movComp = entity->getComponent<MovementComponent>();
@@ -388,11 +388,20 @@ namespace Scuffed {
 					float time = Intersection::continousSAT(entityBoundingBox->getBox(), &triangle, entityVel, otherEntityVel, dt);
 
 					if (time > 0.f && time < collisionTime) {
+						collisionInfo.clear();
 						collisionTime = time;
-						collisionInfo.entity = e;
+						collisionInfo.emplace_back();
+						collisionInfo.back().entity = e;
 						std::vector<glm::vec3>& verts = triangle.getVertices();
-						collisionInfo.shape = std::make_shared<Triangle>(verts[0], verts[1], verts[2]);
-						collisionInfo.shape->setMatrix(transformMatrix);
+						collisionInfo.back().shape = std::make_shared<Triangle>(verts[0], verts[1], verts[2]);
+						collisionInfo.back().shape->setMatrix(transformMatrix);
+					}
+					else if (time == collisionTime) {
+						collisionInfo.emplace_back();
+						collisionInfo.back().entity = e;
+						std::vector<glm::vec3>& verts = triangle.getVertices();
+						collisionInfo.back().shape = std::make_shared<Triangle>(verts[0], verts[1], verts[2]);
+						collisionInfo.back().shape->setMatrix(transformMatrix);
 					}
 				}
 				//}
@@ -400,12 +409,18 @@ namespace Scuffed {
 				entityBoundingBox->getBox()->setMatrix(glm::mat4(1.0f)); //Reset bounding box matrix to identity
 			}
 			else { // No model or simple collision opportunity
-				if (tempCollisionTime > 0.f) {
+				if (tempCollisionTime > 0.f && tempCollisionTime < collisionTime) {
 					// Collide with bounding box
 					collisionTime = tempCollisionTime;
-
-					collisionInfo.entity = e;
-					collisionInfo.shape = std::make_shared<Box>(otherBoundingBox->getHalfSize(), otherBoundingBox->getPosition());
+					collisionInfo.clear();
+					collisionInfo.emplace_back();
+					collisionInfo.back().entity = e;
+					collisionInfo.back().shape = std::make_shared<Box>(otherBoundingBox->getHalfSize(), otherBoundingBox->getPosition());
+				}
+				else if (tempCollisionTime == collisionTime) {
+					collisionInfo.emplace_back();
+					collisionInfo.back().entity = e;
+					collisionInfo.back().shape = std::make_shared<Box>(otherBoundingBox->getHalfSize(), otherBoundingBox->getPosition());
 				}
 			}
 		}
@@ -621,7 +636,7 @@ namespace Scuffed {
 		getCollisionsRec(entity, entityBoundingBox, &m_baseNode, outCollisionData, doSimpleCollisions, checkBackfaces);
 	}
 
-	void Octree::getNextContinousCollision(Entity* entity, CollisionInfo& outCollisionInfo, float& collisionTime, const float& dt, const bool doSimpleCollisions, const bool checkBackfaces) {
+	void Octree::getNextContinousCollision(Entity* entity, std::vector<CollisionInfo>& outCollisionInfo, float& collisionTime, const float& dt, const bool doSimpleCollisions, const bool checkBackfaces) {
 		getNextContinousCollisionRec(entity, &m_baseNode, outCollisionInfo, collisionTime, dt, doSimpleCollisions, checkBackfaces);
 	}
 
