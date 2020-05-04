@@ -27,7 +27,6 @@ Scuffed::Box::~Box() {
 }
 
 void Scuffed::Box::init() {
-	m_edges.resize(0);
 	m_planes.resize(6);
 	m_originalVertices.resize(8);
 	m_normals.resize(6);
@@ -107,7 +106,7 @@ std::vector<glm::vec3>& Scuffed::Box::getNormals() {
 }
 
 std::vector<glm::vec3>& Scuffed::Box::getEdges() {
-	return m_edges; 
+	return getNormals(); 
 }
 
 std::vector<glm::vec3>& Scuffed::Box::getVertices() {

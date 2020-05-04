@@ -19,15 +19,6 @@ namespace Scuffed {
 	void MovementPostCollisionSystem::update(float dt) {
 		//std::cout << "MovementPostCollision system ran\n";
 
-		// prepare matrixes and bounding boxes
-		for (auto e : entities) {
-			if (auto bb = e->getComponent<BoundingBoxComponent>()) {
-				bb->getBoundingBox()->prepareCorners();
-			}
-			//std::cout << e->getId() << ", ";
-		}
-		//std::cout << "\n";
-
 		for (auto& e : entities) {
 			TransformComponent* transform = e->getComponent<TransformComponent>();
 			MovementComponent* movement = e->getComponent<MovementComponent>();
@@ -52,6 +43,7 @@ namespace Scuffed {
 
 			// Update position with velocities after CollisionSystem has potentially altered them
 			glm::vec3 translation = (movement->oldVelocity + movement->velocity) * (0.5f * movement->updateableDt);
+			//glm::vec3 translation = movement->velocity * movement->updateableDt;
 			if (translation != glm::vec3(0.0f)) {
 				transform->translate(translation);
 			}
@@ -65,16 +57,6 @@ namespace Scuffed {
 		CollisionComponent* collision = e->getComponent<CollisionComponent>();
 		TransformComponent* transform = e->getComponent<TransformComponent>();
 		MovementComponent* movement = e->getComponent<MovementComponent>();
-
-		// Remove duplicate manifolds
-		for (size_t i = 0; i < collision->manifolds.size(); i++) {
-			for (size_t j = i + 1; j < collision->manifolds.size(); j++) {
-				if (glm::length2(collision->manifolds[i] - collision->manifolds[j]) < 0.00001f) {
-					collision->manifolds.erase(collision->manifolds.begin() + j);
-					j--;
-				}
-			}
-		}
 
 		glm::vec3 manifoldOffset(0.f);
 

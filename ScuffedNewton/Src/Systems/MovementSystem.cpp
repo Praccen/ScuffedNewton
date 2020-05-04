@@ -15,15 +15,6 @@ namespace Scuffed {
 	void MovementSystem::update(float dt) {
 		//std::cout << "Movement system ran\n";
 
-		// prepare matrixes and bounding boxes
-		for (auto e : entities) {
-			if (auto bb = e->getComponent<BoundingBoxComponent>()) {
-				bb->getBoundingBox()->prepareCorners();
-			}
-			//std::cout << e->getId() << ", ";
-		}
-		//std::cout << "\n";
-
 		for (auto& e : entities) {
 			TransformComponent* transform = e->getComponent<TransformComponent>();
 			MovementComponent* movement = e->getComponent<MovementComponent>();

@@ -40,7 +40,7 @@ namespace Scuffed {
 			handleCollisions(e, collision->collisions, 0.f);
 
 			// Continous collisions
-			movement->updateableDt = dt;
+			// movement->updateableDt = dt;
 			continousCollisionUpdate(e, movement->updateableDt);
 			movement->oldVelocity = movement->velocity;
 
@@ -68,7 +68,7 @@ namespace Scuffed {
 
 		m_octree->getNextContinousCollision(e, collisions, time, dt, collision->doSimpleCollisions);
 
-		while (time < dt && time > 0.f) {
+		while (time <= dt && time > 0.f) {
 			// Move entity to collision
  			boundingBox->setPosition(boundingBox->getPosition() + movement->velocity * time);
 			transform->translate(movement->velocity * time);
@@ -124,10 +124,12 @@ namespace Scuffed {
 				Octree::CollisionInfo& collisionInfo_i = collisions[i];
 
 				if (Intersection::SAT(collisionInfo_i.shape.get(), boundingBox->getBox(), &collisionInfo_i.intersectionAxis, &collisionInfo_i.intersectionDepth)) {
-					/*if (glm::dot(collisionInfo_i.intersectionAxis, boundingBox->getPosition() - collisionInfo_i.shape->getMiddle()) < 0.f) {
-						  Flip intersection axis if it is pointing wrong way
-						collisionInfo_i.intersectionAxis = -collisionInfo_i.intersectionAxis;
-					}*/
+					if (collisionInfo_i.shape.get()->getVertices().size() == 3) {
+						// Triangle, make sure collision is along normal
+						if (glm::dot(collisionInfo_i.intersectionAxis, collisionInfo_i.shape.get()->getNormals()[0]) < 0.f) {
+							collisionInfo_i.intersectionAxis = -collisionInfo_i.intersectionAxis;
+						}
+					}
 
 					sumVec += collisionInfo_i.intersectionAxis;
 
@@ -237,8 +239,19 @@ namespace Scuffed {
 		const size_t count = collisions.size();
 		for (size_t i = 0; i < count; i++) {
 			const Octree::CollisionInfo& collisionInfo_i = collisions[i];
+			manifolds.clear();
 			Intersection::SAT(collisionInfo_i.shape.get(), boundingBox->getBox(), manifolds);
 			collision->manifolds.insert(collision->manifolds.end(), manifolds.begin(), manifolds.end());
+		}
+
+		// Remove duplicate manifolds
+		for (size_t i = 0; i < collision->manifolds.size(); i++) {
+			for (size_t j = i + 1; j < collision->manifolds.size(); j++) {
+				if (glm::length2(collision->manifolds[i] - collision->manifolds[j]) < 0.00001f) {
+					collision->manifolds.erase(collision->manifolds.begin() + j);
+					j--;
+				}
+			}
 		}
 	}
 }
