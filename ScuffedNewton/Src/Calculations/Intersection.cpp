@@ -322,7 +322,7 @@ namespace Scuffed {
 			if (dot(dirVec1, dirVec2) < 0.f) { // Diagonal
 				if (i != 1) {
 					// Needs reorderning
-					std::swap(corners[i + 1], corners[(i + 1) % 3 + 1]); // Fix order
+					std::swap(corners[i + 1], corners[2]); // Fix order
 				}
 				i = 3;
 			}
@@ -363,7 +363,125 @@ namespace Scuffed {
 		for (int i = 0; i < 3; i++) {
 			std::vector<glm::vec3> intersections = coPlanarLineSegmentTriangleIntersection(t1[i], t1[(i + 1) % 3], t2[0], t2[1], t2[2]);
 			manifold.insert(manifold.end(), intersections.begin(), intersections.end());
+
+			// Will produce duplicates
+			intersections = coPlanarLineSegmentTriangleIntersection(t2[i], t2[(i + 1) % 3], t1[0], t1[1], t1[2]);
+			manifold.insert(manifold.end(), intersections.begin(), intersections.end());
 		}
+
+		// Remove duplicates
+		std::sort(manifold.begin(), manifold.end());
+		manifold.erase(std::unique(manifold.begin(), manifold.end()), manifold.end());
+
+		return manifold;
+	}
+
+	std::vector<glm::vec3> Intersection::coPlanarTriangleQuadIntersection(const glm::vec3& tp1, const glm::vec3& tp2, const glm::vec3& tp3, const glm::vec3& qp1, const glm::vec3& qp2, const glm::vec3& qp3, const glm::vec3& qp4) {
+		std::vector<glm::vec3> manifold;
+
+		//Sort the points of the quad to be able to find the edges
+		glm::vec3 middle = (qp1 + qp2 + qp3 + qp4) / 4.0f;
+
+		std::vector<glm::vec3> corners = { qp1, qp2, qp3, qp4 };
+
+		for (int i = 0; i < 3; i++) {
+			glm::vec3 normalVec = glm::normalize(corners[i + 1] - corners[0]);
+
+			glm::vec3 dirVec1 = corners[(i + 1) % 3 + 1] - corners[0] + normalVec * dot(normalVec, corners[(i + 1) % 3 + 1] - corners[0]);
+			glm::vec3 dirVec2 = corners[(i + 2) % 3 + 1] - corners[0] + normalVec * dot(normalVec, corners[(i + 2) % 3 + 1] - corners[0]);
+
+			if (dot(dirVec1, dirVec2) < 0.f) { // Diagonal
+				if (i != 1) {
+					// Needs reorderning
+					std::swap(corners[i + 1], corners[2]); // Fix order
+				}
+				i = 3;
+			}
+		}
+
+		glm::vec3 t[3]{ tp1, tp2, tp3 };
+
+		for (int i = 0; i < 4; i++) {
+			// Edges of quad vs triangle
+			std::vector<glm::vec3> intersections = coPlanarLineSegmentTriangleIntersection(corners[i], corners[(i + 1) % 4], t[0], t[1], t[2]);
+			manifold.insert(manifold.end(), intersections.begin(), intersections.end());
+		}
+
+
+		for (int i = 0; i < 3; i++) {
+			// Edges of triangle vs quad
+			// Will produce duplicates
+			std::vector<glm::vec3> intersections = coPlanarLineSegmentQuadIntersection(t[i], t[(i + 1) % 3], corners[0], corners[1], corners[2], corners[3]);
+			manifold.insert(manifold.end(), intersections.begin(), intersections.end());
+		}
+
+		// Remove duplicates
+		std::sort(manifold.begin(), manifold.end());
+		manifold.erase(std::unique(manifold.begin(), manifold.end()), manifold.end());
+
+		return manifold;
+	}
+
+	std::vector<glm::vec3> Intersection::coPlanarQuadsIntersection(const glm::vec3& q1p1, const glm::vec3& q1p2, const glm::vec3& q1p3, const glm::vec3& q1p4, const glm::vec3& q2p1, const glm::vec3& q2p2, const glm::vec3& q2p3, const glm::vec3& q2p4) {
+		std::vector<glm::vec3> manifold;
+
+		//Sort the points of quad 1 to be able to find the edges
+		glm::vec3 middle = (q1p1 + q1p2 + q1p3 + q1p4) / 4.0f;
+
+		std::vector<glm::vec3> corners1 = { q1p1, q1p2, q1p3, q1p4 };
+
+		for (int i = 0; i < 3; i++) {
+			glm::vec3 normalVec = glm::normalize(corners1[i + 1] - corners1[0]);
+
+			glm::vec3 dirVec1 = corners1[(i + 1) % 3 + 1] - corners1[0] + normalVec * dot(normalVec, corners1[(i + 1) % 3 + 1] - corners1[0]);
+			glm::vec3 dirVec2 = corners1[(i + 2) % 3 + 1] - corners1[0] + normalVec * dot(normalVec, corners1[(i + 2) % 3 + 1] - corners1[0]);
+
+			if (dot(dirVec1, dirVec2) < 0.f) { // Diagonal
+				if (i != 1) {
+					// Needs reorderning
+					std::swap(corners1[i + 1], corners1[2]); // Fix order
+				}
+				i = 3;
+			}
+		}
+
+		//Sort the points of quad 1 to be able to find the edges
+		middle = (q2p1 + q2p2 + q2p3 + q2p4) / 4.0f;
+
+		std::vector<glm::vec3> corners2 = { q2p1, q2p2, q2p3, q2p4 };
+
+		for (int i = 0; i < 3; i++) {
+			glm::vec3 normalVec = glm::normalize(corners2[i + 1] - corners2[0]);
+
+			glm::vec3 dirVec1 = corners2[(i + 1) % 3 + 1] - corners2[0] + normalVec * dot(normalVec, corners2[(i + 1) % 3 + 1] - corners2[0]);
+			glm::vec3 dirVec2 = corners2[(i + 2) % 3 + 1] - corners2[0] + normalVec * dot(normalVec, corners2[(i + 2) % 3 + 1] - corners2[0]);
+
+			if (dot(dirVec1, dirVec2) < 0.f) { // Diagonal
+				if (i != 1) {
+					// Needs reorderning
+					std::swap(corners2[i + 1], corners2[2]); // Fix order
+				}
+				i = 3;
+			}
+		}
+
+		for (int i = 0; i < 4; i++) {
+			// Edges of quad 1 vs quad 2
+			std::vector<glm::vec3> intersections = coPlanarLineSegmentQuadIntersection(corners1[i], corners1[(i + 1) % 4], corners2[0], corners2[1], corners2[2], corners2[3]);
+			manifold.insert(manifold.end(), intersections.begin(), intersections.end());
+		}
+
+
+		for (int i = 0; i < 4; i++) {
+			// Edges of quad 2 vs quad 1
+			// Will produce duplicates
+			std::vector<glm::vec3> intersections = coPlanarLineSegmentQuadIntersection(corners2[i], corners2[(i + 1) % 3], corners1[0], corners1[1], corners1[2], corners1[3]);
+			manifold.insert(manifold.end(), intersections.begin(), intersections.end());
+		}
+
+		// Remove duplicates
+		std::sort(manifold.begin(), manifold.end());
+		manifold.erase(std::unique(manifold.begin(), manifold.end()), manifold.end());
 
 		return manifold;
 	}
@@ -462,22 +580,18 @@ namespace Scuffed {
 			if (tempDot < min1) {
 				min1 = tempDot;
 				min1Points.clear();
-				min1Points.emplace_back();
-				min1Points.back() = vert;
+				min1Points.emplace_back(vert);
 			}
 			else if (tempDot == min1) {
-				min1Points.emplace_back();
-				min1Points.back() = vert;
+				min1Points.emplace_back(vert);
 			}
 			if (tempDot > max1) {
 				max1 = tempDot;
 				max1Points.clear();
-				max1Points.emplace_back();
-				max1Points.back() = vert;
+				max1Points.emplace_back(vert);
 			}
 			else if (tempDot == max1) {
-				max1Points.emplace_back();
-				max1Points.back() = vert;
+				max1Points.emplace_back(vert);
 			}
 		}
 
@@ -487,22 +601,18 @@ namespace Scuffed {
 			if (tempDot < min2) {
 				min2 = tempDot;
 				min2Points.clear();
-				min2Points.emplace_back();
-				min2Points.back() = vert;
+				min2Points.emplace_back(vert);
 			}
 			else if (tempDot == min2) {
-				min2Points.emplace_back();
-				min2Points.back() = vert;
+				min2Points.emplace_back(vert);
 			}
 			if (tempDot > max2) {
 				max2 = tempDot;
 				max2Points.clear();
-				max2Points.emplace_back();
-				max2Points.back() = vert;
+				max2Points.emplace_back(vert);
 			}
 			else if (tempDot == max2) {
-				max2Points.emplace_back();
-				max2Points.back() = vert;
+				max2Points.emplace_back(vert);
 			}
 		}
 
@@ -556,19 +666,21 @@ namespace Scuffed {
 			}
 			else if (points2.size() == 4) {
 				// Triangle - Quad intersection
+				manifold = coPlanarTriangleQuadIntersection(points1[0], points1[1], points1[2], points2[0], points2[1], points2[2], points2[3]);
 			}
 		}
 		else if (points2.size() == 3) {
 			if (points1.size() == 4) {
 				// Triangle - Quad intersection
+				manifold = coPlanarTriangleQuadIntersection(points2[0], points2[1], points2[2], points1[0], points1[1], points1[2], points1[3]);
 			}
 		}
 		else if (points1.size() == 4) {
 			if (points2.size() == 4) {
 				// Quad - Quad intersection
+				manifold = coPlanarQuadsIntersection(points1[0], points1[1], points1[2], points1[3], points2[0], points2[1], points2[2], points2[3]);
 			}
 		}
-
 
 		return manifold;
 	}
