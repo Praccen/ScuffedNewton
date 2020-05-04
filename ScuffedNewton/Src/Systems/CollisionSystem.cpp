@@ -57,6 +57,13 @@ namespace Scuffed {
 
 			surfaceFromCollision(e, e->getComponent<BoundingBoxComponent>()->getBoundingBox(), collision->collisions);
 		}
+
+		// ======================== Calculate angular stuffs ========================
+		for (auto& e : entities) {
+			CollisionComponent* collision = e->getComponent<CollisionComponent>();
+
+			updateManifolds(e, e->getComponent<BoundingBoxComponent>()->getBoundingBox(), collision->collisions);
+		}
 	}
 
 	void CollisionSystem::collisionUpdate(Entity* e, const float dt) {
@@ -80,9 +87,9 @@ namespace Scuffed {
 
 		while (time < dt && time > 0.f) {
 			//time += 0.000001f; 
-			glm::vec3 additionalMovement = glm::normalize(movement->velocity) * 0.01f; //Avoids getting 0 intersection depth both along normal and edge of a shape.
- 			boundingBox->setPosition(boundingBox->getPosition() + movement->velocity * time + additionalMovement);
-			transform->translate(movement->velocity * time + additionalMovement);
+			//glm::vec3 additionalMovement = glm::normalize(movement->velocity) * 0.01f; //Avoids getting 0 intersection depth both along normal and edge of a shape.
+ 			boundingBox->setPosition(boundingBox->getPosition() + movement->velocity * time); // + additionalMovement
+			transform->translate(movement->velocity * time); // + additionalMovement
 			dt -= time;
 
 			handleCollisions(e, collision->collisions, 0.f); //Doesn't need to be all collision->collisions. Would work with just the new one.
@@ -137,11 +144,11 @@ namespace Scuffed {
 			for (size_t i = 0; i < collisionCount; i++) {
 				Octree::CollisionInfo& collisionInfo_i = collisions[i];
 
-				if (Intersection::SAT(boundingBox->getBox(), collisionInfo_i.shape.get(), &collisionInfo_i.intersectionAxis, &collisionInfo_i.intersectionDepth)) {
-					if (glm::dot(collisionInfo_i.intersectionAxis, boundingBox->getPosition() - collisionInfo_i.shape->getMiddle()) < 0.f) {
-						 // Flip intersection axis if it is pointing wrong way
-						collisionInfo_i.intersectionAxis = -collisionInfo_i.intersectionAxis;
-					}
+				if (Intersection::SAT(collisionInfo_i.shape.get(), boundingBox->getBox(), &collisionInfo_i.intersectionAxis, &collisionInfo_i.intersectionDepth)) {
+					//if (glm::dot(collisionInfo_i.intersectionAxis, boundingBox->getPosition() - collisionInfo_i.shape->getMiddle()) < 0.f) {
+					//	 // Flip intersection axis if it is pointing wrong way
+					//	collisionInfo_i.intersectionAxis = -collisionInfo_i.intersectionAxis;
+					//}
 
 					sumVec += collisionInfo_i.intersectionAxis;
 
@@ -242,4 +249,17 @@ namespace Scuffed {
 		return distance;
 	}
 
+	void CollisionSystem::updateManifolds(Entity* e, BoundingBox* boundingBox, std::vector<Octree::CollisionInfo>& collisions) {
+		CollisionComponent* collision = e->getComponent<CollisionComponent>();
+		collision->manifolds.clear();
+
+		std::vector<glm::vec3> manifolds;
+
+		const size_t count = collisions.size();
+		for (size_t i = 0; i < count; i++) {
+			const Octree::CollisionInfo& collisionInfo_i = collisions[i];
+			Intersection::SAT(collisionInfo_i.shape.get(), boundingBox->getBox(), manifolds);
+			collision->manifolds.insert(collision->manifolds.end(), manifolds.begin(), manifolds.end());
+		}
+	}
 }

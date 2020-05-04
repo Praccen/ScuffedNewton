@@ -55,6 +55,10 @@ namespace Scuffed {
 		return m_translation;
 	}
 
+	glm::vec3 Transform::getCenter() const {
+		return m_center;
+	}
+
 	void Transform::prepareUpdate() {
 		//Call this in the beginning of each frame/tick
 		m_hasChanged = 0;

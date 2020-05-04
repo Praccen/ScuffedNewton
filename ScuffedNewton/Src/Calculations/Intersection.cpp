@@ -370,8 +370,8 @@ namespace Scuffed {
 		}
 
 		// Remove duplicates
-		std::sort(manifold.begin(), manifold.end());
-		manifold.erase(std::unique(manifold.begin(), manifold.end()), manifold.end());
+		/*std::sort(manifold.begin(), manifold.end());
+		manifold.erase(std::unique(manifold.begin(), manifold.end()), manifold.end());*/
 
 		return manifold;
 	}
@@ -416,8 +416,8 @@ namespace Scuffed {
 		}
 
 		// Remove duplicates
-		std::sort(manifold.begin(), manifold.end());
-		manifold.erase(std::unique(manifold.begin(), manifold.end()), manifold.end());
+		/*std::sort(manifold.begin(), manifold.end());
+		manifold.erase(std::unique(manifold.begin(), manifold.end()), manifold.end());*/
 
 		return manifold;
 	}
@@ -480,8 +480,8 @@ namespace Scuffed {
 		}
 
 		// Remove duplicates
-		std::sort(manifold.begin(), manifold.end());
-		manifold.erase(std::unique(manifold.begin(), manifold.end()), manifold.end());
+		/*std::sort(manifold.begin(), manifold.end());
+		manifold.erase(std::unique(manifold.begin(), manifold.end()), manifold.end());*/
 
 		return manifold;
 	}
@@ -683,6 +683,70 @@ namespace Scuffed {
 		}
 
 		return manifold;
+	}
+
+	bool Intersection::SAT(Shape* shape1, Shape* shape2, std::vector<glm::vec3>& manifold) {
+		float intersectionDepth = INFINITY;
+		glm::vec3 intersectionAxis(0.f);
+
+		const std::vector<glm::vec3>& s1Norms = shape1->getNormals();
+		for (const auto& it : s1Norms) {
+			float intersection = projectionOverlapTest(it, shape1->getVertices(), shape2->getVertices());
+			if (intersection < 0.f) {
+				return false;
+			}
+			else {
+				// Save smallest 
+				if (intersection < intersectionDepth) {
+					intersectionDepth = intersection;
+					intersectionAxis = it;
+				}
+			}
+		}
+
+		const std::vector<glm::vec3>& s2Norms = shape2->getNormals();
+		for (const auto& it : s2Norms) {
+			float intersection = projectionOverlapTest(it, shape1->getVertices(), shape2->getVertices());
+			if (intersection < 0.f) {
+				return false;
+			}
+			else {
+				// Save smallest 
+				if (intersection < intersectionDepth) {
+					intersectionDepth = intersection;
+					intersectionAxis = it;
+				}
+			}
+		}
+
+		const std::vector<glm::vec3>& s1Edges = shape1->getEdges();
+		const std::vector<glm::vec3>& s2Edges = shape2->getEdges();
+
+		glm::vec3 testVec;
+
+		// Calculate cross vectors
+		for (const auto& e1 : s1Edges) {
+			for (const auto& e2 : s2Edges) {
+				if (e1 != e2 && e1 != -e2) {
+					testVec = glm::normalize(glm::cross(e1, e2));
+					float intersection = projectionOverlapTest(testVec, shape1->getVertices(), shape2->getVertices());
+					if (intersection < 0.f) {
+						return false;
+					}
+					else {
+						// Save smallest 
+						if (intersection < intersectionDepth) {
+							intersectionDepth = intersection;
+							intersectionAxis = testVec;
+						}
+					}
+				}
+			}
+		}
+
+		manifold = getManifold(intersectionAxis, shape1->getVertices(), shape2->getVertices());
+
+		return true;
 	}
 
 	bool Intersection::SAT(Shape* shape1, Shape* shape2, glm::vec3* intersectionAxis, float* intersectionDepth) {

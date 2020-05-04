@@ -20,6 +20,7 @@ namespace Scuffed {
 		virtual glm::mat4 getMatrixWithoutUpdate();
 
 		virtual glm::vec3 getTranslation() const;
+		virtual glm::vec3 getCenter() const;
 
 		virtual void prepareUpdate();
 

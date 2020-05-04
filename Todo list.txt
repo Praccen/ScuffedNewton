@@ -19,6 +19,7 @@
 - Add support for Spheres
 - Add support for Capsules
 - Add option for left or right handed triangles
+- Remove update corners?? (See example in collisionSystem update)
 -----------------------------
 
 ----Done :D----
