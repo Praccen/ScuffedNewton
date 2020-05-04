@@ -30,23 +30,14 @@ namespace Scuffed {
 	}
 
 	void CollisionSystem::update(float dt) {
-		// prepare matrixes and bounding boxes
-		for (auto& e : entities) {
-			e->getComponent<BoundingBoxComponent>()->getBoundingBox()->prepareCorners();
-		}
-
 		// ======================== Collision Update ======================================
 
 		for (auto& e: entities) {
 			CollisionComponent* collision = e->getComponent<CollisionComponent>();
 			MovementComponent* movement = e->getComponent<MovementComponent>();
-
-			//collision->collisions.clear();
 			
 			// Assure no penetration of previous collisions
 			handleCollisions(e, collision->collisions, 0.f);
-
-			//surfaceFromCollision(e, e->getComponent<BoundingBoxComponent>()->getBoundingBox(), collision->collisions);
 
 			// Continous collisions
 			movement->updateableDt = dt;
@@ -57,28 +48,12 @@ namespace Scuffed {
 			handleCollisions(e, collision->collisions, dt);
 		}
 
-		// ======================== Surface from collisions ======================================
-
-		/*for (auto& e : entities) {
-			CollisionComponent* collision = e->getComponent<CollisionComponent>();
-
-			surfaceFromCollision(e, e->getComponent<BoundingBoxComponent>()->getBoundingBox(), collision->collisions);
-		}*/
-
-		// ======================== Calculate angular stuffs ========================
+		// ======================== Manifold update ========================
 		for (auto& e : entities) {
 			CollisionComponent* collision = e->getComponent<CollisionComponent>();
 
 			updateManifolds(e, e->getComponent<BoundingBoxComponent>()->getBoundingBox(), collision->collisions);
 		}
-	}
-
-	void CollisionSystem::collisionUpdate(Entity* e, const float dt) {
-		// Update collision data
-		CollisionComponent* collision = e->getComponent<CollisionComponent>();
-
-		//m_octree->getCollisions(e, e->getComponent<BoundingBoxComponent>()->getBoundingBox(), &collision->collisions, collision->doSimpleCollisions); //Should not have to be done
-		handleCollisions(e, collision->collisions, dt);
 	}
 
 	void CollisionSystem::continousCollisionUpdate(Entity* e, float& dt) {
@@ -94,10 +69,11 @@ namespace Scuffed {
 		m_octree->getNextContinousCollision(e, collisions, time, dt, collision->doSimpleCollisions);
 
 		while (time < dt && time > 0.f) {
-			//time += 0.000001f; 
-			//glm::vec3 additionalMovement = glm::normalize(movement->velocity) * 0.01f; //Avoids getting 0 intersection depth both along normal and edge of a shape.
- 			boundingBox->setPosition(boundingBox->getPosition() + movement->velocity * time); // + additionalMovement
-			transform->translate(movement->velocity * time); // + additionalMovement
+			// Move entity to collision
+ 			boundingBox->setPosition(boundingBox->getPosition() + movement->velocity * time);
+			transform->translate(movement->velocity * time);
+
+			// Decrease time
 			dt -= time;
 
 			handleCollisions(e, collisions, 0.f);
@@ -106,17 +82,17 @@ namespace Scuffed {
 			collision->collisions.insert(collision->collisions.end(), collisions.begin(), collisions.end());
 			collisions.clear();
 
+			// Check for next collision
 			time = INFINITY;
 			m_octree->getNextContinousCollision(e, collisions, time, dt, collision->doSimpleCollisions);
 		}
 	}
 
-	const bool CollisionSystem::handleCollisions(Entity* e, std::vector<Octree::CollisionInfo>& collisions, const float dt) {
+	void CollisionSystem::handleCollisions(Entity* e, std::vector<Octree::CollisionInfo>& collisions, const float dt) {
 		MovementComponent* movement = e->getComponent<MovementComponent>();
 		CollisionComponent* collision = e->getComponent<CollisionComponent>();
 		BoundingBox* boundingBox = e->getComponent<BoundingBoxComponent>()->getBoundingBox();
 
-		bool collisionFound = false;
 		collision->onGround = false;
 
 		const size_t collisionCount = collisions.size();
@@ -128,10 +104,6 @@ namespace Scuffed {
 			// Gather info
 			gatherCollisionInformation(e, boundingBox, collisions, sumVec, groundIndices, dt);
 
-			if (collisions.size() > 0) {
-				collisionFound = true;
-			}
-
 			if (groundIndices.size() > 0) {
 				collision->onGround = true;
 			}
@@ -139,8 +111,6 @@ namespace Scuffed {
 			// Handle true collisions
 			updateVelocityVec(e, movement->velocity, collisions, sumVec, groundIndices, dt);
 		}
-
-		return collisionFound;
 	}
 
 	void CollisionSystem::gatherCollisionInformation(Entity* e, BoundingBox* boundingBox, std::vector<Octree::CollisionInfo>& collisions, glm::vec3& sumVec, std::vector<int>& groundIndices, const float dt) {
@@ -154,10 +124,10 @@ namespace Scuffed {
 				Octree::CollisionInfo& collisionInfo_i = collisions[i];
 
 				if (Intersection::SAT(collisionInfo_i.shape.get(), boundingBox->getBox(), &collisionInfo_i.intersectionAxis, &collisionInfo_i.intersectionDepth)) {
-					//if (glm::dot(collisionInfo_i.intersectionAxis, boundingBox->getPosition() - collisionInfo_i.shape->getMiddle()) < 0.f) {
-					//	 // Flip intersection axis if it is pointing wrong way
-					//	collisionInfo_i.intersectionAxis = -collisionInfo_i.intersectionAxis;
-					//}
+					/*if (glm::dot(collisionInfo_i.intersectionAxis, boundingBox->getPosition() - collisionInfo_i.shape->getMiddle()) < 0.f) {
+						  Flip intersection axis if it is pointing wrong way
+						collisionInfo_i.intersectionAxis = -collisionInfo_i.intersectionAxis;
+					}*/
 
 					sumVec += collisionInfo_i.intersectionAxis;
 
