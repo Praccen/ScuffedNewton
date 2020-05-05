@@ -301,7 +301,7 @@ namespace Scuffed {
 		}
 	}
 
-	void Octree::getNextContinousCollisionRec(Entity* entity, Node* currentNode, std::vector<CollisionInfo>& collisionInfo, float& collisionTime, const float& dt, const bool doSimpleCollisions, const bool checkBackfaces) {
+	void Octree::getNextContinousCollisionRec(Entity* entity, Node* currentNode, std::vector<CollisionInfo>& collisionInfo, float& collisionTime, std::vector<CollisionInfo>& zeroDistances, const float& dt, const bool doSimpleCollisions, const bool checkBackfaces) {
 		BoundingBox* nodeBoundingBox = currentNode->nodeBB;
 		BoundingBox* entityBoundingBox = entity->getComponent<BoundingBoxComponent>()->getBoundingBox();
 		MovementComponent* movComp = entity->getComponent<MovementComponent>();
@@ -403,6 +403,13 @@ namespace Scuffed {
 						collisionInfo.back().shape = std::make_shared<Triangle>(verts[0], verts[1], verts[2]);
 						collisionInfo.back().shape->setMatrix(transformMatrix);
 					}
+					else if (time == 0.f) {
+						zeroDistances.emplace_back();
+						zeroDistances.back().entity = e;
+						std::vector<glm::vec3>& verts = triangle.getVertices();
+						zeroDistances.back().shape = std::make_shared<Triangle>(verts[0], verts[1], verts[2]);
+						zeroDistances.back().shape->setMatrix(transformMatrix);
+					}
 				}
 				//}
 
@@ -422,12 +429,17 @@ namespace Scuffed {
 					collisionInfo.back().entity = e;
 					collisionInfo.back().shape = std::make_shared<Box>(otherBoundingBox->getHalfSize(), otherBoundingBox->getPosition());
 				}
+				else if (tempCollisionTime == 0.f) {
+					zeroDistances.emplace_back();
+					zeroDistances.back().entity = e;
+					zeroDistances.back().shape = std::make_shared<Box>(otherBoundingBox->getHalfSize(), otherBoundingBox->getPosition());
+				}
 			}
 		}
 
 		//Check for children
 		for (auto& it : currentNode->childNodes) {
-			getNextContinousCollisionRec(entity, &it, collisionInfo, collisionTime, dt, doSimpleCollisions, checkBackfaces);
+			getNextContinousCollisionRec(entity, &it, collisionInfo, collisionTime, zeroDistances, dt, doSimpleCollisions, checkBackfaces);
 		}
 	}
 
@@ -636,8 +648,8 @@ namespace Scuffed {
 		getCollisionsRec(entity, entityBoundingBox, &m_baseNode, outCollisionData, doSimpleCollisions, checkBackfaces);
 	}
 
-	void Octree::getNextContinousCollision(Entity* entity, std::vector<CollisionInfo>& outCollisionInfo, float& collisionTime, const float& dt, const bool doSimpleCollisions, const bool checkBackfaces) {
-		getNextContinousCollisionRec(entity, &m_baseNode, outCollisionInfo, collisionTime, dt, doSimpleCollisions, checkBackfaces);
+	void Octree::getNextContinousCollision(Entity* entity, std::vector<CollisionInfo>& outCollisionInfo, float& collisionTime, std::vector<CollisionInfo>& zeroDistances, const float& dt, const bool doSimpleCollisions, const bool checkBackfaces) {
+		getNextContinousCollisionRec(entity, &m_baseNode, outCollisionInfo, collisionTime, zeroDistances, dt, doSimpleCollisions, checkBackfaces);
 	}
 
 	void Octree::getRayIntersection(const glm::vec3& rayStart, const glm::vec3& rayDir, RayIntersectionInfo* outIntersectionData, Entity* ignoreThis, float padding, const bool doSimpleIntersections, const bool checkBackfaces) {

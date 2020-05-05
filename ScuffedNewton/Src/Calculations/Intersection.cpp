@@ -844,7 +844,7 @@ namespace Scuffed {
 		float speed = dot(testVec, relativeVel);
 
 		if (max2 < min1) { // Interval (2) initially on ‘left’ of interval (1)
-			if (speed <= 0) { return false; } // Intervals moving apart
+			if (speed <= 0.f) { return false; } // Intervals moving apart
 
 			T = (min1 - max2) / speed;
 			if (T > timeFirst) { timeFirst = T; }
@@ -855,7 +855,7 @@ namespace Scuffed {
 			if (timeFirst > timeLast) { return false; } // Early exit
 		}
 		else  if (max1 < min2) { // Interval (2) initially on ‘right’ of interval (1)
-			if (speed >= 0) { return false; } // Intervals moving apart
+			if (speed >= 0.f) { return false; } // Intervals moving apart
 
 			T = (max1 - min2) / speed;
 			if (T > timeFirst) { timeFirst = T; }
@@ -866,12 +866,12 @@ namespace Scuffed {
 			if (timeFirst > timeLast) { return false; } // Early exit
 		}
 		else { // Interval (1) and interval (2) overlap
-			if (speed > 0) {
+			if (speed > 0.f) {
 				T = (max1 - min2) / speed;
 				if (T < timeLast) { timeLast = T; }
 				if (timeFirst > timeLast) { return false; } // Early exit
 			}
-			else if (speed < 0) {
+			else if (speed < 0.f) {
 				T = (min1 - max2) / speed;
 				if (T < timeLast) { timeLast = T; }
 				if (timeFirst > timeLast) { return false; } // Early exit
@@ -882,10 +882,11 @@ namespace Scuffed {
 	}
 
 	float Intersection::continousSAT(Shape* shape1, Shape* shape2, const glm::vec3& vel1, const glm::vec3& vel2, const float dt) {
+
 		// Treat shape1 as stationary and shape2 as moving
 		glm::vec3 relativeVel = vel2 - vel1;
 
-		float timeFirst = 0;
+		float timeFirst = 0.f;
 		float timeLast = INFINITY;
 
 		const std::vector<glm::vec3>& s1Norms = shape1->getNormals();
