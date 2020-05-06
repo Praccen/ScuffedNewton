@@ -20,6 +20,7 @@
 - Add support for Capsules
 - Add option for left or right handed triangles
 - Remove prepareCorners?? (Done in the beginning of many systems)
+- Remove boundingBox class and just use box shape instead
 -----------------------------
 
 ----Done :D----
