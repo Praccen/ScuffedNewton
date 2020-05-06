@@ -44,6 +44,10 @@ namespace Scuffed {
 
 			// Handle friction
 			handleCollisions(e, collision->collisions, dt);
+
+			/*if (collision->collisions.size() > 0) {
+				std::cout << collision->collisions.size() << "\n";
+			}*/
 		}
 
 		// ======================== Manifold update ========================
@@ -67,9 +71,6 @@ namespace Scuffed {
 
 		m_octree->getNextContinousCollision(e, collisions, time, zeroDistances, dt, collision->doSimpleCollisions);
 		if (handleCollisions(e, zeroDistances, 0.f)) {
-			// Save zeroes
-			collision->collisions.insert(collision->collisions.end(), zeroDistances.begin(), zeroDistances.end());
-
 			// Clear
 			time = INFINITY;
 			zeroDistances.clear();
@@ -77,6 +78,9 @@ namespace Scuffed {
 
 			m_octree->getNextContinousCollision(e, collisions, time, zeroDistances, dt, collision->doSimpleCollisions);
 		}
+
+		// Save zeroes
+		collision->collisions.insert(collision->collisions.end(), zeroDistances.begin(), zeroDistances.end());
 
 		while (time <= dt && time > 0.f) {
 			// Move entity to collision
@@ -126,7 +130,7 @@ namespace Scuffed {
 			// Handle true collisions
 			updateVelocityVec(e, movement->velocity, collisions, sumVec, groundIndices, dt);
 
-			if (Intersection::dot(glm::normalize(preVel), glm::normalize(movement->velocity)) < 1.f) {
+			if (glm::length2(movement->velocity) > 0.0f && Intersection::dot(glm::normalize(preVel), glm::normalize(movement->velocity)) < 1.f) {
 				// Collisions effected movement
 				return true;
 			}
