@@ -35,6 +35,8 @@ namespace Scuffed {
 			CollisionComponent* collision = e->getComponent<CollisionComponent>();
 			MovementComponent* movement = e->getComponent<MovementComponent>();
 			
+			collision->collisions.clear();
+
 			// Continous collisions
 			movement->updateableDt = dt;
 			continousCollisionUpdate(e, movement->updateableDt);
@@ -64,19 +66,19 @@ namespace Scuffed {
 		std::vector<Octree::CollisionInfo> zeroDistances;
 
 		m_octree->getNextContinousCollision(e, collisions, time, zeroDistances, dt, collision->doSimpleCollisions);
-		handleCollisions(e, zeroDistances, 0.f);
-		//collision->collisions.insert(collision->collisions.end(), zeroDistances.begin(), zeroDistances.end());
+		if (handleCollisions(e, zeroDistances, 0.f)) {
+			// Save zeroes
+			collision->collisions.insert(collision->collisions.end(), zeroDistances.begin(), zeroDistances.end());
+
+			// Clear
+			time = INFINITY;
+			zeroDistances.clear();
+			collisions.clear();
+
+			m_octree->getNextContinousCollision(e, collisions, time, zeroDistances, dt, collision->doSimpleCollisions);
+		}
 
 		while (time <= dt && time > 0.f) {
-			while (handleCollisions(e, zeroDistances, 0.f)) {
-				// Take care of current collisions first
-				zeroDistances.clear();
-				collisions.clear();
-				m_octree->getNextContinousCollision(e, collisions, time, zeroDistances, dt, collision->doSimpleCollisions);
-			}
-
-			//collision->collisions.insert(collision->collisions.end(), zeroDistances.begin(), zeroDistances.end());
-
 			// Move entity to collision
 			boundingBox->setPosition(boundingBox->getPosition() + movement->velocity * time);
 			transform->translate(movement->velocity * time);
@@ -89,10 +91,12 @@ namespace Scuffed {
 			// Save collisions to collision component
 			collision->collisions.insert(collision->collisions.end(), collisions.begin(), collisions.end());
 			
-			// Check for next collision
+			// Clear
 			time = INFINITY;
 			zeroDistances.clear();
 			collisions.clear();
+
+			// Check for next collision
 			m_octree->getNextContinousCollision(e, collisions, time, zeroDistances, dt, collision->doSimpleCollisions);
 		}
 	}
@@ -149,6 +153,11 @@ namespace Scuffed {
 					//		collisionInfo_i.intersectionAxis = -collisionInfo_i.intersectionAxis;
 					//	}
 					//}
+
+					if (glm::dot(collisionInfo_i.intersectionAxis, boundingBox->getPosition() - collisionInfo_i.shape->getMiddle()) < 0.f) {
+						 // Flip intersection axis if it is pointing wrong way
+						collisionInfo_i.intersectionAxis = -collisionInfo_i.intersectionAxis;
+					}
 
 					sumVec += collisionInfo_i.intersectionAxis;
 
