@@ -42,6 +42,35 @@ namespace Scuffed {
 			continousCollisionUpdate(e, movement->updateableDt);
 			movement->oldVelocity = movement->velocity;
 
+			// Remove duplicate collisions
+			int numberOfCollisions = (int) collision->collisions.size();
+
+			for (int i = 0; i < numberOfCollisions; i++) {
+				for (int j = i + 1; j < numberOfCollisions; j++) {
+					if (collision->collisions[i].entity == collision->collisions[j].entity) {
+						if (collision->collisions[i].shape->getEdges().size() == collision->collisions[i].shape->getEdges().size()) {
+							int nrOfVertices = collision->collisions[i].shape->getVertices().size();
+							bool isSame = true;
+							auto verts1 = collision->collisions[i].shape->getVertices();
+							auto verts2 = collision->collisions[j].shape->getVertices();
+
+							for (int k = 0; k < nrOfVertices; k++) {
+								if (glm::length2(verts1[k] - verts2[k]) > 0.000001f) {
+									isSame = false;
+									k = nrOfVertices;
+								}
+							}
+
+							if (isSame) {
+								collision->collisions.erase(collision->collisions.begin() + j);
+								j--;
+								numberOfCollisions--;
+							}
+						}
+					}
+				}
+			}
+
 			// Handle friction
 			handleCollisions(e, collision->collisions, dt);
 
@@ -141,8 +170,6 @@ namespace Scuffed {
 	}
 
 	void CollisionSystem::gatherCollisionInformation(Entity* e, BoundingBox* boundingBox, std::vector<Octree::CollisionInfo>& collisions, glm::vec3& sumVec, std::vector<int>& groundIndices, const float dt) {
-		CollisionComponent* collision = e->getComponent<CollisionComponent>();
-
 		size_t collisionCount = collisions.size();
 
 		if (collisionCount > 0) {
@@ -279,7 +306,7 @@ namespace Scuffed {
 		// Remove duplicate manifolds
 		for (size_t i = 0; i < collision->manifolds.size(); i++) {
 			for (size_t j = i + 1; j < collision->manifolds.size(); j++) {
-				if (glm::length2(collision->manifolds[i] - collision->manifolds[j]) < 0.00001f) {
+				if (glm::length2(collision->manifolds[i] - collision->manifolds[j]) < 0.001f) {
 					collision->manifolds.erase(collision->manifolds.begin() + j);
 					j--;
 				}

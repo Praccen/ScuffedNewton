@@ -13,13 +13,15 @@ Scuffed::Box::Box(const glm::vec3& halfSize, const glm::vec3& middle) {
 			{0.f, 0.f, -halfSize.z}
 	};
 
-	setData(planes, middle);
+	setData(planes, glm::vec3(0.f)); // TODO: Scuffed
+	setBaseMatrix(glm::translate(glm::mat4(1.0f), middle));
 }
 
-Scuffed::Box::Box(glm::vec3 planes[6], const glm::vec3& middle) { //Assumes Orthogonal
+Scuffed::Box::Box(glm::vec3 planes[6], const glm::vec3& middle) {
 	init();
 
-	setData(planes, middle);
+	setData(planes, glm::vec3(0.f)); // TODO: Scuffed
+	setBaseMatrix(glm::translate(glm::mat4(1.0f), middle));
 }
 
 Scuffed::Box::~Box() {
@@ -43,6 +45,7 @@ void Scuffed::Box::setData(glm::vec3 planes[6], const glm::vec3& middle) {
 		m_planes[i] = planes[i];
 	}
 
+	// Assumes orthogonal
 	// Sort planes, oposite sides indexed next to each other
 	for (unsigned int i = 0; i < 6; i += 2) {
 		for (unsigned int j = i + 1; j < 6; j++) {
@@ -72,8 +75,13 @@ void Scuffed::Box::setData(glm::vec3 planes[6], const glm::vec3& middle) {
 	setMatrix(tempMatrix);
 }
 
+void Scuffed::Box::setBaseMatrix(const glm::mat4& newBaseMatrix) {
+	baseMatrix = newBaseMatrix;
+	m_middle = glm::vec3(baseMatrix * glm::vec4(0.f, 0.f, 0.f, 1.0f));
+}
+
 void Scuffed::Box::setMatrix(const glm::mat4& newMatrix) {
-	// Bring back to no transform
+	// Bring back to base transform
 	glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(matrix)));
 	for (int i = 0; i < 6; i++) {
 		m_planes[i] = glm::vec3(glm::inverse(normalMatrix) * m_planes[i]);
@@ -115,7 +123,7 @@ std::vector<glm::vec3>& Scuffed::Box::getVertices() {
 	if (m_verticesNeedsUpdate) {
 		// Find corners
 		for (int i = 0; i < 8; i++) {
-			m_vertices[i] = matrix * glm::vec4(m_originalVertices[i], 1.0f);
+			m_vertices[i] = matrix * baseMatrix * glm::vec4(m_originalVertices[i], 1.0f);
 		}
 		m_verticesNeedsUpdate = false;
 	}

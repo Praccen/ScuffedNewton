@@ -12,6 +12,7 @@ namespace Scuffed {
 
 		virtual void setData(glm::vec3 planes[6], const glm::vec3& middle);
 
+		virtual void setBaseMatrix(const glm::mat4& newBaseMatrix);
 		virtual void setMatrix(const glm::mat4& newMatrix);
 		virtual std::vector<glm::vec3>& getNormals();
 		virtual std::vector<glm::vec3>& getEdges();

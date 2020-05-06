@@ -60,7 +60,9 @@ namespace Scuffed {
 
 		glm::vec3 manifoldOffset(0.f);
 
-		//std::cout << collision->manifolds.size() << "\n";
+		/*if (collision->manifolds.size() > 0) {
+			std::cout << collision->manifolds.size() << "\n";
+		}*/
 
 		if (collision->manifolds.size() == 1) {
 			manifoldOffset = collision->manifolds[0] - transform->getCenter() + movement->constantAcceleration * Intersection::dot(collision->manifolds[0] - transform->getCenter(), glm::normalize(movement->constantAcceleration));

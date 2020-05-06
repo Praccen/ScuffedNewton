@@ -26,6 +26,10 @@ namespace Scuffed {
 		m_middleNeedsUpdate = true;
 	}
 
+	void Triangle::setBaseMatrix(const glm::mat4& newBaseMatrix) {
+		baseMatrix = newBaseMatrix;
+	}
+
 	void Triangle::setMatrix(const glm::mat4& newMatrix) {
 		for (int i = 0; i < 3; i++) {
 			m_vertices[i] = glm::vec3(glm::inverse(matrix) * glm::vec4(m_vertices[i], 1.0f));

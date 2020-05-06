@@ -7,6 +7,8 @@
 
 #include "../DataTypes/Mesh.h"
 
+#include "../Shapes/Box.h"
+
 namespace Scuffed {
 
 	UpdateBoundingBoxSystem::UpdateBoundingBoxSystem() : BaseSystem() {
@@ -45,11 +47,11 @@ namespace Scuffed {
 		if (mesh) {
 			glm::vec3 minPositions(9999999.0f), maxPositions(-9999999.0f);
 
-			auto transMatrix = transform->getMatrixWithUpdate();
+			auto transformationMatrix = transform->getMatrixWithUpdate();
 
 			//Recalculate min and max
 			for (int j = 0; j < mesh->mesh->getNumberOfVertices(); j++) {
-				glm::vec3 posAfterTransform = glm::vec3(transMatrix * glm::vec4(mesh->mesh->getVertexPosition(j), 1.0f));
+				glm::vec3 posAfterTransform = glm::vec3(transformationMatrix * glm::vec4(mesh->mesh->getVertexPosition(j), 1.0f));
 				checkDistances(minPositions, maxPositions, posAfterTransform);
 			}
 
@@ -57,7 +59,9 @@ namespace Scuffed {
 			boundingBox->getBoundingBox()->setPosition(minPositions + boundingBox->getBoundingBox()->getHalfSize());
 		}
 		else {
-			boundingBox->getBoundingBox()->setPosition(transform->getTranslation() + glm::vec3(0.0f, boundingBox->getBoundingBox()->getHalfSize().y, 0.0f));
+			auto transformationMatrix = transform->getMatrixWithUpdate();
+			boundingBox->getBoundingBox()->getBox()->setBaseMatrix(transformationMatrix);
+			//boundingBox->getBoundingBox()->setPosition(transform->getTranslation() + glm::vec3(0.0f, boundingBox->getBoundingBox()->getHalfSize().y, 0.0f));
 		}
 	}
 
@@ -65,7 +69,8 @@ namespace Scuffed {
 		BoundingBoxComponent* boundingBox = e->getComponent<BoundingBoxComponent>();
 		TransformComponent* transform = e->getComponent<TransformComponent>();
 		glm::mat4 transformationMatrix = transform->getMatrixWithUpdate();
-		boundingBox->getBoundingBox()->setPosition(glm::vec3(transformationMatrix[3]) + glm::vec3(0.0f, boundingBox->getBoundingBox()->getHalfSize().y, 0.0f));
+		boundingBox->getBoundingBox()->getBox()->setBaseMatrix(transformationMatrix);
+		//boundingBox->getBoundingBox()->setPosition(glm::vec3(transformationMatrix[3]) + glm::vec3(0.0f, boundingBox->getBoundingBox()->getHalfSize().y, 0.0f));
 	}
 
 	bool UpdateBoundingBoxSystem::addEntity(Entity* entity) {
