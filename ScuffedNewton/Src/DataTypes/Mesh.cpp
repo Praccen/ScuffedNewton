@@ -82,12 +82,12 @@ namespace Scuffed {
 		return m_nrOfIndices;
 	}
 
-	void Mesh::getTrianglesForCollisionTesting(std::vector<int> &triangles, Box* box) {
-		collisionTrianglesRec(triangles, box, &m_baseNode);
+	void Mesh::getTrianglesForCollisionTesting(std::vector<int> &triangles, Shape* shape) {
+		collisionTrianglesRec(triangles, shape, &m_baseNode);
 	}
 
-	void Mesh::getTrianglesForContinousCollisionTesting(std::vector<int>& triangles, Box* box, glm::vec3& boxVel, glm::vec3& meshVel, const float maxTime) {
-		continousCollisionTrianglesRec(triangles, box, boxVel, meshVel, &m_baseNode, maxTime);
+	void Mesh::getTrianglesForContinousCollisionTesting(std::vector<int>& triangles, Shape* shape, glm::vec3& shapeVel, glm::vec3& meshVel, const float maxTime) {
+		continousCollisionTrianglesRec(triangles, shape, shapeVel, meshVel, &m_baseNode, maxTime);
 	}
 
 	void Mesh::setUpOctree() {
@@ -132,11 +132,10 @@ namespace Scuffed {
 			}
 		}
 
-		m_baseNode.nodeBB = SN_NEW BoundingBox();
-		m_baseNode.nodeBB->setHalfSize((maxVals - minVals) / 2.0f);
-		m_baseNode.nodeBB->setPosition(minVals + m_baseNode.nodeBB->getHalfSize());
+		m_baseNode.halfSize = (maxVals - minVals) / 2.0f;
+		m_baseNode.nodeBB = SN_NEW Box(m_baseNode.halfSize, minVals + m_baseNode.halfSize);
 
-		m_minimumNodeHalfSize = m_baseNode.nodeBB->getHalfSize().x / 30.0f; 
+		m_minimumNodeHalfSize = m_baseNode.halfSize.x / 30.0f; 
 
 		addTrianglesToOctree(trianglesToAdd);
 	}
@@ -166,7 +165,7 @@ namespace Scuffed {
 				}
 			}
 			else { //Is leaf node
-				if (currentNode->nrOfTriangles < m_softLimitTriangles || currentNode->nodeBB->getHalfSize().x / 2.0f < m_minimumNodeHalfSize) { //Soft limit not reached or smaller nodes are not allowed
+				if (currentNode->nrOfTriangles < m_softLimitTriangles || currentNode->halfSize.x / 2.0f < m_minimumNodeHalfSize) { //Soft limit not reached or smaller nodes are not allowed
 					//Add triangle to this node
 					currentNode->triangles.push_back(triangle);
 					currentNode->nrOfTriangles++;
@@ -177,12 +176,9 @@ namespace Scuffed {
 					for (int i = 0; i < 2; i++) {
 						for (int j = 0; j < 2; j++) {
 							for (int k = 0; k < 2; k++) {
-								const BoundingBox* currentNodeBB = currentNode->nodeBB;
+								Box* currentNodeBB = currentNode->nodeBB;
 								OctNode tempChildNode;
-								tempChildNode.nodeBB = SN_NEW BoundingBox();
-								BoundingBox* tempChildBoundingBox = tempChildNode.nodeBB;
-								tempChildBoundingBox->setHalfSize(currentNodeBB->getHalfSize() / 2.0f);
-								tempChildBoundingBox->setPosition(currentNodeBB->getPosition() - tempChildBoundingBox->getHalfSize() + glm::vec3(tempChildBoundingBox->getHalfSize().x * 2.0f * i, tempChildBoundingBox->getHalfSize().y * 2.0f * j, tempChildBoundingBox->getHalfSize().z * 2.0f * k));
+								tempChildNode.nodeBB = SN_NEW Box(currentNode->halfSize / 2.0f, currentNodeBB->getMiddle() - currentNode->halfSize / 2.0f + glm::vec3(currentNode->halfSize.x * i, currentNode->halfSize.y * j, currentNode->halfSize.z * k));
 								tempChildNode.nrOfTriangles = 0;
 								tempChildNode.parentNode = currentNode;
 								currentNode->childNodes.push_back(tempChildNode);
@@ -229,11 +225,8 @@ namespace Scuffed {
 		z = direction.z >= 0.0f;
 
 		OctNode newBaseNode;
-		const BoundingBox* baseNodeBB = m_baseNode.nodeBB;
-		newBaseNode.nodeBB = SN_NEW BoundingBox();
-
-		newBaseNode.nodeBB->setPosition(baseNodeBB->getPosition() - baseNodeBB->getHalfSize() + glm::vec3(x * baseNodeBB->getHalfSize().x * 2.0f, y * baseNodeBB->getHalfSize().y * 2.0f, z * baseNodeBB->getHalfSize().z * 2.0f));
-		newBaseNode.nodeBB->setHalfSize(baseNodeBB->getHalfSize() * 2.0f);
+		Box* baseNodeBB = m_baseNode.nodeBB;
+		newBaseNode.nodeBB = SN_NEW Box(m_baseNode.halfSize * 2.0f, baseNodeBB->getMiddle() - m_baseNode.halfSize + glm::vec3(x * m_baseNode.halfSize.x * 2.0f, y * m_baseNode.halfSize.y * 2.0f, z * m_baseNode.halfSize.z * 2.0f));
 
 		newBaseNode.nrOfTriangles = 0;
 		newBaseNode.parentNode = nullptr;
@@ -246,9 +239,7 @@ namespace Scuffed {
 						tempChildNode = m_baseNode;
 					}
 					else {
-						tempChildNode.nodeBB = SN_NEW BoundingBox();
-						tempChildNode.nodeBB->setHalfSize(baseNodeBB->getHalfSize());
-						tempChildNode.nodeBB->setPosition(newBaseNode.nodeBB->getPosition() - baseNodeBB->getHalfSize() + glm::vec3(tempChildNode.nodeBB->getHalfSize().x * 2.0f * i, tempChildNode.nodeBB->getHalfSize().y * 2.0f * j, tempChildNode.nodeBB->getHalfSize().z * 2.0f * k));
+						tempChildNode.nodeBB = SN_NEW Box(m_baseNode.halfSize, newBaseNode.nodeBB->getMiddle() - m_baseNode.halfSize + glm::vec3(m_baseNode.halfSize.x * 2.0f * i, m_baseNode.halfSize.y * 2.0f * j, m_baseNode.halfSize.z * 2.0f * k));
 						tempChildNode.nrOfTriangles = 0;
 					}
 					tempChildNode.parentNode = &newBaseNode;
@@ -264,15 +255,15 @@ namespace Scuffed {
 		//Find if any corner of a triangle is outside of node. Returns a vector towards the outside corner if one is found. Otherwise a 0.0f vec is returned.
 		glm::vec3 directionVec(0.0f, 0.0f, 0.0f);
 
-		glm::vec3 testNodeHalfSize = testNode->nodeBB->getHalfSize();
+		glm::vec3 testNodeHalfSize = testNode->halfSize;
 
 		for (int i = 0; i < 3; i++) {
 			glm::vec3 distanceVec(0.f);
 			if (m_nrOfIndices > 0) { // Has indices
-				distanceVec = getVertexPosition(m_indices[triangle + i]) - testNode->nodeBB->getPosition();
+				distanceVec = getVertexPosition(m_indices[triangle + i]) - testNode->nodeBB->getMiddle();
 			}
 			else {
-				distanceVec = getVertexPosition(triangle + i) - testNode->nodeBB->getPosition();
+				distanceVec = getVertexPosition(triangle + i) - testNode->nodeBB->getMiddle();
 			}
 
 			if (distanceVec.x < -testNodeHalfSize.x || distanceVec.x > testNodeHalfSize.x ||
@@ -297,24 +288,24 @@ namespace Scuffed {
 		}
 	}
 
-	void Mesh::collisionTrianglesRec(std::vector<int>& triangles, Box* box, OctNode* node) {
-		if (Intersection::SAT(node->nodeBB->getBox(), box)) {
+	void Mesh::collisionTrianglesRec(std::vector<int>& triangles, Shape* shape, OctNode* node) {
+		if (Intersection::SAT(node->nodeBB, shape)) {
 			triangles.insert(triangles.end(), node->triangles.begin(), node->triangles.end());
 
 			int nrOfChildNodes = node->childNodes.size();
 			for (int i = 0; i < nrOfChildNodes; i++) {
-				collisionTrianglesRec(triangles, box, &node->childNodes[i]);
+				collisionTrianglesRec(triangles, shape, &node->childNodes[i]);
 			}
 		}
 	}
 
-	void Mesh::continousCollisionTrianglesRec(std::vector<int>& triangles, Box* box, glm::vec3& boxVel, glm::vec3& meshVel, OctNode* node, const float maxTime) {
-		if (Intersection::continousSAT(box, node->nodeBB->getBox(), boxVel, meshVel, maxTime) >= 0.f) {
+	void Mesh::continousCollisionTrianglesRec(std::vector<int>& triangles, Shape* shape, glm::vec3& shapeVel, glm::vec3& meshVel, OctNode* node, const float maxTime) {
+		if (Intersection::continousSAT(shape, node->nodeBB, shapeVel, meshVel, maxTime) >= 0.f) {
 			triangles.insert(triangles.end(), node->triangles.begin(), node->triangles.end());
 
 			int nrOfChildNodes = node->childNodes.size();
 			for (int i = 0; i < nrOfChildNodes; i++) {
-				continousCollisionTrianglesRec(triangles, box, boxVel, meshVel, &node->childNodes[i], maxTime);
+				continousCollisionTrianglesRec(triangles, shape, shapeVel, meshVel, &node->childNodes[i], maxTime);
 			}
 		}
 	}

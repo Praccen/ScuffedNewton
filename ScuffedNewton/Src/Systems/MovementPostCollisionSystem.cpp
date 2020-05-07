@@ -64,38 +64,38 @@ namespace Scuffed {
 			std::cout << collision->manifolds.size() << "\n";
 		}*/
 
-		if (collision->manifolds.size() == 1) {
-			manifoldOffset = collision->manifolds[0] - transform->getCenter() + movement->constantAcceleration * Intersection::dot(collision->manifolds[0] - transform->getCenter(), glm::normalize(movement->constantAcceleration));
-		}
-		else if (collision->manifolds.size() == 2) {
-			float tempDot = Intersection::dot(glm::normalize(collision->manifolds[1] - collision->manifolds[0]), transform->getCenter());
-			if (tempDot < 0) {
-				manifoldOffset = collision->manifolds[0];
-			}
-			else if (tempDot > glm::length(collision->manifolds[1] - collision->manifolds[0])) {
-				manifoldOffset = collision->manifolds[1];
-			}
-			else {
-				manifoldOffset = collision->manifolds[0] + tempDot * glm::normalize(collision->manifolds[1] - collision->manifolds[0]);
-			}
+		//if (collision->manifolds.size() == 1) {
+		//	manifoldOffset = collision->manifolds[0] - transform->getCenter() + movement->constantAcceleration * Intersection::dot(collision->manifolds[0] - transform->getCenter(), glm::normalize(movement->constantAcceleration));
+		//}
+		//else if (collision->manifolds.size() == 2) {
+		//	float tempDot = Intersection::dot(glm::normalize(collision->manifolds[1] - collision->manifolds[0]), transform->getCenter());
+		//	if (tempDot < 0) {
+		//		manifoldOffset = collision->manifolds[0];
+		//	}
+		//	else if (tempDot > glm::length(collision->manifolds[1] - collision->manifolds[0])) {
+		//		manifoldOffset = collision->manifolds[1];
+		//	}
+		//	else {
+		//		manifoldOffset = collision->manifolds[0] + tempDot * glm::normalize(collision->manifolds[1] - collision->manifolds[0]);
+		//	}
 
-		}
-		else if (collision->manifolds.size() > 2) {
-			// Create triangles
-			for (size_t i = 0; i < collision->manifolds.size() - 2; i++) {
-				for (size_t j = i; j < collision->manifolds.size() - 1; j++) {
-					for (size_t k = j; k < collision->manifolds.size(); k++) {
-						if (Intersection::RayWithTriangle(transform->getCenter(), movement->constantAcceleration, collision->manifolds[i], collision->manifolds[j], collision->manifolds[k])) {
-							// Center of mass is above collision manifold area
- 							return;
-						}
-					}
-				}
-			}
+		//}
+		//else if (collision->manifolds.size() > 2) {
+		//	// Create triangles
+		//	for (size_t i = 0; i < collision->manifolds.size() - 2; i++) {
+		//		for (size_t j = i; j < collision->manifolds.size() - 1; j++) {
+		//			for (size_t k = j; k < collision->manifolds.size(); k++) {
+		//				if (Intersection::RayWithTriangle(transform->getCenter(), movement->constantAcceleration, collision->manifolds[i], collision->manifolds[j], collision->manifolds[k])) {
+		//					// Center of mass is above collision manifold area
+ 	//						return;
+		//				}
+		//			}
+		//		}
+		//	}
 
-			// Center of mass is not above collision manifold area, find manifoldOffset
-			std::cout << "Manifold offset not found (lacks implementation)\n";
-		}
+		//	// Center of mass is not above collision manifold area, find manifoldOffset
+		//	std::cout << "Manifold offset not found (lacks implementation)\n";
+		//}
 
 		//movement->rotation += glm::cross(manifoldOffset, glm::vec3(0.0f, 1.0f, 0.0f));
 	}

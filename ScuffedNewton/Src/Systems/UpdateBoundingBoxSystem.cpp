@@ -56,7 +56,7 @@ namespace Scuffed {
 			}
 
 			boundingBox->getBoundingBox()->setHalfSize((maxPositions - minPositions) * 0.5f);
-			boundingBox->getBoundingBox()->setPosition(minPositions + boundingBox->getBoundingBox()->getHalfSize());
+			boundingBox->getBoundingBox()->setPosition(minPositions + (maxPositions - minPositions) * 0.5f);
 		}
 		else {
 			auto transformationMatrix = transform->getMatrixWithUpdate();
@@ -70,7 +70,6 @@ namespace Scuffed {
 		TransformComponent* transform = e->getComponent<TransformComponent>();
 		glm::mat4 transformationMatrix = transform->getMatrixWithUpdate();
 		boundingBox->getBoundingBox()->getBox()->setBaseMatrix(transformationMatrix);
-		//boundingBox->getBoundingBox()->setPosition(glm::vec3(transformationMatrix[3]) + glm::vec3(0.0f, boundingBox->getBoundingBox()->getHalfSize().y, 0.0f));
 	}
 
 	bool UpdateBoundingBoxSystem::addEntity(Entity* entity) {
@@ -82,6 +81,8 @@ namespace Scuffed {
 	}
 
 	void UpdateBoundingBoxSystem::update(float dt) {
+		//std::cout << "UpdateBoundingBoxSystem system ran\n";
+
 		for (auto& e : entities) {
 			TransformComponent* transform = e->getComponent<TransformComponent>();
 			if (transform) {
@@ -94,15 +95,5 @@ namespace Scuffed {
 				}
 			}
 		}
-
-		//std::cout << "UpdateBoundingBoxSystem system ran\n";
-
-		// prepare matrixes and bounding boxes
-		for (auto e : entities) {
-			e->getComponent<BoundingBoxComponent>()->getBoundingBox()->prepareCorners();
-			//std::cout << e->getId() << ", ";
-		}
-		//std::cout << "\n";
 	}
-
 }

@@ -8,6 +8,7 @@
 #include "../Shapes/Box.h"
 #include "../Shapes/Triangle.h"
 #include "../Shapes/Shape.h"
+#include "../Shapes/Ray.h"
 
 #include "../Utils/Utils.h"
 
@@ -19,9 +20,8 @@ namespace Scuffed {
 		m_softLimitMeshes = 4;
 		m_minimumNodeHalfSize = 4.0f;
 
-		m_baseNode.nodeBB = SN_NEW BoundingBox();
-		m_baseNode.nodeBB->setPosition(glm::vec3(0.0f));
-		m_baseNode.nodeBB->setHalfSize(glm::vec3(20.0f, 20.0f, 20.0f));
+		m_baseNode.halfSize = glm::vec3(20.0f, 20.0f, 20.0f);
+		m_baseNode.nodeBB = SN_NEW Box(m_baseNode.halfSize, glm::vec3(0.0f));
 
 		m_baseNode.parentNode = nullptr;
 		m_baseNode.nrOfEntities = 0;
@@ -39,11 +39,8 @@ namespace Scuffed {
 		z = direction.z >= 0.0f;
 
 		Node newBaseNode;
-		const BoundingBox* baseNodeBB = m_baseNode.nodeBB;
-		newBaseNode.nodeBB = SN_NEW BoundingBox();
-
-		newBaseNode.nodeBB->setPosition(baseNodeBB->getPosition() - baseNodeBB->getHalfSize() + glm::vec3(x * baseNodeBB->getHalfSize().x * 2.0f, y * baseNodeBB->getHalfSize().y * 2.0f, z * baseNodeBB->getHalfSize().z * 2.0f));
-		newBaseNode.nodeBB->setHalfSize(baseNodeBB->getHalfSize() * 2.0f);
+		Box* baseNodeBB = m_baseNode.nodeBB;
+		newBaseNode.nodeBB = SN_NEW Box(m_baseNode.halfSize * 2.0f, baseNodeBB->getMiddle() - m_baseNode.halfSize + glm::vec3(x * m_baseNode.halfSize.x * 2.0f, y * m_baseNode.halfSize.y * 2.0f, z * m_baseNode.halfSize.z * 2.0f));
 
 		newBaseNode.nrOfEntities = 0;
 		newBaseNode.parentNode = nullptr;
@@ -56,9 +53,7 @@ namespace Scuffed {
 						tempChildNode = m_baseNode;
 					}
 					else {
-						tempChildNode.nodeBB = SN_NEW BoundingBox();
-						tempChildNode.nodeBB->setHalfSize(baseNodeBB->getHalfSize());
-						tempChildNode.nodeBB->setPosition(newBaseNode.nodeBB->getPosition() - baseNodeBB->getHalfSize() + glm::vec3(tempChildNode.nodeBB->getHalfSize().x * 2.0f * i, tempChildNode.nodeBB->getHalfSize().y * 2.0f * j, tempChildNode.nodeBB->getHalfSize().z * 2.0f * k));
+						tempChildNode.nodeBB = SN_NEW Box(m_baseNode.halfSize, newBaseNode.nodeBB->getMiddle() - m_baseNode.halfSize + glm::vec3(m_baseNode.halfSize.x * 2.0f * i, m_baseNode.halfSize.y * 2.0f * j, m_baseNode.halfSize.z * 2.0f * k));
 						tempChildNode.nrOfEntities = 0;
 					}
 					tempChildNode.parentNode = &newBaseNode;
@@ -75,11 +70,11 @@ namespace Scuffed {
 		//Find if any corner of a entity's bounding box is outside of node. Returns a vector towards the outside corner if one is found. Otherwise a 0.0f vec is returned.
 		glm::vec3 directionVec(0.0f, 0.0f, 0.0f);
 
-		const glm::vec3* corners = entity->getComponent<BoundingBoxComponent>()->getBoundingBox()->getCornersWithUpdate();
-		glm::vec3 testNodeHalfSize = testNode->nodeBB->getHalfSize();
+		const std::vector<glm::vec3>& corners = entity->getComponent<BoundingBoxComponent>()->getBoundingBox()->getBox()->getVertices();
+		glm::vec3 testNodeHalfSize = testNode->halfSize;
 
 		for (int i = 0; i < 8; i++) {
-			glm::vec3 distanceVec = corners[i] - testNode->nodeBB->getPosition();
+			glm::vec3 distanceVec = corners[i] - testNode->nodeBB->getMiddle();
 
 			if (distanceVec.x < -testNodeHalfSize.x || distanceVec.x > testNodeHalfSize.x ||
 				distanceVec.y < -testNodeHalfSize.y || distanceVec.y > testNodeHalfSize.y ||
@@ -121,7 +116,7 @@ namespace Scuffed {
 				}
 			}
 			else { //Is leaf node
-				if (currentNode->nrOfEntities < m_softLimitMeshes || currentNode->nodeBB->getHalfSize().x / 2.0f < m_minimumNodeHalfSize) { //Soft limit not reached or smaller nodes are not allowed
+				if (currentNode->nrOfEntities < m_softLimitMeshes || currentNode->halfSize.x / 2.0f < m_minimumNodeHalfSize) { //Soft limit not reached or smaller nodes are not allowed
 					//Add mesh to this node
 					currentNode->entities.push_back(newEntity);
 					currentNode->nrOfEntities++;
@@ -132,12 +127,9 @@ namespace Scuffed {
 					for (int i = 0; i < 2; i++) {
 						for (int j = 0; j < 2; j++) {
 							for (int k = 0; k < 2; k++) {
-								const BoundingBox* currentNodeBB = currentNode->nodeBB;
+								Box* currentNodeBB = currentNode->nodeBB;
 								Node tempChildNode;
-								tempChildNode.nodeBB = SN_NEW BoundingBox();
-								BoundingBox* tempChildBoundingBox = tempChildNode.nodeBB;
-								tempChildBoundingBox->setHalfSize(currentNodeBB->getHalfSize() / 2.0f);
-								tempChildBoundingBox->setPosition(currentNodeBB->getPosition() - tempChildBoundingBox->getHalfSize() + glm::vec3(tempChildBoundingBox->getHalfSize().x * 2.0f * i, tempChildBoundingBox->getHalfSize().y * 2.0f * j, tempChildBoundingBox->getHalfSize().z * 2.0f * k));
+								tempChildNode.nodeBB = SN_NEW Box(currentNode->halfSize / 2.0f, currentNodeBB->getMiddle() - currentNode->halfSize / 2.0f + glm::vec3(currentNode->halfSize.x * i, currentNode->halfSize.y * j, currentNode->halfSize.z * k));
 								tempChildNode.nrOfEntities = 0;
 								tempChildNode.parentNode = currentNode;
 								currentNode->childNodes.push_back(tempChildNode);
@@ -216,7 +208,7 @@ namespace Scuffed {
 	}
 
 	void Octree::getNextContinousCollisionRec(Entity* entity, Node* currentNode, std::vector<CollisionInfo>& collisionInfo, float& collisionTime, std::vector<CollisionInfo>& zeroDistances, const float& dt, const bool doSimpleCollisions, const bool checkBackfaces) {
-		BoundingBox* nodeBoundingBox = currentNode->nodeBB;
+		Box* nodeBoundingBox = currentNode->nodeBB;
 		BoundingBox* entityBoundingBox = entity->getComponent<BoundingBoxComponent>()->getBoundingBox();
 		MovementComponent* movComp = entity->getComponent<MovementComponent>();
 
@@ -227,7 +219,7 @@ namespace Scuffed {
 		}
 
 		// Early exit if Bounding box doesn't collide with the current node
-		float tempCollisionTime = Intersection::continousSAT(entityBoundingBox->getBox(), nodeBoundingBox->getBox(), entityVel, glm::vec3(0.f), dt);
+		float tempCollisionTime = Intersection::continousSAT(entityBoundingBox->getBox(), nodeBoundingBox, entityVel, glm::vec3(0.f), dt);
 		if (tempCollisionTime < 0.f || tempCollisionTime > collisionTime ) {
 			return;
 		}
@@ -273,14 +265,14 @@ namespace Scuffed {
 
 				//Convert velocities to local space for mesh
 				glm::vec3 zeroPoint = glm::inverse(transformMatrix) * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-				entityVel = glm::inverse(transformMatrix) * glm::vec4(entityVel, 1.0f);
-				entityVel = entityVel - zeroPoint;
+				glm::vec3 newEntityVel = glm::inverse(transformMatrix) * glm::vec4(entityVel, 1.0f);
+				newEntityVel = newEntityVel - zeroPoint;
 				otherEntityVel = glm::inverse(transformMatrix) * glm::vec4(otherEntityVel, 1.0f);
 				otherEntityVel = otherEntityVel - zeroPoint;
 
 				// Get triangles to test continous collision against from narrow phase octree in mesh
 				std::vector<int> triangles;
-				mesh->mesh->getTrianglesForContinousCollisionTesting(triangles, entityBoundingBox->getBox(), entityVel, otherEntityVel, dt);
+				mesh->mesh->getTrianglesForContinousCollisionTesting(triangles, entityBoundingBox->getBox(), newEntityVel, otherEntityVel, dt);
 
 				// Triangle to set mesh data to avoid creating new shapes for each triangle in mesh
 				Triangle triangle(glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(0.0f));
@@ -299,30 +291,24 @@ namespace Scuffed {
 					}
 
 					// TODO: create function that does this, similar to getCollisionData
-					float time = Intersection::continousSAT(entityBoundingBox->getBox(), &triangle, entityVel, otherEntityVel, dt);
+					float time = Intersection::continousSAT(entityBoundingBox->getBox(), &triangle, newEntityVel, otherEntityVel, dt);
 
 					if (time > 0.f && time < collisionTime) {
 						collisionInfo.clear();
 						collisionTime = time;
 						collisionInfo.emplace_back();
 						collisionInfo.back().entity = e;
-						std::vector<glm::vec3>& verts = triangle.getVertices();
-						collisionInfo.back().shape = std::make_shared<Triangle>(verts[0], verts[1], verts[2]);
-						collisionInfo.back().shape->setMatrix(transformMatrix);
+						collisionInfo.back().shape = std::make_shared<Triangle>(triangle);
 					}
 					else if (time == collisionTime) {
 						collisionInfo.emplace_back();
 						collisionInfo.back().entity = e;
-						std::vector<glm::vec3>& verts = triangle.getVertices();
-						collisionInfo.back().shape = std::make_shared<Triangle>(verts[0], verts[1], verts[2]);
-						collisionInfo.back().shape->setMatrix(transformMatrix);
+						collisionInfo.back().shape = std::make_shared<Triangle>(triangle);
 					}
 					else if (time == 0.f) {
 						zeroDistances.emplace_back();
 						zeroDistances.back().entity = e;
-						std::vector<glm::vec3>& verts = triangle.getVertices();
-						zeroDistances.back().shape = std::make_shared<Triangle>(verts[0], verts[1], verts[2]);
-						zeroDistances.back().shape->setMatrix(transformMatrix);
+						zeroDistances.back().shape = std::make_shared<Triangle>(triangle);
 					}
 				}
 				//}
@@ -336,17 +322,17 @@ namespace Scuffed {
 					collisionInfo.clear();
 					collisionInfo.emplace_back();
 					collisionInfo.back().entity = e;
-					collisionInfo.back().shape = std::make_shared<Box>(otherBoundingBox->getHalfSize(), otherBoundingBox->getPosition());
+					collisionInfo.back().shape = std::make_shared<Box>(*otherBoundingBox->getBox());
 				}
 				else if (tempCollisionTime == collisionTime) {
 					collisionInfo.emplace_back();
 					collisionInfo.back().entity = e;
-					collisionInfo.back().shape = std::make_shared<Box>(otherBoundingBox->getHalfSize(), otherBoundingBox->getPosition());
+					collisionInfo.back().shape = std::make_shared<Box>(*otherBoundingBox->getBox());
 				}
 				else if (tempCollisionTime == 0.f) {
 					zeroDistances.emplace_back();
 					zeroDistances.back().entity = e;
-					zeroDistances.back().shape = std::make_shared<Box>(otherBoundingBox->getHalfSize(), otherBoundingBox->getPosition());
+					zeroDistances.back().shape = std::make_shared<Box>(*otherBoundingBox->getBox());
 				}
 			}
 		}
@@ -357,29 +343,12 @@ namespace Scuffed {
 		}
 	}
 
-	void Octree::getIntersectionData(const glm::vec3& rayStart, const glm::vec3& rayDir, Entity* meshEntity, const glm::vec3& v1, const glm::vec3& v2, const glm::vec3& v3, RayIntersectionInfo* outIntersectionData, float padding, const bool checkBackfaces) {
-		float intersectionDistance = Intersection::RayWithPaddedTriangle(rayStart, rayDir, v1, v2, v3, padding, checkBackfaces);
+	void Octree::getRayIntersectionRec(Ray* ray, Node* currentNode, RayIntersectionInfo* outIntersectionData, Entity* ignoreThis, const bool doSimpleIntersections, const bool checkBackfaces) {
 
-		if (intersectionDistance >= 0.0f) {// && (intersectionDistance <= outIntersectionData->closestHit || outIntersectionData->closestHit < 0.0f)) {
-			//Save closest hit
-
-			if (intersectionDistance <= outIntersectionData->closestHit || outIntersectionData->closestHit < 0.0f) {
-				outIntersectionData->closestHit = intersectionDistance;
-				outIntersectionData->closestHitIndex = (int)outIntersectionData->info.size();
-			}
-
-			outIntersectionData->info.emplace_back();
-			outIntersectionData->info.back().entity = meshEntity;
-			outIntersectionData->info.back().shape = std::make_shared<Triangle>(v1, v2, v3);
-			outIntersectionData->info.back().shape->setMatrix(meshEntity->getComponent<TransformComponent>()->getMatrixWithoutUpdate());
-		}
-	}
-
-	void Octree::getRayIntersectionRec(const glm::vec3& rayStart, const glm::vec3& rayDir, Node* currentNode, RayIntersectionInfo* outIntersectionData, Entity* ignoreThis, float padding, const bool doSimpleIntersections, const bool checkBackfaces) {
-
-		const BoundingBox* nodeBoundingBox = currentNode->nodeBB;
-		float nodeIntersectionDistance = Intersection::RayWithPaddedAabb(rayStart, rayDir, nodeBoundingBox->getPosition(), nodeBoundingBox->getHalfSize(), padding, nullptr);
-
+		const Box* nodeBoundingBox = currentNode->nodeBB;
+		glm::vec3& rayDir = ray->getNormals()[0];
+		float nodeIntersectionDistance = Intersection::continousSAT(ray, currentNode->nodeBB, rayDir, glm::vec3(0.f), INFINITY);
+		
 		// Early exit if ray doesn't intersect with the current node closer than the closest hit
 		if (nodeIntersectionDistance < 0.0f && (nodeIntersectionDistance < outIntersectionData->closestHit || outIntersectionData->closestHit < 0.0f)) {
 			return;
@@ -391,9 +360,9 @@ namespace Scuffed {
 				continue;
 			}
 
-			const BoundingBox* collidableBoundingBox = currentNode->entities[i]->getComponent<BoundingBoxComponent>()->getBoundingBox();
+			Box* collidableBoundingBox = currentNode->entities[i]->getComponent<BoundingBoxComponent>()->getBoundingBox()->getBox();
 			glm::vec3 intersectionAxis;
-			float entityIntersectionDistance = Intersection::RayWithPaddedAabb(rayStart, rayDir, collidableBoundingBox->getPosition(), collidableBoundingBox->getHalfSize(), padding, &intersectionAxis);
+			float entityIntersectionDistance = Intersection::continousSAT(ray, collidableBoundingBox, rayDir, glm::vec3(0.f), INFINITY);
 
 			// Continue if ray doesn't intersect the entity bounding box closer than the closest hit
 			if (entityIntersectionDistance < 0.0f && (entityIntersectionDistance < outIntersectionData->closestHit || outIntersectionData->closestHit < 0.0f)) {
@@ -406,53 +375,63 @@ namespace Scuffed {
 			const CollidableComponent* collidable = currentNode->entities[i]->getComponent<CollidableComponent>();
 
 			if (mesh && !(doSimpleIntersections && collidable->allowSimpleCollision)) {
-				// Entity has a model. Check ray against meshes
+				// Entity has a model. Check collision with meshes
 				glm::mat4 transformMatrix(1.0f);
 				if (transform) {
-					transformMatrix = transform->getMatrixWithoutUpdate();
+					transformMatrix = transform->getMatrixWithUpdate();
 				}
 
+				ray->setMatrix(glm::inverse(transformMatrix));
+
+				//Convert velocities to local space for mesh
+				glm::vec3 zeroPoint = glm::inverse(transformMatrix) * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+				glm::vec3 newRayDir = glm::inverse(transformMatrix) * glm::vec4(rayDir, 1.0f);
+				newRayDir = newRayDir - zeroPoint;
+				glm::vec3 otherEntityVel = glm::inverse(transformMatrix) * glm::vec4(0.f, 0.f, 0.f, 1.0f);
+				otherEntityVel = otherEntityVel - zeroPoint;
+
+				// Get triangles to test continous collision against from narrow phase octree in mesh
+				std::vector<int> triangles;
+				mesh->mesh->getTrianglesForContinousCollisionTesting(triangles, ray, newRayDir, otherEntityVel, INFINITY);
+
+				// Triangle to set mesh data to avoid creating new shapes for each triangle in mesh
+				Triangle triangle(glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(0.0f));
+
 				//for (unsigned int j = 0; j < model->getModel()->getNumberOfMeshes(); j++) {
-				if (mesh->mesh->getNumberOfIndices() > 0) { // Has indices
-					int numIndices = mesh->mesh->getNumberOfIndices();
-					for (int j = 0; j < numIndices; j += 3) {
-						glm::vec3 v0, v1, v2;
-						v0 = glm::vec3(transformMatrix * glm::vec4(mesh->mesh->getVertexPosition(mesh->mesh->getVertexIndex(j)), 1.0f));
-						v1 = glm::vec3(transformMatrix * glm::vec4(mesh->mesh->getVertexPosition(mesh->mesh->getVertexIndex(j + 1)), 1.0f));
-						v2 = glm::vec3(transformMatrix * glm::vec4(mesh->mesh->getVertexPosition(mesh->mesh->getVertexIndex(j + 2)), 1.0f));
-						getIntersectionData(rayStart, rayDir, currentNode->entities[i], v0, v1, v2, outIntersectionData, padding, checkBackfaces);
+				int numTriangles = triangles.size();
+				bool hasIndices = mesh->mesh->getNumberOfIndices() > 0;
+				bool hasVertices = mesh->mesh->getNumberOfVertices() > 0;
+
+				for (int j = 0; j < numTriangles; j++) {
+					if (hasIndices) { // Has indices
+						triangle.setData(mesh->mesh->getVertexPosition(mesh->mesh->getVertexIndex(triangles[j])), mesh->mesh->getVertexPosition(mesh->mesh->getVertexIndex(triangles[j] + 1)), mesh->mesh->getVertexPosition(mesh->mesh->getVertexIndex(triangles[j] + 2)));
 					}
-				}
-				else if (mesh->mesh->getNumberOfVertices() > 0) {
-					int numVertices = mesh->mesh->getNumberOfVertices();
-					for (int j = 0; j < numVertices; j += 3) {
-						glm::vec3 v0, v1, v2;
-						v0 = glm::vec3(transformMatrix * glm::vec4(mesh->mesh->getVertexPosition(j), 1.0f));
-						v1 = glm::vec3(transformMatrix * glm::vec4(mesh->mesh->getVertexPosition(j + 1), 1.0f));
-						v2 = glm::vec3(transformMatrix * glm::vec4(mesh->mesh->getVertexPosition(j + 2), 1.0f));
-						getIntersectionData(rayStart, rayDir, currentNode->entities[i], v0, v1, v2, outIntersectionData, padding, checkBackfaces);
+					else if (hasVertices) {
+						triangle.setData(mesh->mesh->getVertexPosition(triangles[j]), mesh->mesh->getVertexPosition(triangles[j] + 1), mesh->mesh->getVertexPosition(triangles[j] + 2));
+					}
+
+					float distance = Intersection::continousSAT(ray, &triangle, newRayDir, otherEntityVel, INFINITY);
+
+					if (distance > 0.f && distance < outIntersectionData->closestHit) {
+						outIntersectionData->closestHit = distance;
+						outIntersectionData->entity = currentNode->entities[i];
 					}
 				}
 				//}
+
+				ray->setMatrix(glm::mat4(1.0f)); //Reset bounding box matrix to identity
 			}
 			else { // No model or simple collision opportunity
-			 //Intersect with bounding box
-
-			 //Save closest hit
-				if (entityIntersectionDistance <= outIntersectionData->closestHit || outIntersectionData->closestHit < 0.0f) {
+				if (entityIntersectionDistance > 0.f && entityIntersectionDistance < outIntersectionData->closestHit) {
 					outIntersectionData->closestHit = entityIntersectionDistance;
-					outIntersectionData->closestHitIndex = (int)outIntersectionData->info.size();
+					outIntersectionData->entity = currentNode->entities[i];
 				}
-
-				outIntersectionData->info.emplace_back();
-				outIntersectionData->info.back().entity = currentNode->entities[i];
-				outIntersectionData->info.back().shape = std::make_shared<Box>(collidableBoundingBox->getHalfSize(), collidableBoundingBox->getPosition());
 			}
 		}
 
 		//Check for children
 		for (unsigned int i = 0; i < currentNode->childNodes.size(); i++) {
-			getRayIntersectionRec(rayStart, rayDir, &currentNode->childNodes[i], outIntersectionData, ignoreThis, padding, doSimpleIntersections, checkBackfaces);
+			getRayIntersectionRec(ray, &currentNode->childNodes[i], outIntersectionData, ignoreThis, doSimpleIntersections, checkBackfaces);
 		}
 	}
 
@@ -562,8 +541,9 @@ namespace Scuffed {
 		getNextContinousCollisionRec(entity, &m_baseNode, outCollisionInfo, collisionTime, zeroDistances, dt, doSimpleCollisions, checkBackfaces);
 	}
 
-	void Octree::getRayIntersection(const glm::vec3& rayStart, const glm::vec3& rayDir, RayIntersectionInfo* outIntersectionData, Entity* ignoreThis, float padding, const bool doSimpleIntersections, const bool checkBackfaces) {
-		getRayIntersectionRec(rayStart, rayDir, &m_baseNode, outIntersectionData, ignoreThis, padding, doSimpleIntersections, checkBackfaces);
+	void Octree::getRayIntersection(const glm::vec3& rayStart, const glm::vec3& rayDir, RayIntersectionInfo* outIntersectionData, Entity* ignoreThis, const bool doSimpleIntersections, const bool checkBackfaces) {
+		Ray ray(rayStart, rayDir);
+		getRayIntersectionRec(&ray, &m_baseNode, outIntersectionData, ignoreThis, doSimpleIntersections, checkBackfaces);
 	}
 
 	//int Octree::frustumCulledDraw(Camera& camera) {

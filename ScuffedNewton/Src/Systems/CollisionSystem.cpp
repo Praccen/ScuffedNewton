@@ -113,7 +113,7 @@ namespace Scuffed {
 
 		while (time <= dt && time > 0.f) {
 			// Move entity to collision
-			boundingBox->setPosition(boundingBox->getPosition() + movement->velocity * time);
+			boundingBox->setPosition(boundingBox->getBox()->getMiddle() + movement->velocity * time);
 			transform->translate(movement->velocity * time);
 
 			// Decrease time
@@ -185,7 +185,7 @@ namespace Scuffed {
 					//	}
 					//}
 
-					if (glm::dot(collisionInfo_i.intersectionAxis, boundingBox->getPosition() - collisionInfo_i.shape->getMiddle()) < 0.f) {
+					if (Intersection::dot(collisionInfo_i.intersectionAxis, boundingBox->getBox()->getMiddle() - collisionInfo_i.shape->getMiddle()) < 0.f) {
 						 // Flip intersection axis if it is pointing wrong way
 						collisionInfo_i.intersectionAxis = -collisionInfo_i.intersectionAxis;
 					}
@@ -279,7 +279,7 @@ namespace Scuffed {
 			glm::vec3 axis;
 
 			if (Intersection::SAT(collisionInfo_i.shape.get(), boundingBox->getBox(), &axis, &depth)) {
-				boundingBox->setPosition(boundingBox->getPosition() + axis * depth);
+				boundingBox->setPosition(boundingBox->getBox()->getMiddle() + axis * depth);
 				distance += axis * depth;
 			}
 		}

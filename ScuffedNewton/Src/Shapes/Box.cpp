@@ -1,6 +1,19 @@
 #include "../pch.h"
 #include "Box.h"
 
+//Scuffed::Box::Box(const Box& otherBox) {
+//	m_originalVertices		= otherBox.m_originalVertices;
+//	m_planes				= otherBox.m_planes;
+//	m_vertices				= otherBox.m_vertices;
+//	m_normals				= otherBox.m_normals;
+//	m_edges					= otherBox.m_edges;
+//	m_middle				= otherBox.m_middle;
+//	m_normalsNeedsUpdate	= otherBox.m_normalsNeedsUpdate;
+//	m_verticesNeedsUpdate	= otherBox.m_verticesNeedsUpdate;
+//	baseMatrix				= otherBox.baseMatrix;
+//	matrix					= otherBox.matrix;
+//}
+
 Scuffed::Box::Box(const glm::vec3& halfSize, const glm::vec3& middle) {
 	init();
 

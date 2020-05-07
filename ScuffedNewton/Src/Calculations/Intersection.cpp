@@ -9,6 +9,443 @@
 
 namespace Scuffed {
 
+	float Intersection::dot(const glm::vec3& v1, const glm::vec3& v2) {
+#ifdef _DEBUG
+		return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
+#else
+		return glm::dot(v1, v2);
+#endif
+	}
+
+	float Intersection::projectionOverlapTest(const glm::vec3& testVec, const std::vector<glm::vec3>& vertices1, const std::vector<glm::vec3>& vertices2) {
+		float min1 = INFINITY, min2 = INFINITY;
+		float max1 = -INFINITY, max2 = -INFINITY;
+
+		float tempDot;
+
+		for (const auto& vert : vertices1) {
+			tempDot = dot(vert, testVec);
+
+			if (tempDot < min1) {
+				min1 = tempDot;
+			}
+			if (tempDot > max1) {
+				max1 = tempDot;
+			}
+		}
+
+		for (const auto& vert : vertices2) {
+			tempDot = dot(vert, testVec);
+
+			if (tempDot < min2) {
+				min2 = tempDot;
+			}
+			if (tempDot > max2) {
+				max2 = tempDot;
+			}
+		}
+
+		if (max2 >= min1 && max1 >= min2) {
+			return glm::min(max2 - min1, max1 - min2);
+		}
+		return -1.f;
+	}
+
+	bool Intersection::SAT(Shape* shape1, Shape* shape2) {
+		const std::vector<glm::vec3>& s1Norms = shape1->getNormals();
+		for (const auto& it : s1Norms) {
+			float intersection = projectionOverlapTest(it, shape1->getVertices(), shape2->getVertices());
+			if (intersection < 0.f) {
+				return false;
+			}
+		}
+
+		const std::vector<glm::vec3>& s2Norms = shape2->getNormals();
+		for (const auto& it : s2Norms) {
+			float intersection = projectionOverlapTest(it, shape1->getVertices(), shape2->getVertices());
+			if (intersection < 0.f) {
+				return false;
+			}
+		}
+
+		const std::vector<glm::vec3>& s1Edges = shape1->getEdges();
+		const std::vector<glm::vec3>& s2Edges = shape2->getEdges();
+
+		glm::vec3 testVec;
+
+		// Calculate cross vectors
+		for (const auto& e1 : s1Edges) {
+			for (const auto& e2 : s2Edges) {
+				if (e1 != e2 && e1 != -e2) {
+					testVec = glm::normalize(glm::cross(e1, e2));
+					float intersection = projectionOverlapTest(testVec, shape1->getVertices(), shape2->getVertices());
+					if (intersection < 0.f) {
+						return false;
+					}
+				}
+			}
+		}
+
+		return true;
+	}
+
+	std::vector<glm::vec3> Intersection::getManifold(const glm::vec3& testVec, const std::vector<glm::vec3>& vertices1, const std::vector<glm::vec3>& vertices2) {
+		float min1 = INFINITY, min2 = INFINITY;
+		float max1 = -INFINITY, max2 = -INFINITY;
+
+		std::vector<glm::vec3> min1Points, min2Points, max1Points, max2Points, manifold;
+
+		float tempDot;
+
+		for (const auto& vert : vertices1) {
+			tempDot = dot(vert, testVec);
+
+			if (tempDot < min1) {
+				min1 = tempDot;
+				min1Points.clear();
+				min1Points.emplace_back(vert);
+			}
+			else if (tempDot == min1) {
+				min1Points.emplace_back(vert);
+			}
+			if (tempDot > max1) {
+				max1 = tempDot;
+				max1Points.clear();
+				max1Points.emplace_back(vert);
+			}
+			else if (tempDot == max1) {
+				max1Points.emplace_back(vert);
+			}
+		}
+
+		for (const auto& vert : vertices2) {
+			tempDot = dot(vert, testVec);
+
+			if (tempDot < min2) {
+				min2 = tempDot;
+				min2Points.clear();
+				min2Points.emplace_back(vert);
+			}
+			else if (tempDot == min2) {
+				min2Points.emplace_back(vert);
+			}
+			if (tempDot > max2) {
+				max2 = tempDot;
+				max2Points.clear();
+				max2Points.emplace_back(vert);
+			}
+			else if (tempDot == max2) {
+				max2Points.emplace_back(vert);
+			}
+		}
+
+		std::vector<glm::vec3> points1, points2;
+		if (max2 - min1 < max1 - min2) { // Use max2Points and min1Points
+			points1 = min1Points;
+			points2 = max2Points;
+		}
+		else { // Use max1Points and min2Points
+			points1 = max1Points;
+			points2 = min2Points;
+		}
+
+
+		if (points1.size() == 1) {
+			// Point - something intersection. Use the point as contact set
+			manifold.emplace_back(points1[0]);
+		}
+		else if (points2.size() == 1) {
+			// Point - something intersection. Use the point as contact set
+			manifold.emplace_back(points2[0]);
+		}
+		else if (points1.size() == 2) {
+			if (points2.size() == 2) {
+				// Line segment - line segment
+				manifold = coPlanarLineSegmentsIntersection(points1[0], points1[1], points2[0], points2[1]);
+			}
+			else if (points2.size() == 3) {
+				// Line - Triangle intersection
+				manifold = coPlanarLineSegmentTriangleIntersection(points1[0], points1[1], points2[0], points2[1], points2[2]);
+			}
+			else if (points2.size() == 4) {
+				// Line - Quad intersection
+				manifold = coPlanarLineSegmentQuadIntersection(points1[0], points1[1], points2[0], points2[1], points2[2], points2[3]);
+			}
+		}
+		else if (points2.size() == 2) {
+			if (points1.size() == 3) {
+				// Line - Triangle intersection
+				manifold = coPlanarLineSegmentTriangleIntersection(points2[0], points2[1], points1[0], points1[1], points1[2]);
+			}
+			else if (points1.size() == 4) {
+				// Line - Quad intersection
+				manifold = coPlanarLineSegmentQuadIntersection(points2[0], points2[1], points1[0], points1[1], points1[2], points1[3]);
+			}
+		}
+		else if (points1.size() == 3) {
+			if (points2.size() == 3) {
+				// Triangle - triangle intersection
+				manifold = coPlanarTrianglesIntersection(points1[0], points1[1], points1[2], points2[0], points2[1], points2[2]);
+			}
+			else if (points2.size() == 4) {
+				// Triangle - Quad intersection
+				manifold = coPlanarTriangleQuadIntersection(points1[0], points1[1], points1[2], points2[0], points2[1], points2[2], points2[3]);
+			}
+		}
+		else if (points2.size() == 3) {
+			if (points1.size() == 4) {
+				// Triangle - Quad intersection
+				manifold = coPlanarTriangleQuadIntersection(points2[0], points2[1], points2[2], points1[0], points1[1], points1[2], points1[3]);
+			}
+		}
+		else if (points1.size() == 4) {
+			if (points2.size() == 4) {
+				// Quad - Quad intersection
+				manifold = coPlanarQuadsIntersection(points1[0], points1[1], points1[2], points1[3], points2[0], points2[1], points2[2], points2[3]);
+			}
+		}
+
+		return manifold;
+	}
+
+	bool Intersection::SAT(Shape* shape1, Shape* shape2, std::vector<glm::vec3>& manifold) {
+		float intersectionDepth = INFINITY;
+		glm::vec3 intersectionAxis(0.f);
+
+		const std::vector<glm::vec3>& s1Norms = shape1->getNormals();
+		for (const auto& it : s1Norms) {
+			float intersection = projectionOverlapTest(it, shape1->getVertices(), shape2->getVertices());
+			if (intersection < 0.f) {
+				return false;
+			}
+			else {
+				// Save smallest 
+				if (intersection < intersectionDepth) {
+					intersectionDepth = intersection;
+					intersectionAxis = it;
+				}
+			}
+		}
+
+		const std::vector<glm::vec3>& s2Norms = shape2->getNormals();
+		for (const auto& it : s2Norms) {
+			float intersection = projectionOverlapTest(it, shape1->getVertices(), shape2->getVertices());
+			if (intersection < 0.f) {
+				return false;
+			}
+			else {
+				// Save smallest 
+				if (intersection < intersectionDepth) {
+					intersectionDepth = intersection;
+					intersectionAxis = it;
+				}
+			}
+		}
+
+		const std::vector<glm::vec3>& s1Edges = shape1->getEdges();
+		const std::vector<glm::vec3>& s2Edges = shape2->getEdges();
+
+		glm::vec3 testVec;
+
+		// Calculate cross vectors
+		for (const auto& e1 : s1Edges) {
+			for (const auto& e2 : s2Edges) {
+				if (e1 != e2 && e1 != -e2) {
+					testVec = glm::normalize(glm::cross(e1, e2));
+					float intersection = projectionOverlapTest(testVec, shape1->getVertices(), shape2->getVertices());
+					if (intersection < 0.f) {
+						return false;
+					}
+					else {
+						// Save smallest 
+						if (intersection < intersectionDepth) {
+							intersectionDepth = intersection;
+							intersectionAxis = testVec;
+						}
+					}
+				}
+			}
+		}
+
+		manifold = getManifold(intersectionAxis, shape1->getVertices(), shape2->getVertices());
+
+		return true;
+	}
+
+	bool Intersection::SAT(Shape* shape1, Shape* shape2, glm::vec3* intersectionAxis, float* intersectionDepth) {
+		*intersectionDepth = INFINITY;
+
+		const std::vector<glm::vec3>& s1Norms = shape1->getNormals();
+		for (const auto& it : s1Norms) {
+			float intersection = projectionOverlapTest(it, shape1->getVertices(), shape2->getVertices());
+			if (intersection < 0.f) {
+				return false;
+			}
+			else {
+				// Save smallest 
+				if (intersection < *intersectionDepth) {
+					*intersectionDepth = intersection;
+					*intersectionAxis = it;
+				}
+			}
+		}
+
+		const std::vector<glm::vec3>& s2Norms = shape2->getNormals();
+		for (const auto& it : s2Norms) {
+			float intersection = projectionOverlapTest(it, shape1->getVertices(), shape2->getVertices());
+			if (intersection < 0.f) {
+				return false;
+			}
+			else {
+				// Save smallest 
+				if (intersection < *intersectionDepth) {
+					*intersectionDepth = intersection;
+					*intersectionAxis = it;
+				}
+			}
+		}
+
+		const std::vector<glm::vec3>& s1Edges = shape1->getEdges();
+		const std::vector<glm::vec3>& s2Edges = shape2->getEdges();
+
+		glm::vec3 testVec;
+
+		// Calculate cross vectors
+		for (const auto& e1 : s1Edges) {
+			for (const auto& e2 : s2Edges) {
+				if (e1 != e2 && e1 != -e2) {
+					testVec = glm::normalize(glm::cross(e1, e2));
+					float intersection = projectionOverlapTest(testVec, shape1->getVertices(), shape2->getVertices());
+					if (intersection < 0.f) {
+						return false;
+					}
+					else {
+						// Save smallest 
+						if (intersection < *intersectionDepth) {
+							*intersectionDepth = intersection;
+							*intersectionAxis = testVec;
+						}
+					}
+				}
+			}
+		}
+
+		return true;
+	}
+
+	bool Intersection::continousOverlapTest(const glm::vec3& testVec, const std::vector<glm::vec3>& vertices1, const std::vector<glm::vec3>& vertices2, const glm::vec3& relativeVel, float& timeFirst, float& timeLast, const float timeMax) {
+		float min1 = INFINITY, min2 = INFINITY;
+		float max1 = -INFINITY, max2 = -INFINITY;
+
+		float tempDot;
+
+		for (const auto& vert : vertices1) {
+			tempDot = dot(vert, testVec);
+
+			if (tempDot < min1) {
+				min1 = tempDot;
+			}
+			if (tempDot > max1) {
+				max1 = tempDot;
+			}
+		}
+
+		for (const auto& vert : vertices2) {
+			tempDot = dot(vert, testVec);
+
+			if (tempDot < min2) {
+				min2 = tempDot;
+			}
+			if (tempDot > max2) {
+				max2 = tempDot;
+			}
+		}
+
+		//Following found here: https://www.geometrictools.com/Documentation/MethodOfSeparatingAxes.pdf
+
+		float T;
+		float speed = dot(testVec, relativeVel);
+
+		if (max2 < min1) { // Interval (2) initially on ‘left’ of interval (1)
+			if (speed <= 0.f) { return false; } // Intervals moving apart
+
+			T = (min1 - max2) / speed;
+			if (T > timeFirst) { timeFirst = T; }
+			if (timeFirst > timeMax) { return false; } // Early exit
+
+			T = (max1 - min2) / speed;
+			if (T < timeLast) { timeLast = T; }
+			if (timeFirst > timeLast) { return false; } // Early exit
+		}
+		else  if (max1 < min2) { // Interval (2) initially on ‘right’ of interval (1)
+			if (speed >= 0.f) { return false; } // Intervals moving apart
+
+			T = (max1 - min2) / speed;
+			if (T > timeFirst) { timeFirst = T; }
+			if (timeFirst > timeMax) { return false; } // Early exit
+
+			T = (min1 - max2) / speed;
+			if (T < timeLast) { timeLast = T; }
+			if (timeFirst > timeLast) { return false; } // Early exit
+		}
+		else { // Interval (1) and interval (2) overlap
+			if (speed > 0.f) {
+				T = (max1 - min2) / speed;
+				if (T < timeLast) { timeLast = T; }
+				if (timeFirst > timeLast) { return false; } // Early exit
+			}
+			else if (speed < 0.f) {
+				T = (min1 - max2) / speed;
+				if (T < timeLast) { timeLast = T; }
+				if (timeFirst > timeLast) { return false; } // Early exit
+			}
+		}
+
+		return true;
+	}
+
+	float Intersection::continousSAT(Shape* shape1, Shape* shape2, const glm::vec3& vel1, const glm::vec3& vel2, const float dt) {
+
+		// Treat shape1 as stationary and shape2 as moving
+		glm::vec3 relativeVel = vel2 - vel1;
+
+		float timeFirst = 0.f;
+		float timeLast = INFINITY;
+
+		const std::vector<glm::vec3>& s1Norms = shape1->getNormals();
+		for (const auto& it : s1Norms) {
+			if (!continousOverlapTest(it, shape1->getVertices(), shape2->getVertices(), relativeVel, timeFirst, timeLast, dt)) {
+				return -1.0f;
+			}
+		}
+
+		const std::vector<glm::vec3>& s2Norms = shape2->getNormals();
+		for (const auto& it : s2Norms) {
+			if (!continousOverlapTest(it, shape1->getVertices(), shape2->getVertices(), relativeVel, timeFirst, timeLast, dt)) {
+				return -1.0f;
+			}
+		}
+
+		const std::vector<glm::vec3>& s1Edges = shape1->getEdges();
+		const std::vector<glm::vec3>& s2Edges = shape2->getEdges();
+
+		glm::vec3 testVec;
+
+		// Calculate cross vectors
+		for (const auto& e1 : s1Edges) {
+			for (const auto& e2 : s2Edges) {
+				if (e1 != e2 && e1 != -e2) {
+					testVec = glm::normalize(glm::cross(e1, e2));
+					if (!continousOverlapTest(testVec, shape1->getVertices(), shape2->getVertices(), relativeVel, timeFirst, timeLast, dt)) {
+						return -1.0f;
+					}
+				}
+			}
+		}
+
+		return timeFirst;
+	}
+
 	float Intersection::RayWithAabb(const glm::vec3& rayStart, const glm::vec3& rayVec, const glm::vec3& aabbPos, const glm::vec3& aabbHalfSize, glm::vec3* intersectionAxis) {
 		float returnValue = -1.0f;
 		glm::vec3 normalizedRay = glm::normalize(rayVec);
@@ -484,442 +921,5 @@ namespace Scuffed {
 		manifold.erase(std::unique(manifold.begin(), manifold.end()), manifold.end());*/
 
 		return manifold;
-	}
-
-	float Intersection::dot(const glm::vec3& v1, const glm::vec3& v2) {
-#ifdef _DEBUG
-		return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
-#else
-		return glm::dot(v1, v2);
-#endif
-	}
-
-	float Intersection::projectionOverlapTest(const glm::vec3& testVec, const std::vector<glm::vec3>& vertices1, const std::vector<glm::vec3>& vertices2) {
-		float min1 = INFINITY, min2 = INFINITY;
-		float max1 = -INFINITY, max2 = -INFINITY;
-
-		float tempDot;
-
-		for (const auto& vert : vertices1) {
-			tempDot = dot(vert, testVec);
-
-			if (tempDot < min1) {
-				min1 = tempDot;
-			}
-			if (tempDot > max1) {
-				max1 = tempDot;
-			}
-		}
-
-		for (const auto& vert : vertices2) {
-			tempDot = dot(vert, testVec);
-
-			if (tempDot < min2) {
-				min2 = tempDot;
-			}
-			if (tempDot > max2) {
-				max2 = tempDot;
-			}
-		}
-
-		if (max2 >= min1 && max1 >= min2) {
-			return glm::min(max2 - min1, max1 - min2);
-		}
-		return -1.f;
-	}
-
-	bool Intersection::SAT(Shape* shape1, Shape* shape2) {
-		const std::vector<glm::vec3>& s1Norms = shape1->getNormals();
-		for (const auto& it : s1Norms) {
-			float intersection = projectionOverlapTest(it, shape1->getVertices(), shape2->getVertices());
-			if (intersection < 0.f) {
-				return false;
-			}
-		}
-
-		const std::vector<glm::vec3>& s2Norms = shape2->getNormals();
-		for (const auto& it : s2Norms) {
-			float intersection = projectionOverlapTest(it, shape1->getVertices(), shape2->getVertices());
-			if (intersection < 0.f) {
-				return false;
-			}
-		}
-
-		const std::vector<glm::vec3>& s1Edges = shape1->getEdges();
-		const std::vector<glm::vec3>& s2Edges = shape2->getEdges();
-
-		glm::vec3 testVec;
-
-		// Calculate cross vectors
-		for (const auto& e1 : s1Edges) {
-			for (const auto& e2 : s2Edges) {
-				if (e1 != e2 && e1 != -e2) {
-					testVec = glm::normalize(glm::cross(e1, e2));
-					float intersection = projectionOverlapTest(testVec, shape1->getVertices(), shape2->getVertices());
-					if (intersection < 0.f) {
-						return false;
-					}
-				}
-			}
-		}
-
-		return true;
-	}
-
-	std::vector<glm::vec3> Intersection::getManifold(const glm::vec3& testVec, const std::vector<glm::vec3>& vertices1, const std::vector<glm::vec3>& vertices2) {
-		float min1 = INFINITY, min2 = INFINITY;
-		float max1 = -INFINITY, max2 = -INFINITY;
-
-		std::vector<glm::vec3> min1Points, min2Points, max1Points, max2Points, manifold;
-
-		float tempDot;
-
-		for (const auto& vert : vertices1) {
-			tempDot = dot(vert, testVec);
-
-			if (tempDot < min1) {
-				min1 = tempDot;
-				min1Points.clear();
-				min1Points.emplace_back(vert);
-			}
-			else if (tempDot == min1) {
-				min1Points.emplace_back(vert);
-			}
-			if (tempDot > max1) {
-				max1 = tempDot;
-				max1Points.clear();
-				max1Points.emplace_back(vert);
-			}
-			else if (tempDot == max1) {
-				max1Points.emplace_back(vert);
-			}
-		}
-
-		for (const auto& vert : vertices2) {
-			tempDot = dot(vert, testVec);
-
-			if (tempDot < min2) {
-				min2 = tempDot;
-				min2Points.clear();
-				min2Points.emplace_back(vert);
-			}
-			else if (tempDot == min2) {
-				min2Points.emplace_back(vert);
-			}
-			if (tempDot > max2) {
-				max2 = tempDot;
-				max2Points.clear();
-				max2Points.emplace_back(vert);
-			}
-			else if (tempDot == max2) {
-				max2Points.emplace_back(vert);
-			}
-		}
-
-		std::vector<glm::vec3> points1, points2;
-		if (max2 - min1 < max1 - min2) { // Use max2Points and min1Points
-			points1 = min1Points;
-			points2 = max2Points;
-		}
-		else { // Use max1Points and min2Points
-			points1 = max1Points;
-			points2 = min2Points;
-		}
-
-
-		if (points1.size() == 1) {
-			// Point - something intersection. Use the point as contact set
-			manifold.emplace_back(points1[0]);
-		}
-		else if (points2.size() == 1) {
-			// Point - something intersection. Use the point as contact set
-			manifold.emplace_back(points2[0]);
-		}
-		else if (points1.size() == 2) {
-			if (points2.size() == 2) {
-				// Line segment - line segment
-				manifold = coPlanarLineSegmentsIntersection(points1[0], points1[1], points2[0], points2[1]);
-			}
-			else if (points2.size() == 3) {
-				// Line - Triangle intersection
-				manifold = coPlanarLineSegmentTriangleIntersection(points1[0], points1[1], points2[0], points2[1], points2[2]);
-			}
-			else if (points2.size() == 4) {
-				// Line - Quad intersection
-				manifold = coPlanarLineSegmentQuadIntersection(points1[0], points1[1], points2[0], points2[1], points2[2], points2[3]);
-			}
-		}
-		else if (points2.size() == 2) {
-			if (points1.size() == 3) {
-				// Line - Triangle intersection
-				manifold = coPlanarLineSegmentTriangleIntersection(points2[0], points2[1], points1[0], points1[1], points1[2]);
-			}
-			else if (points1.size() == 4) {
-				// Line - Quad intersection
-				manifold = coPlanarLineSegmentQuadIntersection(points2[0], points2[1], points1[0], points1[1], points1[2], points1[3]);
-			}
-		}
-		else if (points1.size() == 3) {
-			if (points2.size() == 3) {
-				// Triangle - triangle intersection
-				manifold = coPlanarTrianglesIntersection(points1[0], points1[1], points1[2], points2[0], points2[1], points2[2]);
-			}
-			else if (points2.size() == 4) {
-				// Triangle - Quad intersection
-				manifold = coPlanarTriangleQuadIntersection(points1[0], points1[1], points1[2], points2[0], points2[1], points2[2], points2[3]);
-			}
-		}
-		else if (points2.size() == 3) {
-			if (points1.size() == 4) {
-				// Triangle - Quad intersection
-				manifold = coPlanarTriangleQuadIntersection(points2[0], points2[1], points2[2], points1[0], points1[1], points1[2], points1[3]);
-			}
-		}
-		else if (points1.size() == 4) {
-			if (points2.size() == 4) {
-				// Quad - Quad intersection
-				manifold = coPlanarQuadsIntersection(points1[0], points1[1], points1[2], points1[3], points2[0], points2[1], points2[2], points2[3]);
-			}
-		}
-
-		return manifold;
-	}
-
-	bool Intersection::SAT(Shape* shape1, Shape* shape2, std::vector<glm::vec3>& manifold) {
-		float intersectionDepth = INFINITY;
-		glm::vec3 intersectionAxis(0.f);
-
-		const std::vector<glm::vec3>& s1Norms = shape1->getNormals();
-		for (const auto& it : s1Norms) {
-			float intersection = projectionOverlapTest(it, shape1->getVertices(), shape2->getVertices());
-			if (intersection < 0.f) {
-				return false;
-			}
-			else {
-				// Save smallest 
-				if (intersection < intersectionDepth) {
-					intersectionDepth = intersection;
-					intersectionAxis = it;
-				}
-			}
-		}
-
-		const std::vector<glm::vec3>& s2Norms = shape2->getNormals();
-		for (const auto& it : s2Norms) {
-			float intersection = projectionOverlapTest(it, shape1->getVertices(), shape2->getVertices());
-			if (intersection < 0.f) {
-				return false;
-			}
-			else {
-				// Save smallest 
-				if (intersection < intersectionDepth) {
-					intersectionDepth = intersection;
-					intersectionAxis = it;
-				}
-			}
-		}
-
-		const std::vector<glm::vec3>& s1Edges = shape1->getEdges();
-		const std::vector<glm::vec3>& s2Edges = shape2->getEdges();
-
-		glm::vec3 testVec;
-
-		// Calculate cross vectors
-		for (const auto& e1 : s1Edges) {
-			for (const auto& e2 : s2Edges) {
-				if (e1 != e2 && e1 != -e2) {
-					testVec = glm::normalize(glm::cross(e1, e2));
-					float intersection = projectionOverlapTest(testVec, shape1->getVertices(), shape2->getVertices());
-					if (intersection < 0.f) {
-						return false;
-					}
-					else {
-						// Save smallest 
-						if (intersection < intersectionDepth) {
-							intersectionDepth = intersection;
-							intersectionAxis = testVec;
-						}
-					}
-				}
-			}
-		}
-
-		manifold = getManifold(intersectionAxis, shape1->getVertices(), shape2->getVertices());
-
-		return true;
-	}
-
-	bool Intersection::SAT(Shape* shape1, Shape* shape2, glm::vec3* intersectionAxis, float* intersectionDepth) {
-		*intersectionDepth = INFINITY;
-
-		const std::vector<glm::vec3>& s1Norms = shape1->getNormals();
-		for (const auto& it : s1Norms) {
-			float intersection = projectionOverlapTest(it, shape1->getVertices(), shape2->getVertices());
-			if (intersection < 0.f) {
-				return false;
-			}
-			else {
-				// Save smallest 
-				if (intersection < *intersectionDepth) {
-					*intersectionDepth = intersection;
-					*intersectionAxis = it;
-				}
-			}
-		}
-
-		const std::vector<glm::vec3>& s2Norms = shape2->getNormals();
-		for (const auto& it : s2Norms) {
-			float intersection = projectionOverlapTest(it, shape1->getVertices(), shape2->getVertices());
-			if (intersection < 0.f) {
-				return false;
-			}
-			else {
-				// Save smallest 
-				if (intersection < *intersectionDepth) {
-					*intersectionDepth = intersection;
-					*intersectionAxis = it;
-				}
-			}
-		}
-
-		const std::vector<glm::vec3>& s1Edges = shape1->getEdges();
-		const std::vector<glm::vec3>& s2Edges = shape2->getEdges();
-
-		glm::vec3 testVec;
-
-		// Calculate cross vectors
-		for (const auto& e1 : s1Edges) {
-			for (const auto& e2 : s2Edges) {
-				if (e1 != e2 && e1 != -e2) {
-					testVec = glm::normalize(glm::cross(e1, e2));
-					float intersection = projectionOverlapTest(testVec, shape1->getVertices(), shape2->getVertices());
-					if (intersection < 0.f) {
-						return false;
-					}
-					else {
-						// Save smallest 
-						if (intersection < *intersectionDepth) {
-							*intersectionDepth = intersection;
-							*intersectionAxis = testVec;
-						}
-					}
-				}
-			}
-		}
-
-		return true;
-	}
-
-	bool Intersection::continousOverlapTest(const glm::vec3& testVec, const std::vector<glm::vec3>& vertices1, const std::vector<glm::vec3>& vertices2, const glm::vec3& relativeVel, float& timeFirst, float& timeLast, const float timeMax) {
-		float min1 = INFINITY, min2 = INFINITY;
-		float max1 = -INFINITY, max2 = -INFINITY;
-
-		float tempDot;
-
-		for (const auto& vert : vertices1) {
-			tempDot = dot(vert, testVec);
-
-			if (tempDot < min1) {
-				min1 = tempDot;
-			}
-			if (tempDot > max1) {
-				max1 = tempDot;
-			}
-		}
-
-		for (const auto& vert : vertices2) {
-			tempDot = dot(vert, testVec);
-
-			if (tempDot < min2) {
-				min2 = tempDot;
-			}
-			if (tempDot > max2) {
-				max2 = tempDot;
-			}
-		}
-
-		//Following found here: https://www.geometrictools.com/Documentation/MethodOfSeparatingAxes.pdf
-
-		float T;
-		float speed = dot(testVec, relativeVel);
-
-		if (max2 < min1) { // Interval (2) initially on ‘left’ of interval (1)
-			if (speed <= 0.f) { return false; } // Intervals moving apart
-
-			T = (min1 - max2) / speed;
-			if (T > timeFirst) { timeFirst = T; }
-			if (timeFirst > timeMax) { return false; } // Early exit
-
-			T = (max1 - min2) / speed;
-			if (T < timeLast) { timeLast = T; }
-			if (timeFirst > timeLast) { return false; } // Early exit
-		}
-		else  if (max1 < min2) { // Interval (2) initially on ‘right’ of interval (1)
-			if (speed >= 0.f) { return false; } // Intervals moving apart
-
-			T = (max1 - min2) / speed;
-			if (T > timeFirst) { timeFirst = T; }
-			if (timeFirst > timeMax) { return false; } // Early exit
-
-			T = (min1 - max2) / speed;
-			if (T < timeLast) { timeLast = T; }
-			if (timeFirst > timeLast) { return false; } // Early exit
-		}
-		else { // Interval (1) and interval (2) overlap
-			if (speed > 0.f) {
-				T = (max1 - min2) / speed;
-				if (T < timeLast) { timeLast = T; }
-				if (timeFirst > timeLast) { return false; } // Early exit
-			}
-			else if (speed < 0.f) {
-				T = (min1 - max2) / speed;
-				if (T < timeLast) { timeLast = T; }
-				if (timeFirst > timeLast) { return false; } // Early exit
-			}
-		}
-
-		return true;
-	}
-
-	float Intersection::continousSAT(Shape* shape1, Shape* shape2, const glm::vec3& vel1, const glm::vec3& vel2, const float dt) {
-
-		// Treat shape1 as stationary and shape2 as moving
-		glm::vec3 relativeVel = vel2 - vel1;
-
-		float timeFirst = 0.f;
-		float timeLast = INFINITY;
-
-		const std::vector<glm::vec3>& s1Norms = shape1->getNormals();
-		for (const auto& it : s1Norms) {
-			if (!continousOverlapTest(it, shape1->getVertices(), shape2->getVertices(), relativeVel, timeFirst, timeLast, dt)) {
-				return -1.0f;
-			}
-		}
-
-		const std::vector<glm::vec3>& s2Norms = shape2->getNormals();
-		for (const auto& it : s2Norms) {
-			if (!continousOverlapTest(it, shape1->getVertices(), shape2->getVertices(), relativeVel, timeFirst, timeLast, dt)) {
-				return -1.0f;
-			}
-		}
-
-		const std::vector<glm::vec3>& s1Edges = shape1->getEdges();
-		const std::vector<glm::vec3>& s2Edges = shape2->getEdges();
-
-		glm::vec3 testVec;
-
-		// Calculate cross vectors
-		for (const auto& e1 : s1Edges) {
-			for (const auto& e2 : s2Edges) {
-				if (e1 != e2 && e1 != -e2) {
-					testVec = glm::normalize(glm::cross(e1, e2));
-					if (!continousOverlapTest(testVec, shape1->getVertices(), shape2->getVertices(), relativeVel, timeFirst, timeLast, dt)) {
-						return -1.0f;
-					}
-				}
-			}
-		}
-
-		return timeFirst;
 	}
 }

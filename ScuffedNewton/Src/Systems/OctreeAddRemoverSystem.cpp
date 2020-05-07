@@ -45,10 +45,6 @@ namespace Scuffed {
 
 	void OctreeAddRemoverSystem::update(float dt) {
 		m_octree->update();
-
-		for (auto e : entities) {
-			e->getComponent<BoundingBoxComponent>()->getBoundingBox()->prepareCorners();
-		}
 	}
 
 	void OctreeAddRemoverSystem::updatePerFrame(float dt) {

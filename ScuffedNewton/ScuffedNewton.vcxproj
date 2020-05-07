@@ -184,6 +184,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Src\Shapes\Box.h" />
+    <ClInclude Include="Src\Shapes\Ray.h" />
     <ClInclude Include="Src\Shapes\Shape.h" />
     <ClInclude Include="Src\Shapes\Triangle.h" />
     <ClInclude Include="Src\Components\BoundingBoxComponent.h" />
@@ -219,6 +220,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\Shapes\Box.cpp" />
+    <ClCompile Include="Src\Shapes\Ray.cpp" />
     <ClCompile Include="Src\Shapes\Shape.cpp" />
     <ClCompile Include="Src\Shapes\Triangle.cpp" />
     <ClCompile Include="Src\Components\BoundingBoxComponent.cpp" />

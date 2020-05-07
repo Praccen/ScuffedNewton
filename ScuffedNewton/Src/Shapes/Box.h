@@ -6,6 +6,7 @@ namespace Scuffed {
 
 	class Box : public Shape {
 	public:
+		//Box(const Box& otherBox);
 		Box(const glm::vec3& halfSize, const glm::vec3& middle);
 		Box(glm::vec3 planes[6], const glm::vec3& middle); //Assumes Orthogonal
 		virtual ~Box();
