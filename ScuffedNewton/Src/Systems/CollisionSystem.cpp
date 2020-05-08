@@ -41,34 +41,34 @@ namespace Scuffed {
 			continousCollisionUpdate(e, movement->updateableDt);
 			movement->oldVelocity = movement->velocity;
 
-			// Remove duplicate collisions
-			int numberOfCollisions = (int) collision->collisions.size();
+			//// Remove duplicate collisions
+			//int numberOfCollisions = (int) collision->collisions.size();
 
-			for (int i = 0; i < numberOfCollisions; i++) {
-				for (int j = i + 1; j < numberOfCollisions; j++) {
-					if (collision->collisions[i].entity == collision->collisions[j].entity) {
-						if (collision->collisions[i].shape->getEdges().size() == collision->collisions[i].shape->getEdges().size()) {
-							int nrOfVertices = collision->collisions[i].shape->getVertices().size();
-							bool isSame = true;
-							auto verts1 = collision->collisions[i].shape->getVertices();
-							auto verts2 = collision->collisions[j].shape->getVertices();
+			//for (int i = 0; i < numberOfCollisions; i++) {
+			//	for (int j = i + 1; j < numberOfCollisions; j++) {
+			//		if (collision->collisions[i].entity == collision->collisions[j].entity) {
+			//			if (collision->collisions[i].shape->getEdges().size() == collision->collisions[i].shape->getEdges().size()) {
+			//				int nrOfVertices = collision->collisions[i].shape->getVertices().size();
+			//				bool isSame = true;
+			//				auto verts1 = collision->collisions[i].shape->getVertices();
+			//				auto verts2 = collision->collisions[j].shape->getVertices();
 
-							for (int k = 0; k < nrOfVertices; k++) {
-								if (glm::length2(verts1[k] - verts2[k]) > 0.000001f) {
-									isSame = false;
-									k = nrOfVertices;
-								}
-							}
+			//				for (int k = 0; k < nrOfVertices; k++) {
+			//					if (glm::length2(verts1[k] - verts2[k]) > 0.000001f) {
+			//						isSame = false;
+			//						k = nrOfVertices;
+			//					}
+			//				}
 
-							if (isSame) {
-								collision->collisions.erase(collision->collisions.begin() + j);
-								j--;
-								numberOfCollisions--;
-							}
-						}
-					}
-				}
-			}
+			//				if (isSame) {
+			//					collision->collisions.erase(collision->collisions.begin() + j);
+			//					j--;
+			//					numberOfCollisions--;
+			//				}
+			//			}
+			//		}
+			//	}
+			//}
 
 			// Handle friction
 			handleCollisions(e, collision->collisions, dt);

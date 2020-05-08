@@ -27,6 +27,7 @@ namespace Scuffed {
 		void init();
 		void updateVertices();
 		void updateNormals();
+		void setUpdatesNeeded();
 
 	private:
 		std::vector<glm::vec3> m_originalVertices; // Not effected by matrices
@@ -43,6 +44,11 @@ namespace Scuffed {
 		bool m_normalsNeedsUpdate;
 		bool m_verticesNeedsUpdate;
 		bool m_middleNeedsUpdate;
+
+	private:
+		bool m_hasChanged;
+		friend class Octree;
+		const bool getChange(); //Only access this from Octree::updateRec
 	};
 
 }

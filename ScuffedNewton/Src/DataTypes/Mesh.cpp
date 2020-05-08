@@ -83,13 +83,13 @@ namespace Scuffed {
 	}
 
 	void Mesh::getTrianglesForCollisionTesting(std::vector<int> &triangles, Shape* shape) {
-		triangles = m_baseNode.triangles;
-		//collisionTrianglesRec(triangles, shape, &m_baseNode);
+		//triangles = m_baseNode.triangles;
+		collisionTrianglesRec(triangles, shape, &m_baseNode);
 	}
 
 	void Mesh::getTrianglesForContinousCollisionTesting(std::vector<int>& triangles, Shape* shape, glm::vec3& shapeVel, glm::vec3& meshVel, const float maxTime) {
-		triangles = m_baseNode.triangles;
-		//continousCollisionTrianglesRec(triangles, shape, shapeVel, meshVel, &m_baseNode, maxTime);
+		//triangles = m_baseNode.triangles;
+		continousCollisionTrianglesRec(triangles, shape, shapeVel, meshVel, &m_baseNode, maxTime);
 	}
 
 	void Mesh::setUpOctree() {
@@ -181,6 +181,7 @@ namespace Scuffed {
 								Box* currentNodeBB = currentNode->nodeBB;
 								OctNode tempChildNode;
 								tempChildNode.nodeBB = SN_NEW Box(currentNode->halfSize / 2.0f, currentNodeBB->getMiddle() - currentNode->halfSize / 2.0f + glm::vec3(currentNode->halfSize.x * i, currentNode->halfSize.y * j, currentNode->halfSize.z * k));
+								tempChildNode.halfSize = currentNode->halfSize / 2.0f;
 								tempChildNode.nrOfTriangles = 0;
 								tempChildNode.parentNode = currentNode;
 								currentNode->childNodes.push_back(tempChildNode);
@@ -215,9 +216,9 @@ namespace Scuffed {
 
 	void Mesh::addTrianglesToOctree(std::vector<int> trianglesToAdd) {
 		for (size_t i = 0; i < trianglesToAdd.size(); i++) {
-			/*addTriangleRec(trianglesToAdd[i], &m_baseNode);*/
-			m_baseNode.triangles.emplace_back(trianglesToAdd[i]);
-			m_baseNode.nrOfTriangles++;
+			addTriangleRec(trianglesToAdd[i], &m_baseNode);
+			//m_baseNode.triangles.emplace_back(trianglesToAdd[i]);
+			//m_baseNode.nrOfTriangles++;
 		}
 	}
 
@@ -231,6 +232,7 @@ namespace Scuffed {
 		OctNode newBaseNode;
 		Box* baseNodeBB = m_baseNode.nodeBB;
 		newBaseNode.nodeBB = SN_NEW Box(m_baseNode.halfSize * 2.0f, baseNodeBB->getMiddle() - m_baseNode.halfSize + glm::vec3(x * m_baseNode.halfSize.x * 2.0f, y * m_baseNode.halfSize.y * 2.0f, z * m_baseNode.halfSize.z * 2.0f));
+		newBaseNode.halfSize = m_baseNode.halfSize * 2.0f;
 
 		newBaseNode.nrOfTriangles = 0;
 		newBaseNode.parentNode = nullptr;
@@ -244,6 +246,7 @@ namespace Scuffed {
 					}
 					else {
 						tempChildNode.nodeBB = SN_NEW Box(m_baseNode.halfSize, newBaseNode.nodeBB->getMiddle() - m_baseNode.halfSize + glm::vec3(m_baseNode.halfSize.x * 2.0f * i, m_baseNode.halfSize.y * 2.0f * j, m_baseNode.halfSize.z * 2.0f * k));
+						tempChildNode.halfSize = m_baseNode.halfSize;
 						tempChildNode.nrOfTriangles = 0;
 					}
 					tempChildNode.parentNode = &newBaseNode;

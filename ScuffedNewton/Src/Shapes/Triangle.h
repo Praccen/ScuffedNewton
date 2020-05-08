@@ -33,6 +33,8 @@ namespace Scuffed {
 		std::vector<glm::vec3> m_normals;
 		glm::vec3 m_middle;
 
+		bool m_matricesHasChanged;
+
 		bool m_edgesNeedsUpdate;
 		bool m_normalsNeedsUpdate;
 		bool m_middleNeedsUpdate;

@@ -16,15 +16,8 @@ namespace Scuffed {
 
 		bool isStatic;
 
-
-
 	private:
 		Box* m_boundingBox;
-		bool m_hasChanged;
-
-	private:
-		friend class Octree;
-		const bool getChange(); //Only access this from Octree::updateRec
 	};
 
 }

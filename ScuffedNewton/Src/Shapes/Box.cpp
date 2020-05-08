@@ -38,11 +38,14 @@ namespace Scuffed {
 		baseMatrix = glm::mat4(1.0f);
 		matrix = glm::mat4(1.0f);
 		m_originalMiddle = { 0.f, 0.f, 0.f };
+
 		m_edges.resize(0);
 		m_originalPlanes.resize(6);
 		m_originalVertices.resize(8);
 		m_normals.resize(6);
 		m_vertices.resize(8);
+
+		m_hasChanged = false;
 	}
 
 	void Box::updateVertices() {
@@ -56,6 +59,13 @@ namespace Scuffed {
 		for (int i = 0; i < 6; i++) {
 			m_normals[i] = glm::normalize(glm::vec3(normalMatrix * m_originalPlanes[i]));
 		}
+	}
+
+	void Box::setUpdatesNeeded() {
+		m_normalsNeedsUpdate = true;
+		m_verticesNeedsUpdate = true;
+		m_middleNeedsUpdate = true;
+		m_hasChanged = true;
 	}
 
 	void Box::setHalfSize(const glm::vec3& halfSize) {
@@ -73,6 +83,7 @@ namespace Scuffed {
 
 	void Box::setOrigin(const glm::vec3& origin) {
 		m_originalMiddle = origin;
+		setUpdatesNeeded();
 	}
 
 	void Box::setTranslation(const glm::vec3& translation) {
@@ -108,25 +119,19 @@ namespace Scuffed {
 			}
 		}
 
-		m_normalsNeedsUpdate = true;
-		m_verticesNeedsUpdate = true;
-		m_middleNeedsUpdate = true;
+		setUpdatesNeeded();
 	}
 
 	void Box::setBaseMatrix(const glm::mat4& newBaseMatrix) {
 		baseMatrix = newBaseMatrix;
 
-		m_normalsNeedsUpdate = true;
-		m_verticesNeedsUpdate = true;
-		m_middleNeedsUpdate = true;
+		setUpdatesNeeded();
 	}
 
 	void Box::setMatrix(const glm::mat4& newMatrix) {
 		matrix = newMatrix;
 
-		m_normalsNeedsUpdate = true;
-		m_verticesNeedsUpdate = true;
-		m_middleNeedsUpdate = true;
+		setUpdatesNeeded();
 	}
 
 	std::vector<glm::vec3>& Box::getNormals() {
@@ -157,4 +162,9 @@ namespace Scuffed {
 		return m_middle;
 	}
 
+	const bool Box::getChange() {
+		bool theChange = m_hasChanged;
+		m_hasChanged = false;
+		return theChange;
+	}
 }

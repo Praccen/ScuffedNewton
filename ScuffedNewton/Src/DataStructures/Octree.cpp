@@ -41,6 +41,7 @@ namespace Scuffed {
 		Node newBaseNode;
 		Box* baseNodeBB = m_baseNode.nodeBB;
 		newBaseNode.nodeBB = SN_NEW Box(m_baseNode.halfSize * 2.0f, baseNodeBB->getMiddle() - m_baseNode.halfSize + glm::vec3(x * m_baseNode.halfSize.x * 2.0f, y * m_baseNode.halfSize.y * 2.0f, z * m_baseNode.halfSize.z * 2.0f));
+		newBaseNode.halfSize = m_baseNode.halfSize * 2.0f;
 
 		newBaseNode.nrOfEntities = 0;
 		newBaseNode.parentNode = nullptr;
@@ -54,6 +55,7 @@ namespace Scuffed {
 					}
 					else {
 						tempChildNode.nodeBB = SN_NEW Box(m_baseNode.halfSize, newBaseNode.nodeBB->getMiddle() - m_baseNode.halfSize + glm::vec3(m_baseNode.halfSize.x * 2.0f * i, m_baseNode.halfSize.y * 2.0f * j, m_baseNode.halfSize.z * 2.0f * k));
+						tempChildNode.halfSize = m_baseNode.halfSize;
 						tempChildNode.nrOfEntities = 0;
 					}
 					tempChildNode.parentNode = &newBaseNode;
@@ -130,6 +132,7 @@ namespace Scuffed {
 								Box* currentNodeBB = currentNode->nodeBB;
 								Node tempChildNode;
 								tempChildNode.nodeBB = SN_NEW Box(currentNode->halfSize / 2.0f, currentNodeBB->getMiddle() - currentNode->halfSize / 2.0f + glm::vec3(currentNode->halfSize.x * i, currentNode->halfSize.y * j, currentNode->halfSize.z * k));
+								tempChildNode.halfSize = currentNode->halfSize / 2.0f;
 								tempChildNode.nrOfEntities = 0;
 								tempChildNode.parentNode = currentNode;
 								currentNode->childNodes.push_back(tempChildNode);
@@ -188,7 +191,7 @@ namespace Scuffed {
 
 	void Octree::updateRec(Node* currentNode, std::vector<Entity*>* entitiesToReAdd) {
 		for (int i = 0; i < currentNode->nrOfEntities; i++) {
-			if (currentNode->entities[i]->getComponent<BoundingBoxComponent>()->getChange()) { //Entity has changed
+			if (currentNode->entities[i]->getComponent<BoundingBoxComponent>()->getBoundingBox()->getChange()) { //Entity has changed
 				//Re-add the entity to get it in the right node
 				Entity* tempEntity = currentNode->entities[i];
 				//First remove the entity from this node to avoid duplicates
@@ -297,22 +300,19 @@ namespace Scuffed {
 						collisionTime = time;
 						collisionInfo.emplace_back();
 						collisionInfo.back().entity = e;
-						std::vector<glm::vec3> vertices = triangle.getVertices();
-						collisionInfo.back().shape = std::make_shared<Triangle>(vertices[0], vertices[1], vertices[2]);
+						collisionInfo.back().shape = std::make_shared<Triangle>(triangle);
 						collisionInfo.back().shape->setBaseMatrix(transformMatrix);
 					}
 					else if (time == collisionTime) {
 						collisionInfo.emplace_back();
 						collisionInfo.back().entity = e;
-						std::vector<glm::vec3> vertices = triangle.getVertices();
-						collisionInfo.back().shape = std::make_shared<Triangle>(vertices[0], vertices[1], vertices[2]);
+						collisionInfo.back().shape = std::make_shared<Triangle>(triangle);
 						collisionInfo.back().shape->setBaseMatrix(transformMatrix);
 					}
 					else if (time == 0.f) {
 						zeroDistances.emplace_back();
 						zeroDistances.back().entity = e;
-						std::vector<glm::vec3> vertices = triangle.getVertices();
-						zeroDistances.back().shape = std::make_shared<Triangle>(vertices[0], vertices[1], vertices[2]);
+						zeroDistances.back().shape = std::make_shared<Triangle>(triangle);
 						zeroDistances.back().shape->setBaseMatrix(transformMatrix);
 					}
 				}

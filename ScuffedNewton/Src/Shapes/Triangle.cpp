@@ -17,6 +17,8 @@ namespace Scuffed {
 		m_vertices.resize(3);
 		m_normals.resize(1);
 		m_edges.resize(3);
+
+		m_matricesHasChanged = false;
 	}
 
 	void Triangle::updateEdges() {
@@ -36,7 +38,12 @@ namespace Scuffed {
 
 	void Triangle::updateVertices() {
 		for (int i = 0; i < 3; i++) {
-			m_vertices[i] = glm::vec3(matrix * baseMatrix * glm::vec4(m_originalVertices[i], 1.0f));
+			if (m_matricesHasChanged) {
+				m_vertices[i] = glm::vec3(matrix * baseMatrix * glm::vec4(m_originalVertices[i], 1.0f));
+			}
+			else {
+				m_vertices[i] = m_originalVertices[i];
+			}
 		}
 	}
 
@@ -58,6 +65,7 @@ namespace Scuffed {
 		m_edgesNeedsUpdate = true;
 		m_middleNeedsUpdate = true;
 		m_verticesNeedsUpdate = true;
+		m_matricesHasChanged = true;
 	}
 
 	void Triangle::setMatrix(const glm::mat4& newMatrix) {
@@ -67,6 +75,7 @@ namespace Scuffed {
 		m_edgesNeedsUpdate = true;
 		m_middleNeedsUpdate = true;
 		m_verticesNeedsUpdate = true;
+		m_matricesHasChanged = true;
 	}
 
 	std::vector<glm::vec3>& Triangle::getNormals() {

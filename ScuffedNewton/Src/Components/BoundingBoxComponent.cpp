@@ -9,8 +9,6 @@ namespace Scuffed {
 		m_boundingBox = SN_NEW Box(glm::vec3(0.5f), glm::vec3(0.f));
 
 		isStatic = false;
-
-		m_hasChanged = false;
 	}
 
 	BoundingBoxComponent::~BoundingBoxComponent() {
@@ -21,9 +19,5 @@ namespace Scuffed {
 		return m_boundingBox;
 	}
 
-	const bool BoundingBoxComponent::getChange() {
-		bool theChange = m_hasChanged;
-		m_hasChanged = false;
-		return theChange;
-	}
+	
 }
