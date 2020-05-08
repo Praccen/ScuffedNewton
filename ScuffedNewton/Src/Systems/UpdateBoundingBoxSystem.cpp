@@ -51,16 +51,16 @@ namespace Scuffed {
 
 			//Recalculate min and max
 			for (int j = 0; j < mesh->mesh->getNumberOfVertices(); j++) {
-				glm::vec3 posAfterTransform = glm::vec3(transformationMatrix * glm::vec4(mesh->mesh->getVertexPosition(j), 1.0f));
-				checkDistances(minPositions, maxPositions, posAfterTransform);
+				checkDistances(minPositions, maxPositions, mesh->mesh->getVertexPosition(j));
 			}
 
 			boundingBox->getBoundingBox()->setHalfSize((maxPositions - minPositions) * 0.5f);
-			boundingBox->getBoundingBox()->setPosition(minPositions + (maxPositions - minPositions) * 0.5f);
+			boundingBox->getBoundingBox()->setOrigin(minPositions + (maxPositions - minPositions) * 0.5f);
+			boundingBox->getBoundingBox()->setBaseMatrix(transformationMatrix);
 		}
 		else {
-			auto transformationMatrix = transform->getMatrixWithUpdate();
-			boundingBox->getBoundingBox()->getBox()->setBaseMatrix(transformationMatrix);
+			glm::mat4 transformationMatrix = transform->getMatrixWithUpdate();
+			boundingBox->getBoundingBox()->setBaseMatrix(transformationMatrix);
 			//boundingBox->getBoundingBox()->setPosition(transform->getTranslation() + glm::vec3(0.0f, boundingBox->getBoundingBox()->getHalfSize().y, 0.0f));
 		}
 	}
@@ -69,7 +69,7 @@ namespace Scuffed {
 		BoundingBoxComponent* boundingBox = e->getComponent<BoundingBoxComponent>();
 		TransformComponent* transform = e->getComponent<TransformComponent>();
 		glm::mat4 transformationMatrix = transform->getMatrixWithUpdate();
-		boundingBox->getBoundingBox()->getBox()->setBaseMatrix(transformationMatrix);
+		boundingBox->getBoundingBox()->setBaseMatrix(transformationMatrix);
 	}
 
 	bool UpdateBoundingBoxSystem::addEntity(Entity* entity) {

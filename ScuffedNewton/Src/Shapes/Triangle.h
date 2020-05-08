@@ -19,6 +19,15 @@ namespace Scuffed {
 		virtual glm::vec3& getMiddle();
 
 	private:
+		void init();
+
+		void updateEdges();
+		void updateNormals();
+		void updateMiddle();
+		void updateVertices();
+
+	private:
+		std::vector<glm::vec3> m_originalVertices;
 		std::vector<glm::vec3> m_vertices;
 		std::vector<glm::vec3> m_edges;
 		std::vector<glm::vec3> m_normals;
@@ -27,6 +36,7 @@ namespace Scuffed {
 		bool m_edgesNeedsUpdate;
 		bool m_normalsNeedsUpdate;
 		bool m_middleNeedsUpdate;
+		bool m_verticesNeedsUpdate;
 	};
 
 }

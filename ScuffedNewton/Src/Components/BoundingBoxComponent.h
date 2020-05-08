@@ -1,9 +1,10 @@
 #pragma once
 
 #include "Component.h"
-#include "../DataTypes/BoundingBox.h"
 
 namespace Scuffed {
+
+	class Box;
 
 	class BoundingBoxComponent : public Component {
 	public:
@@ -11,12 +12,19 @@ namespace Scuffed {
 		~BoundingBoxComponent();
 		static std::string ID;
 
-		virtual BoundingBox* getBoundingBox() const;
+		virtual Box* getBoundingBox() const;
 
 		bool isStatic;
 
+
+
 	private:
-		BoundingBox* m_boundingBox;
+		Box* m_boundingBox;
+		bool m_hasChanged;
+
+	private:
+		friend class Octree;
+		const bool getChange(); //Only access this from Octree::updateRec
 	};
 
 }

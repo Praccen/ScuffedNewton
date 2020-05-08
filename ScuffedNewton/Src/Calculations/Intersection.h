@@ -2,8 +2,6 @@
 
 #include <vector>
 
-#include "../DataTypes/Sphere.h"
-
 
 namespace Scuffed {
 
