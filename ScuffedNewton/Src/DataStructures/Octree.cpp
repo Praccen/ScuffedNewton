@@ -295,7 +295,7 @@ namespace Scuffed {
 
 					float time = Intersection::continousSAT(entityBoundingBox, &triangle, newEntityVel, otherEntityVel, dt);
 
-					if (time > 0.f && time < collisionTime) {
+					if (time > 0.000001f && time < collisionTime) {
 						collisionInfo.clear();
 						collisionTime = time;
 						collisionInfo.emplace_back();
@@ -309,7 +309,7 @@ namespace Scuffed {
 						collisionInfo.back().shape = std::make_shared<Triangle>(triangle);
 						collisionInfo.back().shape->setBaseMatrix(transformMatrix);
 					}
-					else if (time == 0.f) {
+					else if (time <= 0.000001f && time >= 0.f) {
 						zeroDistances.emplace_back();
 						zeroDistances.back().entity = e;
 						zeroDistances.back().shape = std::make_shared<Triangle>(triangle);

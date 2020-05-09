@@ -14,6 +14,7 @@ namespace Scuffed {
 		virtual void setHalfSize(const glm::vec3& halfSize);
 		virtual void setOrigin(const glm::vec3& origin);
 		virtual void setTranslation(const glm::vec3& translation);
+		virtual void translate(const glm::vec3& translation);
 		virtual void setPlanesFromOrigin(glm::vec3 planes[6]);
 
 		virtual void setBaseMatrix(const glm::mat4& newBaseMatrix);

@@ -41,48 +41,16 @@ namespace Scuffed {
 			continousCollisionUpdate(e, movement->updateableDt);
 			movement->oldVelocity = movement->velocity;
 
-			//// Remove duplicate collisions
-			//int numberOfCollisions = (int) collision->collisions.size();
-
-			//for (int i = 0; i < numberOfCollisions; i++) {
-			//	for (int j = i + 1; j < numberOfCollisions; j++) {
-			//		if (collision->collisions[i].entity == collision->collisions[j].entity) {
-			//			if (collision->collisions[i].shape->getEdges().size() == collision->collisions[i].shape->getEdges().size()) {
-			//				int nrOfVertices = collision->collisions[i].shape->getVertices().size();
-			//				bool isSame = true;
-			//				auto verts1 = collision->collisions[i].shape->getVertices();
-			//				auto verts2 = collision->collisions[j].shape->getVertices();
-
-			//				for (int k = 0; k < nrOfVertices; k++) {
-			//					if (glm::length2(verts1[k] - verts2[k]) > 0.000001f) {
-			//						isSame = false;
-			//						k = nrOfVertices;
-			//					}
-			//				}
-
-			//				if (isSame) {
-			//					collision->collisions.erase(collision->collisions.begin() + j);
-			//					j--;
-			//					numberOfCollisions--;
-			//				}
-			//			}
-			//		}
-			//	}
-			//}
-
 			// Handle friction
 			handleCollisions(e, collision->collisions, dt);
+
+			surfaceFromCollision(e, e->getComponent<BoundingBoxComponent>()->getBoundingBox(), collision->collisions);
+
+			updateManifolds(e, e->getComponent<BoundingBoxComponent>()->getBoundingBox(), collision->collisions);
 
 			/*if (collision->collisions.size() > 0) {
 				std::cout << collision->collisions.size() << "\n";
 			}*/
-		}
-
-		// ======================== Manifold update ========================
-		for (auto& e : entities) {
-			CollisionComponent* collision = e->getComponent<CollisionComponent>();
-
-			updateManifolds(e, e->getComponent<BoundingBoxComponent>()->getBoundingBox(), collision->collisions);
 		}
 	}
 
@@ -117,8 +85,10 @@ namespace Scuffed {
 		while (time <= dt && time > 0.f) {
 			// Move entity to collision
 			//boundingBox->setPosition(boundingBox->getBox()->getMiddle() + movement->velocity * time);
-			transform->translate(movement->velocity * time);
+			glm::vec3 additionalMovement = glm::normalize(movement->velocity) * 0.0001f;
+			transform->translate(movement->velocity * time + additionalMovement);
 			boundingBox->setBaseMatrix(transform->getMatrixWithUpdate());
+			//boundingBox->setTranslation(boundingBox->getMiddle() + movement->velocity * time);
 
 			// Decrease time
 			dt -= time;
@@ -283,7 +253,7 @@ namespace Scuffed {
 			glm::vec3 axis;
 
 			if (Intersection::SAT(collisionInfo_i.shape.get(), boundingBox, &axis, &depth)) {
-				//boundingBox->setPosition(boundingBox->getMiddle() + axis * depth);
+				//boundingBox->translate(axis * depth);
 				distance += axis * depth;
 			}
 		}

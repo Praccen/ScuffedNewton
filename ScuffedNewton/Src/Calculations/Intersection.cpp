@@ -549,69 +549,6 @@ namespace Scuffed {
 		return distanceToPlane;
 	}
 
-	float Intersection::RayWithPaddedAabb(const glm::vec3& rayStart, const glm::vec3& rayVec, const glm::vec3& aabbPos, const glm::vec3& aabbHalfSize, float padding, glm::vec3* intersectionAxis) {
-		float returnValue = -1.0f;
-
-		if (padding != 0.0f) {
-			//Add padding
-			returnValue = RayWithAabb(rayStart, rayVec, aabbPos, aabbHalfSize + glm::vec3(padding), intersectionAxis);
-		}
-		else {
-			returnValue = RayWithAabb(rayStart, rayVec, aabbPos, aabbHalfSize, intersectionAxis);
-		}
-
-		return returnValue;
-	}
-
-	float Intersection::RayWithPaddedTriangle(const glm::vec3& rayStart, const glm::vec3& rayDir, const glm::vec3& triPos1, const glm::vec3& triPos2, const glm::vec3& triPos3, float padding, const bool checkBackfaces) {
-		float returnValue = -1.0f;
-
-		glm::vec3 triangleNormal = glm::normalize(glm::cross(glm::vec3(triPos1 - triPos2), glm::vec3(triPos1 - triPos3)));
-
-		if (glm::dot(triPos1 - rayStart, triangleNormal) < 0.0f || checkBackfaces) {
-			//Only check if triangle is facing ray start
-			if (padding != 0.0f) {
-				glm::vec3 oldV[3];
-				oldV[0] = triPos1;
-				oldV[1] = triPos2;
-				oldV[2] = triPos3;
-
-				glm::vec3 newV[3];
-
-				glm::vec3 normalPadding = triangleNormal * padding;
-
-				glm::vec3 middle = ((oldV[0] + oldV[1] + oldV[2]) / 3.0f) + normalPadding;
-
-				for (int i = 0; i < 3; i++) {
-					newV[i] = oldV[i] + normalPadding;
-
-					float oldRayDist = glm::dot(rayDir, oldV[i] - rayStart);
-					float newRayDist = glm::dot(rayDir, newV[i] - rayStart);
-
-					glm::vec3 oldProjectionOnRayDir = rayStart + rayDir * oldRayDist;
-					glm::vec3 newProjectionOnRayDir = rayStart + rayDir * newRayDist;
-					float oldNormalDot = glm::dot(oldProjectionOnRayDir - oldV[i], triangleNormal);
-					float newNormalDot = glm::dot(newProjectionOnRayDir - newV[i], triangleNormal);
-
-					if ((std::signbit(oldNormalDot) != std::signbit(newNormalDot) && glm::dot(middle - newV[i], rayDir) > 0.0f) || std::signbit(oldRayDist) != std::signbit(newRayDist)) {
-						glm::vec3 toRayStart = rayStart - oldV[i];
-						float length = glm::min(glm::length(toRayStart), padding) - 0.001f;
-
-						newV[i] = oldV[i] + glm::normalize(toRayStart) * length;
-						//newV[i] = oldV[i];
-					}
-				}
-
-				returnValue = RayWithTriangle(rayStart, rayDir, newV[0], newV[1], newV[2]);
-			}
-			else {
-				returnValue = RayWithTriangle(rayStart, rayDir, triPos1, triPos2, triPos3);
-			}
-		}
-
-		return returnValue;
-	}
-
 	bool Intersection::FrustumPlaneWithAabb(const glm::vec3& planeNormal, const float planeDistance, const glm::vec3* aabbCorners) {
 		// Find point on positive side of plane
 		for (short i = 0; i < 8; i++) {

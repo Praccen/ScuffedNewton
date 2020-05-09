@@ -90,6 +90,10 @@ namespace Scuffed {
 		setBaseMatrix(glm::translate(glm::mat4(1.f), translation));
 	}
 
+	void Box::translate(const glm::vec3& translation) {
+		setBaseMatrix(glm::translate(baseMatrix, translation));
+	}
+
 	void Box::setPlanesFromOrigin(glm::vec3 planes[6]) {
 		for (int i = 0; i < 6; i++) {
 			m_originalPlanes[i] = planes[i];
