@@ -84,8 +84,8 @@ namespace Scuffed {
 
 		while (time <= dt && time > 0.f) {
 			// Move entity to collision
-			//boundingBox->setPosition(boundingBox->getBox()->getMiddle() + movement->velocity * time);
-			glm::vec3 additionalMovement = glm::normalize(movement->velocity) * 0.0001f;
+			glm::vec3 additionalMovement(0.f);
+			additionalMovement = glm::normalize(movement->velocity) * 0.0001f;
 			transform->translate(movement->velocity * time + additionalMovement);
 			boundingBox->setBaseMatrix(transform->getMatrixWithUpdate());
 			//boundingBox->setTranslation(boundingBox->getMiddle() + movement->velocity * time);

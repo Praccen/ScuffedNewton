@@ -9,10 +9,21 @@ namespace Scuffed {
 
 	MeshComponent::MeshComponent() {
 		mesh = SN_NEW Mesh();
+		m_hasChanged = true;
 	}
 
 	MeshComponent::~MeshComponent() {
 		delete mesh;
+	}
+
+	void MeshComponent::notifyChange() {
+		m_hasChanged = true;
+	}
+
+	const bool MeshComponent::getChange() {
+		bool toReturn = m_hasChanged;
+		m_hasChanged = false;
+		return toReturn;
 	}
 
 }

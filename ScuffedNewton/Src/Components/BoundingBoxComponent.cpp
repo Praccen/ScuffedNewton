@@ -7,8 +7,6 @@ namespace Scuffed {
 
 	BoundingBoxComponent::BoundingBoxComponent() {
 		m_boundingBox = SN_NEW Box(glm::vec3(0.5f), glm::vec3(0.f));
-
-		isStatic = false;
 	}
 
 	BoundingBoxComponent::~BoundingBoxComponent() {

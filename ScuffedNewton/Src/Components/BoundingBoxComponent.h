@@ -14,8 +14,6 @@ namespace Scuffed {
 
 		virtual Box* getBoundingBox() const;
 
-		bool isStatic;
-
 	private:
 		Box* m_boundingBox;
 	};

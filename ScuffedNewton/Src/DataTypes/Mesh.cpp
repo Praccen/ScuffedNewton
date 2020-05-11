@@ -9,7 +9,7 @@ namespace Scuffed {
 	Mesh::Mesh() {
 		m_data = nullptr;
 		m_size = 0;
-		m_vertexSize = 0;
+		m_vertexSize = 1;
 		m_positionOffset = 0;
 		m_positionSize = 0;
 

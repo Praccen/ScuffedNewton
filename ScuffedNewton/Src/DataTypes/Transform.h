@@ -38,9 +38,9 @@ namespace Scuffed {
 
 		glm::vec3 m_center;
 
-		int m_hasChanged;
 
 	private:
+		int m_hasChanged;
 		friend class UpdateBoundingBoxSystem;
 		const int getChange(); //Only access this from UpdateBoundingBoxSystem::update()
 	};
