@@ -33,7 +33,7 @@ namespace Scuffed {
 	private:
 		glm::mat4 m_matrix;
 		glm::vec3 m_translation;
-		glm::vec3 m_rotation;
+		glm::quat m_rotation;
 		glm::vec3 m_scale;
 
 		glm::vec3 m_center;
