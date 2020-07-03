@@ -46,14 +46,7 @@ namespace Scuffed {
 
 			surfaceFromCollision(e, e->getComponent<BoundingBoxComponent>()->getBoundingBox(), collision->collisions);
 
-			//updateManifolds(e, e->getComponent<BoundingBoxComponent>()->getBoundingBox(), collision->collisions);
-
-			/*if (e->getId() == 0 && collision->collisions.size() > 0) {
-				for (int i = 0; i < rand() % 20; i++) {
-					std::cout << " ";
-				}
-				std::cout << collision->collisions.size() << "\n";
-			}*/
+			updateManifolds(e, e->getComponent<BoundingBoxComponent>()->getBoundingBox(), collision->collisions);
 		}
 	}
 
@@ -69,15 +62,6 @@ namespace Scuffed {
 		std::vector<Octree::CollisionInfo> zeroDistances;
 
 		m_octree->getNextContinousCollision(e, collisions, time, zeroDistances, dt, collision->doSimpleCollisions);
-		/*if (e->getId() == 0 && zeroDistances.size() > 0) {
-			for (int i = 0; i < rand() % 20; i++) {
-				std::cout << " ";
-			}
-			std::cout << zeroDistances.size() << "\n";
-		}*/
-		/*if (zeroDistances.size() > 0) {
-			std::cout << "zeroDistances: " << zeroDistances.size() << "\n";
-		}*/
 
 		if (handleCollisions(e, zeroDistances, 0.f)) {
 			// Clear
@@ -161,11 +145,6 @@ namespace Scuffed {
 				Octree::CollisionInfo& collisionInfo_i = collisions[i];
 
 				if (Intersection::SAT(boundingBox, collisionInfo_i.shape.get(), &collisionInfo_i.intersectionAxis, &collisionInfo_i.intersectionDepth)) {
-					//if (Intersection::dot(collisionInfo_i.intersectionAxis, boundingBox->getMiddle() - collisionInfo_i.shape->getMiddle()) < 0.f) {
-					//	// Flip intersection axis if it is pointing wrong way
-					//	collisionInfo_i.intersectionAxis = -collisionInfo_i.intersectionAxis;
-					//}
-
 					//if (collisionInfo_i.shape.get()->getVertices().size() == 3) {
 					//	// Triangle, make sure collision is along normal
 					//	if (glm::dot(collisionInfo_i.intersectionAxis, collisionInfo_i.shape.get()->getNormals()[0]) < 0.f) {
@@ -195,7 +174,6 @@ namespace Scuffed {
 				}
 				else {
 					// False collision
-					std::cout << "False collision!\n";
 					collisions.erase(collisions.begin() + i);
 					collisionCount--;
 					i--;
