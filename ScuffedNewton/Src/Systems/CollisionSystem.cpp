@@ -46,9 +46,12 @@ namespace Scuffed {
 
 			surfaceFromCollision(e, e->getComponent<BoundingBoxComponent>()->getBoundingBox(), collision->collisions);
 
-			updateManifolds(e, e->getComponent<BoundingBoxComponent>()->getBoundingBox(), collision->collisions);
+			//updateManifolds(e, e->getComponent<BoundingBoxComponent>()->getBoundingBox(), collision->collisions);
 
-			/*if (collision->collisions.size() > 0) {
+			/*if (e->getId() == 0 && collision->collisions.size() > 0) {
+				for (int i = 0; i < rand() % 20; i++) {
+					std::cout << " ";
+				}
 				std::cout << collision->collisions.size() << "\n";
 			}*/
 		}
@@ -66,6 +69,12 @@ namespace Scuffed {
 		std::vector<Octree::CollisionInfo> zeroDistances;
 
 		m_octree->getNextContinousCollision(e, collisions, time, zeroDistances, dt, collision->doSimpleCollisions);
+		/*if (e->getId() == 0 && zeroDistances.size() > 0) {
+			for (int i = 0; i < rand() % 20; i++) {
+				std::cout << " ";
+			}
+			std::cout << zeroDistances.size() << "\n";
+		}*/
 		/*if (zeroDistances.size() > 0) {
 			std::cout << "zeroDistances: " << zeroDistances.size() << "\n";
 		}*/
@@ -151,22 +160,22 @@ namespace Scuffed {
 			for (size_t i = 0; i < collisionCount; i++) {
 				Octree::CollisionInfo& collisionInfo_i = collisions[i];
 
-				if (Intersection::SAT(collisionInfo_i.shape.get(), boundingBox, &collisionInfo_i.intersectionAxis, &collisionInfo_i.intersectionDepth)) {
-					if (Intersection::dot(collisionInfo_i.intersectionAxis, boundingBox->getMiddle() - collisionInfo_i.shape->getMiddle()) < 0.f) {
-						// Flip intersection axis if it is pointing wrong way
-						collisionInfo_i.intersectionAxis = -collisionInfo_i.intersectionAxis;
-					}
+				if (Intersection::SAT(boundingBox, collisionInfo_i.shape.get(), &collisionInfo_i.intersectionAxis, &collisionInfo_i.intersectionDepth)) {
+					//if (Intersection::dot(collisionInfo_i.intersectionAxis, boundingBox->getMiddle() - collisionInfo_i.shape->getMiddle()) < 0.f) {
+					//	// Flip intersection axis if it is pointing wrong way
+					//	collisionInfo_i.intersectionAxis = -collisionInfo_i.intersectionAxis;
+					//}
 
-					if (collisionInfo_i.shape.get()->getVertices().size() == 3) {
-						// Triangle, make sure collision is along normal
-						if (glm::dot(collisionInfo_i.intersectionAxis, collisionInfo_i.shape.get()->getNormals()[0]) < 0.f) {
-							// False collision
-							collisions.erase(collisions.begin() + i);
-							collisionCount--;
-							i--;
-							continue;
-						}
-					}
+					//if (collisionInfo_i.shape.get()->getVertices().size() == 3) {
+					//	// Triangle, make sure collision is along normal
+					//	if (glm::dot(collisionInfo_i.intersectionAxis, collisionInfo_i.shape.get()->getNormals()[0]) < 0.f) {
+					//		// False collision
+					//		collisions.erase(collisions.begin() + i);
+					//		collisionCount--;
+					//		i--;
+					//		continue;
+					//	}
+					//}
 
 					sumVec += collisionInfo_i.intersectionAxis;
 
@@ -186,6 +195,7 @@ namespace Scuffed {
 				}
 				else {
 					// False collision
+					std::cout << "False collision!\n";
 					collisions.erase(collisions.begin() + i);
 					collisionCount--;
 					i--;
@@ -256,7 +266,7 @@ namespace Scuffed {
 			float depth;
 			glm::vec3 axis;
 
-			if (Intersection::SAT(collisionInfo_i.shape.get(), boundingBox, &axis, &depth)) {
+			if (Intersection::SAT(boundingBox, collisionInfo_i.shape.get(), &axis, &depth)) {
 				transform->translate(axis * depth);	
 				boundingBox->setBaseMatrix(transform->getMatrixWithUpdate());
 				distance += axis * depth;
@@ -279,7 +289,7 @@ namespace Scuffed {
 		for (size_t i = 0; i < count; i++) {
 			const Octree::CollisionInfo& collisionInfo_i = collisions[i];
 			manifolds.clear();
-			Intersection::SAT(collisionInfo_i.shape.get(), boundingBox, manifolds);
+			Intersection::SAT(boundingBox, collisionInfo_i.shape.get(), manifolds);
 			collision->manifolds.insert(collision->manifolds.end(), manifolds.begin(), manifolds.end());
 		}
 

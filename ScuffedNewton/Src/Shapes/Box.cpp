@@ -147,8 +147,8 @@ namespace Scuffed {
 	}
 
 	std::vector<glm::vec3>& Box::getEdges() {
-		//return getNormals(); 
-		return m_edges;
+		return getNormals(); 
+		//return m_edges;
 	}
 
 	std::vector<glm::vec3>& Box::getVertices() {

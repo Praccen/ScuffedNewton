@@ -83,13 +83,13 @@ namespace Scuffed {
 	}
 
 	void Mesh::getTrianglesForCollisionTesting(std::vector<int> &triangles, Shape* shape) {
-		//triangles = m_baseNode.triangles;
-		collisionTrianglesRec(triangles, shape, &m_baseNode);
+		triangles = m_baseNode.triangles;
+		//collisionTrianglesRec(triangles, shape, &m_baseNode);
 	}
 
 	void Mesh::getTrianglesForContinousCollisionTesting(std::vector<int>& triangles, Shape* shape, glm::vec3& shapeVel, glm::vec3& meshVel, const float maxTime) {
-		//triangles = m_baseNode.triangles;
-		continousCollisionTrianglesRec(triangles, shape, shapeVel, meshVel, &m_baseNode, maxTime);
+		triangles = m_baseNode.triangles;
+		//continousCollisionTrianglesRec(triangles, shape, shapeVel, meshVel, &m_baseNode, maxTime);
 	}
 
 	void Mesh::setUpOctree() {
@@ -216,9 +216,9 @@ namespace Scuffed {
 
 	void Mesh::addTrianglesToOctree(std::vector<int> trianglesToAdd) {
 		for (size_t i = 0; i < trianglesToAdd.size(); i++) {
-			addTriangleRec(trianglesToAdd[i], &m_baseNode);
-			//m_baseNode.triangles.emplace_back(trianglesToAdd[i]);
-			//m_baseNode.nrOfTriangles++;
+			//addTriangleRec(trianglesToAdd[i], &m_baseNode);
+			m_baseNode.triangles.emplace_back(trianglesToAdd[i]);
+			m_baseNode.nrOfTriangles++;
 		}
 	}
 

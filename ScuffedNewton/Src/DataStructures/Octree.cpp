@@ -272,6 +272,7 @@ namespace Scuffed {
 				newEntityVel = newEntityVel - zeroPoint;
 				otherEntityVel = glm::inverse(transformMatrix) * glm::vec4(otherEntityVel, 1.0f);
 				otherEntityVel = otherEntityVel - zeroPoint;
+				//glm::vec3 newEntityVel = entityVel;
 
 				// Get triangles to test continous collision against from narrow phase octree in mesh
 				std::vector<int> triangles;
@@ -292,6 +293,7 @@ namespace Scuffed {
 					else if (hasVertices) {
 						triangle.setData(mesh->mesh->getVertexPosition(triangles[j]), mesh->mesh->getVertexPosition(triangles[j] + 1), mesh->mesh->getVertexPosition(triangles[j] + 2));
 					}
+					//triangle.setBaseMatrix(transformMatrix);
 
 					float time = Intersection::continousSAT(entityBoundingBox, &triangle, newEntityVel, otherEntityVel, dt);
 
