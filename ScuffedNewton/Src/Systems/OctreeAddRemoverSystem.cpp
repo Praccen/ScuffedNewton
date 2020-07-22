@@ -26,10 +26,11 @@ namespace Scuffed {
 	}
 
 	bool OctreeAddRemoverSystem::addEntity(Entity* entity) {
-		BaseSystem::addEntity(entity);
-		if (m_octree) {
-			m_octree->addEntity(entity);
-			return true;
+		if (BaseSystem::addEntity(entity)) {
+			if (m_octree) {
+				m_octree->addEntity(entity);
+				return true;
+			}
 		}
 		return false;
 	}
@@ -45,10 +46,6 @@ namespace Scuffed {
 
 	void OctreeAddRemoverSystem::update(float dt) {
 		m_octree->update();
-
-		for (auto e : entities) {
-			e->getComponent<BoundingBoxComponent>()->getBoundingBox()->prepareCorners();
-		}
 	}
 
 	void OctreeAddRemoverSystem::updatePerFrame(float dt) {

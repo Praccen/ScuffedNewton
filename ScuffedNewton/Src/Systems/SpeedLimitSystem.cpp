@@ -44,13 +44,6 @@ namespace Scuffed {
 		}
 
 		//std::cout << "SpeedLimit system ran\n";
-
-		// prepare matrixes and bounding boxes
-		for (auto e : entities) {
-			e->getComponent<BoundingBoxComponent>()->getBoundingBox()->prepareCorners();
-			//std::cout << e->getId() << ", ";
-		}
-		//std::cout << "\n";
 	}
 
 }

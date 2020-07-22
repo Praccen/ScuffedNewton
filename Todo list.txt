@@ -3,7 +3,7 @@
 - Collision manifolds
 - Dynamic rigid body collisions
 - Take movement into consideration when updating broad phase octree.
-- Fix "sticky" collisions where the intersection axis is pointing the wrong way. Happens on corners. Also gets stuck on the middle line of a quad sometimes
+- Fix "sticky" collisions where the intersection axis is pointing the wrong way. Happens on corners.
 - Multi-thread stuff
 ------------------
 
@@ -27,4 +27,6 @@
 - General SAT solution for collisions
 - Continous collision detection using SAT instead of swept sphere
 - Narrow phase hierarchy
+- Remove prepareCorners(Done in the beginning of many systems)
+- Remove boundingBox class and just use box shape instead
 ---------------

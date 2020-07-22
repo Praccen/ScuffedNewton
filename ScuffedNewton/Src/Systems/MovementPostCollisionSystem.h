@@ -9,6 +9,7 @@ namespace Scuffed {
 		~MovementPostCollisionSystem() = default;
 
 		void update(float dt);
+		void momentum(Entity* e, float dt);
 	};
 
 }

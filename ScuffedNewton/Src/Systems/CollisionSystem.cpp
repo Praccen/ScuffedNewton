@@ -4,7 +4,6 @@
 
 #include <memory>
 
-#include "../DataTypes/BoundingBox.h"
 #include "../Components/Components.h"
 #include "../DataTypes/Entity.h"
 #include "../Calculations/Intersection.h"
@@ -30,76 +29,83 @@ namespace Scuffed {
 	}
 
 	void CollisionSystem::update(float dt) {
-		// prepare matrixes and bounding boxes
-		for (auto& e : entities) {
-			e->getComponent<BoundingBoxComponent>()->getBoundingBox()->prepareCorners();
-		}
-
 		// ======================== Collision Update ======================================
-
 		for (auto& e: entities) {
 			CollisionComponent* collision = e->getComponent<CollisionComponent>();
 			MovementComponent* movement = e->getComponent<MovementComponent>();
-
+			
 			collision->collisions.clear();
-			collisionUpdate(e, dt);
 
+			// Continous collisions
 			movement->updateableDt = dt;
 			continousCollisionUpdate(e, movement->updateableDt);
 			movement->oldVelocity = movement->velocity;
-		}
 
-		// ======================== Surface from collisions ======================================
-
-		for (auto& e : entities) {
-			CollisionComponent* collision = e->getComponent<CollisionComponent>();
+			// Handle friction
+			handleCollisions(e, collision->collisions, dt);
 
 			surfaceFromCollision(e, e->getComponent<BoundingBoxComponent>()->getBoundingBox(), collision->collisions);
+
+			updateManifolds(e, e->getComponent<BoundingBoxComponent>()->getBoundingBox(), collision->collisions);
 		}
-	}
-
-	void CollisionSystem::collisionUpdate(Entity* e, const float dt) {
-		// Update collision data
-		CollisionComponent* collision = e->getComponent<CollisionComponent>();
-
-		m_octree->getCollisions(e, e->getComponent<BoundingBoxComponent>()->getBoundingBox(), &collision->collisions, collision->doSimpleCollisions);
-		handleCollisions(e, collision->collisions, dt);
 	}
 
 	void CollisionSystem::continousCollisionUpdate(Entity* e, float& dt) {
-		BoundingBox* boundingBox = e->getComponent<BoundingBoxComponent>()->getBoundingBox();
+		Box* boundingBox = e->getComponent<BoundingBoxComponent>()->getBoundingBox();
 		CollisionComponent* collision = e->getComponent<CollisionComponent>();
 		MovementComponent* movement = e->getComponent<MovementComponent>();
 		TransformComponent* transform = e->getComponent<TransformComponent>();
 
 		float time = INFINITY;
 
-		collision->collisions.emplace_back();
-		m_octree->getNextContinousCollision(e, collision->collisions.back(), time, dt, collision->doSimpleCollisions);
+		std::vector<Octree::CollisionInfo> collisions;
+		std::vector<Octree::CollisionInfo> zeroDistances;
 
-		while (time < dt && time > 0.f) {
-			//time += 0.000001f; 
-			glm::vec3 additionalMovement = glm::normalize(movement->velocity) * 0.01f; //Avoids getting 0 intersection depth both along normal and edge of a shape.
- 			boundingBox->setPosition(boundingBox->getPosition() + movement->velocity * time + additionalMovement);
-			transform->translate(movement->velocity * time + additionalMovement);
-			dt -= time;
+		m_octree->getNextContinousCollision(e, collisions, time, zeroDistances, dt, collision->doSimpleCollisions);
 
-			handleCollisions(e, collision->collisions, 0.f);
-
-			collision->collisions.emplace_back(); // Add a new element at the back
+		if (handleCollisions(e, zeroDistances, 0.f)) {
+			// Clear
 			time = INFINITY;
-			m_octree->getNextContinousCollision(e, collision->collisions.back(), time, dt, collision->doSimpleCollisions);
+			zeroDistances.clear();
+			collisions.clear();
+
+			m_octree->getNextContinousCollision(e, collisions, time, zeroDistances, dt, collision->doSimpleCollisions);
 		}
 
-		collision->collisions.pop_back();
+		// Save zeroes
+		collision->collisions.insert(collision->collisions.end(), zeroDistances.begin(), zeroDistances.end());
+
+		while (time <= dt && time > 0.f) {
+			// Move entity to collision
+			glm::vec3 additionalMovement(0.f);
+			additionalMovement = glm::normalize(movement->velocity) * 0.0001f;
+			transform->translate(movement->velocity * time + additionalMovement);
+			boundingBox->setBaseMatrix(transform->getMatrixWithUpdate());
+			//boundingBox->setTranslation(boundingBox->getMiddle() + movement->velocity * time);
+
+			// Decrease time
+			dt -= time;
+
+			handleCollisions(e, collisions, 0.f);
+			
+			// Save collisions to collision component
+			collision->collisions.insert(collision->collisions.end(), collisions.begin(), collisions.end());
+			
+			// Clear
+			time = INFINITY;
+			zeroDistances.clear();
+			collisions.clear();
+
+			// Check for next collision
+			m_octree->getNextContinousCollision(e, collisions, time, zeroDistances, dt, collision->doSimpleCollisions);
+		}
 	}
 
-	const bool CollisionSystem::handleCollisions(Entity* e, std::vector<Octree::CollisionInfo>& collisions, const float dt) {
+	bool CollisionSystem::handleCollisions(Entity* e, std::vector<Octree::CollisionInfo>& collisions, const float dt) {
 		MovementComponent* movement = e->getComponent<MovementComponent>();
 		CollisionComponent* collision = e->getComponent<CollisionComponent>();
-		BoundingBox* boundingBox = e->getComponent<BoundingBoxComponent>()->getBoundingBox();
+		Box* boundingBox = e->getComponent<BoundingBoxComponent>()->getBoundingBox();
 
-		bool collisionFound = false;
 		collision->onGround = false;
 
 		const size_t collisionCount = collisions.size();
@@ -111,24 +117,26 @@ namespace Scuffed {
 			// Gather info
 			gatherCollisionInformation(e, boundingBox, collisions, sumVec, groundIndices, dt);
 
-			if (collisions.size() > 0) {
-				collisionFound = true;
-			}
-
 			if (groundIndices.size() > 0) {
 				collision->onGround = true;
 			}
 
+			glm::vec3 preVel = movement->velocity;
+
 			// Handle true collisions
 			updateVelocityVec(e, movement->velocity, collisions, sumVec, groundIndices, dt);
+
+			if (glm::length2(movement->velocity) > 0.0f && Intersection::dot(glm::normalize(preVel), glm::normalize(movement->velocity)) < 1.f) {
+				// Collisions effected movement
+				return true;
+			}
 		}
 
-		return collisionFound;
+		// Collisions did not effect movement
+		return false;
 	}
 
-	void CollisionSystem::gatherCollisionInformation(Entity* e, BoundingBox* boundingBox, std::vector<Octree::CollisionInfo>& collisions, glm::vec3& sumVec, std::vector<int>& groundIndices, const float dt) {
-		CollisionComponent* collision = e->getComponent<CollisionComponent>();
-
+	void CollisionSystem::gatherCollisionInformation(Entity* e, Box* boundingBox, std::vector<Octree::CollisionInfo>& collisions, glm::vec3& sumVec, std::vector<int>& groundIndices, const float dt) {
 		size_t collisionCount = collisions.size();
 
 		if (collisionCount > 0) {
@@ -136,11 +144,17 @@ namespace Scuffed {
 			for (size_t i = 0; i < collisionCount; i++) {
 				Octree::CollisionInfo& collisionInfo_i = collisions[i];
 
-				if (Intersection::SAT(boundingBox->getBox(), collisionInfo_i.shape.get(), &collisionInfo_i.intersectionAxis, &collisionInfo_i.intersectionDepth)) {
-					if (glm::dot(collisionInfo_i.intersectionAxis, boundingBox->getPosition() - collisionInfo_i.shape->getMiddle()) < 0.f) {
-						 // Flip intersection axis if it is pointing wrong way
-						collisionInfo_i.intersectionAxis = -collisionInfo_i.intersectionAxis;
-					}
+				if (Intersection::SAT(boundingBox, collisionInfo_i.shape.get(), &collisionInfo_i.intersectionAxis, &collisionInfo_i.intersectionDepth)) {
+					//if (collisionInfo_i.shape.get()->getVertices().size() == 3) {
+					//	// Triangle, make sure collision is along normal
+					//	if (glm::dot(collisionInfo_i.intersectionAxis, collisionInfo_i.shape.get()->getNormals()[0]) < 0.f) {
+					//		// False collision
+					//		collisions.erase(collisions.begin() + i);
+					//		collisionCount--;
+					//		i--;
+					//		continue;
+					//	}
+					//}
 
 					sumVec += collisionInfo_i.intersectionAxis;
 
@@ -220,7 +234,7 @@ namespace Scuffed {
 	}
 
 
-	glm::vec3 CollisionSystem::surfaceFromCollision(Entity* e, BoundingBox* boundingBox, std::vector<Octree::CollisionInfo>& collisions) {
+	glm::vec3 CollisionSystem::surfaceFromCollision(Entity* e, Box* boundingBox, std::vector<Octree::CollisionInfo>& collisions) {
 		glm::vec3 distance(0.0f);
 		TransformComponent* transform = e->getComponent<TransformComponent>();
 
@@ -230,15 +244,41 @@ namespace Scuffed {
 			float depth;
 			glm::vec3 axis;
 
-			if (Intersection::SAT(collisionInfo_i.shape.get(), boundingBox->getBox(), &axis, &depth)) {
-				boundingBox->setPosition(boundingBox->getPosition() + axis * depth);
+			if (Intersection::SAT(boundingBox, collisionInfo_i.shape.get(), &axis, &depth)) {
+				transform->translate(axis * depth);	
+				boundingBox->setBaseMatrix(transform->getMatrixWithUpdate());
 				distance += axis * depth;
 			}
 		}
 
-		transform->translate(distance);
+		//transform->translate(distance);
+	
 
 		return distance;
 	}
 
+	void CollisionSystem::updateManifolds(Entity* e, Box* boundingBox, std::vector<Octree::CollisionInfo>& collisions) {
+		CollisionComponent* collision = e->getComponent<CollisionComponent>();
+		collision->manifolds.clear();
+
+		std::vector<glm::vec3> manifolds;
+
+		const size_t count = collisions.size();
+		for (size_t i = 0; i < count; i++) {
+			const Octree::CollisionInfo& collisionInfo_i = collisions[i];
+			manifolds.clear();
+			Intersection::SAT(boundingBox, collisionInfo_i.shape.get(), manifolds);
+			collision->manifolds.insert(collision->manifolds.end(), manifolds.begin(), manifolds.end());
+		}
+
+		// Remove duplicate manifolds
+		for (size_t i = 0; i < collision->manifolds.size(); i++) {
+			for (size_t j = i + 1; j < collision->manifolds.size(); j++) {
+				if (glm::length2(collision->manifolds[i] - collision->manifolds[j]) < 0.001f) {
+					collision->manifolds.erase(collision->manifolds.begin() + j);
+					j--;
+				}
+			}
+		}
+	}
 }

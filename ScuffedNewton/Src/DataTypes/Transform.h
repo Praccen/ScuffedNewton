@@ -20,6 +20,7 @@ namespace Scuffed {
 		virtual glm::mat4 getMatrixWithoutUpdate();
 
 		virtual glm::vec3 getTranslation() const;
+		virtual glm::vec3 getCenter() const;
 
 		virtual void prepareUpdate();
 
@@ -32,14 +33,14 @@ namespace Scuffed {
 	private:
 		glm::mat4 m_matrix;
 		glm::vec3 m_translation;
-		glm::vec3 m_rotation;
+		glm::quat m_rotation;
 		glm::vec3 m_scale;
 
 		glm::vec3 m_center;
 
-		int m_hasChanged;
 
 	private:
+		int m_hasChanged;
 		friend class UpdateBoundingBoxSystem;
 		const int getChange(); //Only access this from UpdateBoundingBoxSystem::update()
 	};

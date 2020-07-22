@@ -7,7 +7,7 @@ namespace Scuffed {
 		m_matrix = glm::mat4(1.0f);
 
 		m_translation = { 0.f, 0.f, 0.f };
-		m_rotation = { 0.f, 0.f, 0.f };
+		m_rotation = glm::quat({ 0.f, 0.f, 0.f });
 		m_scale = { 1.f, 1.f, 1.f };
 		m_center = { 0.f, 0.f, 0.f };
 		m_hasChanged = 2;
@@ -38,7 +38,7 @@ namespace Scuffed {
 	}
 
 	void Transform::rotate(const glm::vec3& rotation) {
-		m_rotation += rotation;
+		m_rotation = glm::quat(rotation) * m_rotation;
 		m_hasChanged |= 2;
 	}
 
@@ -53,6 +53,10 @@ namespace Scuffed {
 
 	glm::vec3 Transform::getTranslation() const {
 		return m_translation;
+	}
+
+	glm::vec3 Transform::getCenter() const {
+		return m_center;
 	}
 
 	void Transform::prepareUpdate() {
@@ -74,8 +78,8 @@ namespace Scuffed {
 		m_matrix = glm::translate(m_matrix, m_translation);
 		if (glm::length2(m_rotation) > 0.001f) {
 			m_matrix = glm::translate(m_matrix, m_center);
-			//m_matrix *= glm::toMat4(m_rotation);
-			m_matrix = glm::rotate(m_matrix, 1.f, m_rotation);
+			m_matrix *= glm::toMat4(m_rotation);
+			//m_matrix = glm::rotate(m_matrix, 1.f, m_rotation);
 			m_matrix = glm::translate(m_matrix, -m_center);
 		}
 		m_matrix = glm::scale(m_matrix, m_scale);

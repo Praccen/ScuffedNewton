@@ -1,9 +1,10 @@
 #pragma once
 
 #include "Component.h"
-#include "../DataTypes/BoundingBox.h"
 
 namespace Scuffed {
+
+	class Box;
 
 	class BoundingBoxComponent : public Component {
 	public:
@@ -11,12 +12,10 @@ namespace Scuffed {
 		~BoundingBoxComponent();
 		static std::string ID;
 
-		virtual BoundingBox* getBoundingBox() const;
-
-		bool isStatic;
+		virtual Box* getBoundingBox() const;
 
 	private:
-		BoundingBox* m_boundingBox;
+		Box* m_boundingBox;
 	};
 
 }

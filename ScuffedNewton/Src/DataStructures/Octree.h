@@ -5,10 +5,11 @@
 
 namespace Scuffed {
 
-	class BoundingBox;
+	class Box;
 	class Model;
 	class Entity;
 	class Shape;
+	class Ray;
 
 	class Octree {
 	public:
@@ -35,15 +36,15 @@ namespace Scuffed {
 
 		struct RayIntersectionInfo {
 			float closestHit = -1.0f;
-			int closestHitIndex = -1;
-			std::vector<Octree::CollisionInfo> info;
+			Entity* entity;
 		};
 
 	private:
 		struct Node {
 			std::vector<Node> childNodes;
 			Node* parentNode = nullptr;
-			BoundingBox* nodeBB = nullptr;
+			Box* nodeBB = nullptr;
+			glm::vec3 halfSize = glm::vec3(0.f);
 			int nrOfEntities = 0;
 			std::vector<Entity*> entities;
 		};
@@ -60,14 +61,10 @@ namespace Scuffed {
 		bool addEntityRec(Entity* newEntity, Node* currentNode);
 		bool removeEntityRec(Entity* entityToRemove, Node* currentNode);
 		void updateRec(Node* currentNode, std::vector<Entity*>* entitiesToReAdd);
-		
-		void getCollisionData(BoundingBox* entityBoundingBox, Entity* meshEntity, Shape* shape, std::vector<Octree::CollisionInfo>* outCollisionData, const bool checkBackfaces = false);
-		void getCollisionsRec(Entity* entity, BoundingBox* entityBoundingBox, Node* currentNode, std::vector<Octree::CollisionInfo>* outCollisionData, const bool doSimpleCollisions, const bool checkBackfaces = false);
-		
-		void getNextContinousCollisionRec(Entity* entity, Node* currentNode, CollisionInfo& collisionInfo, float& collisionTime, const float& dt = INFINITY, const bool doSimpleCollisions = false, const bool checkBackfaces = false);
 
-		void getIntersectionData(const glm::vec3& rayStart, const glm::vec3& rayDir, Entity* meshEntity, const glm::vec3& v1, const glm::vec3& v2, const glm::vec3& v3, RayIntersectionInfo* outIntersectionData, float padding, const bool checkBackfaces = false);
-		void getRayIntersectionRec(const glm::vec3& rayStart, const glm::vec3& rayDir, Node* currentNode, RayIntersectionInfo* outIntersectionData, Entity* ignoreThis, float padding, const bool doSimpleIntersections, const bool checkBackfaces);
+		void getNextContinousCollisionRec(Entity* entity, Node* currentNode, std::vector<CollisionInfo>& collisionInfo, float& collisionTime, std::vector<CollisionInfo>& zeroDistances, const float& dt = INFINITY, const bool doSimpleCollisions = false, const bool checkBackfaces = false);
+
+		void getRayIntersectionRec(Ray* ray, Node* currentNode, RayIntersectionInfo* outIntersectionData, Entity* ignoreThis, const bool doSimpleIntersections, const bool checkBackfaces);
 		
 		int pruneTreeRec(Node* currentNode);
 		//int frustumCulledDrawRec(const Frustum& frustum, Node* currentNode);
@@ -86,9 +83,8 @@ namespace Scuffed {
 
 		virtual void update();
 
-		virtual void getCollisions(Entity* entity, BoundingBox* entityBoundingBox, std::vector<CollisionInfo>* outCollisionData, const bool doSimpleCollisions = false, const bool checkBackfaces = false);
-		virtual void getNextContinousCollision(Entity* entity, CollisionInfo& outCollisionInfo, float& collisionTime ,const float& dt = INFINITY, const bool doSimpleCollisions = false, const bool checkBackfaces = false);
-		virtual void getRayIntersection(const glm::vec3& rayStart, const glm::vec3& rayDir, RayIntersectionInfo* outIntersectionData, Entity* ignoreThis = nullptr, float padding = 0.0f, const bool doSimpleIntersections = false, const bool checkBackfaces = false);
+		virtual void getNextContinousCollision(Entity* entity, std::vector<CollisionInfo>& outCollisionInfo, float& collisionTime, std::vector<CollisionInfo>& zeroDistances, const float& dt = INFINITY, const bool doSimpleCollisions = false, const bool checkBackfaces = false);
+		virtual void getRayIntersection(const glm::vec3& rayStart, const glm::vec3& rayDir, RayIntersectionInfo* outIntersectionData, Entity* ignoreThis = nullptr, const bool doSimpleIntersections = false, const bool checkBackfaces = false);
 
 		//int frustumCulledDraw(Camera& camera);
 	};

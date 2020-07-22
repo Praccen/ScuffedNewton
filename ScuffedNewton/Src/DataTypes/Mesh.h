@@ -34,13 +34,14 @@ namespace Scuffed {
 		struct OctNode {
 			std::vector<OctNode> childNodes;
 			OctNode* parentNode = nullptr;
-			BoundingBox* nodeBB = nullptr;
+			Box* nodeBB = nullptr;
+			glm::vec3 halfSize = glm::vec3(0.f);
 			int nrOfTriangles = 0;
 			std::vector<int> triangles;
 		};
 
-		void getTrianglesForCollisionTesting(std::vector<int>& triangles, Box* box);
-		void getTrianglesForContinousCollisionTesting(std::vector<int>& triangles, Box* box, glm::vec3 &boxVel, glm::vec3 &meshVel, const float maxTime);
+		void getTrianglesForCollisionTesting(std::vector<int>& triangles, Shape* shape);
+		void getTrianglesForContinousCollisionTesting(std::vector<int>& triangles, Shape* shape, glm::vec3 &shapeVel, glm::vec3 &meshVel, const float maxTime);
 
 	private:
 		// ----Narrow phase octree----
@@ -55,8 +56,8 @@ namespace Scuffed {
 		glm::vec3 findCornerOutside(int triangle, OctNode* testNode);
 		void clean(OctNode* node);
 
-		void collisionTrianglesRec(std::vector<int> &triangles, Box* box, OctNode* node);
-		void continousCollisionTrianglesRec(std::vector<int>& triangles, Box* box, glm::vec3& boxVel, glm::vec3& meshVel, OctNode* node, const float maxTime);
+		void collisionTrianglesRec(std::vector<int> &triangles, Shape* shape, OctNode* node);
+		void continousCollisionTrianglesRec(std::vector<int>& triangles, Shape* shape, glm::vec3& shapeVel, glm::vec3& meshVel, OctNode* node, const float maxTime);
 		// ---------------------------
 	};
 }

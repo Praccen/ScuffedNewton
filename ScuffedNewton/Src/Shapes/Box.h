@@ -6,12 +6,18 @@ namespace Scuffed {
 
 	class Box : public Shape {
 	public:
-		Box(const glm::vec3& halfSize, const glm::vec3& middle);
-		Box(glm::vec3 planes[6], const glm::vec3& middle); //Assumes Orthogonal
+		//Box(const Box& otherBox);
+		Box(const glm::vec3& halfSize, const glm::vec3& origin);
+		Box(glm::vec3 planes[6], const glm::vec3& origin); //Assumes Orthogonal
 		virtual ~Box();
 
-		virtual void setData(glm::vec3 planes[6], const glm::vec3& middle);
+		virtual void setHalfSize(const glm::vec3& halfSize);
+		virtual void setOrigin(const glm::vec3& origin);
+		virtual void setTranslation(const glm::vec3& translation);
+		virtual void translate(const glm::vec3& translation);
+		virtual void setPlanesFromOrigin(glm::vec3 planes[6]);
 
+		virtual void setBaseMatrix(const glm::mat4& newBaseMatrix);
 		virtual void setMatrix(const glm::mat4& newMatrix);
 		virtual std::vector<glm::vec3>& getNormals();
 		virtual std::vector<glm::vec3>& getEdges();
@@ -20,20 +26,30 @@ namespace Scuffed {
 
 	private:
 		void init();
+		void updateVertices();
+		void updateNormals();
+		void setUpdatesNeeded();
 
 	private:
-		std::vector<glm::vec3> m_originalVertices; // Not effected by matrix
-		std::vector<glm::vec3> m_planes;
+		std::vector<glm::vec3> m_originalVertices; // Not effected by matrices
+		std::vector<glm::vec3> m_originalPlanes; // Not effected by matrices
+		glm::vec3 m_originalMiddle; // Not effected by matrices
 
 		std::vector<glm::vec3> m_vertices;
 		std::vector<glm::vec3> m_normals;
+		glm::vec3 m_middle;
 
 		std::vector<glm::vec3> m_edges;
 		
-		glm::vec3 m_middle;
 
 		bool m_normalsNeedsUpdate;
 		bool m_verticesNeedsUpdate;
+		bool m_middleNeedsUpdate;
+
+	private:
+		bool m_hasChanged;
+		friend class Octree;
+		const bool getChange(); //Only access this from Octree::updateRec
 	};
 
 }

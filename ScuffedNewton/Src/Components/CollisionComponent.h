@@ -15,6 +15,7 @@ namespace Scuffed {
 		bool doSimpleCollisions;
 
 		std::vector<Octree::CollisionInfo> collisions; //Contains the info for current collisions
+		std::vector<glm::vec3> manifolds;
 
 		static std::string ID;
 	};
