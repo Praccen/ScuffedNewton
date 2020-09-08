@@ -87,6 +87,7 @@ namespace Scuffed {
 					for (size_t k = j; k < collision->manifolds.size(); k++) {
 						if (Intersection::RayWithTriangle(transform->getCenter(), movement->constantAcceleration, collision->manifolds[i], collision->manifolds[j], collision->manifolds[k]) >= 0.f) {
 							// Center of mass is above collision manifold area
+							movement->rotation = glm::vec3(0.f);
  							return;
 						}
 					}

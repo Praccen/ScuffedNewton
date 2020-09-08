@@ -5,6 +5,7 @@
 - Take movement into consideration when updating broad phase octree.
 - Fix "sticky" collisions where the intersection axis is pointing the wrong way. Happens on corners.
 - Multi-thread stuff
+- Use forces and impulses properly
 ------------------
 
 ----Improvements possible----
@@ -19,6 +20,9 @@
 - Add support for Spheres
 - Add support for Capsules
 - Add option for left or right handed triangles
+- Rename drag to friction and implement both static and dynamic friction
+- Make a way to see all collisions that happened last frame now that collisions in the collisioncomponent is no longer up to date
+- Either remove onGround from collisioncomponent or make it update properly
 -----------------------------
 
 ----Done :D----
