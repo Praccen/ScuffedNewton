@@ -37,8 +37,8 @@ namespace Scuffed {
 		m_hasChanged |= 1;
 	}
 
-	void Transform::rotate(const glm::vec3& rotation) {
-		m_rotation = glm::quat(rotation) * m_rotation;
+	void Transform::rotate(const glm::quat& rotation) {
+		m_rotation = rotation * m_rotation;
 		m_hasChanged |= 2;
 	}
 

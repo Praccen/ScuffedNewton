@@ -8,7 +8,7 @@ namespace Scuffed {
 	MovementComponent::MovementComponent() {
 		velocity = glm::vec3(0.0f);
 		relVel = glm::vec3(0.0f);
-		rotation = glm::vec3(0.0f);
+		rotation = glm::quat({ 0.f, 0.f, 0.f });
 		constantAcceleration = glm::vec3(0.f);
 		accelerationToAdd = glm::vec3(0.0f);
 

@@ -11,7 +11,7 @@ namespace Scuffed {
 
 		glm::vec3 velocity;
 		glm::vec3 relVel;
-		glm::vec3 rotation;
+		glm::quat rotation;
 		glm::vec3 constantAcceleration;
 		glm::vec3 accelerationToAdd;
 
