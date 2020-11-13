@@ -14,7 +14,7 @@ namespace Scuffed {
 		virtual void setCenter(const glm::vec3& center);
 
 		virtual void translate(const glm::vec3& translation);
-		virtual void rotate(const glm::vec3& rotation);
+		virtual void rotate(const glm::quat& rotation);
 
 		virtual glm::mat4 getMatrixWithUpdate();
 		virtual glm::mat4 getMatrixWithoutUpdate();

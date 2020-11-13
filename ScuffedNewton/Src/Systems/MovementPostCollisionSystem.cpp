@@ -26,7 +26,7 @@ namespace Scuffed {
 			//momentum(e, dt);
 
 			// Rotation
-			if (movement->rotation != glm::vec3(0.0f)) {
+			if (movement->rotation != glm::quat({ 0.0f, 0.0f, 0.0f })) {
 				transform->rotate(movement->rotation * dt);
 			}
 
@@ -97,7 +97,7 @@ namespace Scuffed {
 			std::cout << "Manifold offset not found (lacks implementation)\n";
 		}
 
-		movement->rotation += glm::cross(manifoldOffset, glm::vec3(0.0f, 1.0f, 0.0f));
+		movement->rotation += glm::quat(glm::cross(manifoldOffset, glm::vec3(0.0f, 1.0f, 0.0f)));
 	}
 
 }
