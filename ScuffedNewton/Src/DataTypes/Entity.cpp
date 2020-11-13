@@ -29,7 +29,6 @@ namespace Scuffed {
 		case Components::CollisionComponent: return addComponent<CollisionComponent>();
 		case Components::MovementComponent: return addComponent<MovementComponent>();
 		case Components::MeshComponent: return addComponent<MeshComponent>();
-		case Components::SpeedLimitComponent: return addComponent<SpeedLimitComponent>();
 		case Components::TransformComponent: return addComponent<TransformComponent>();
 		};
 		return nullptr;
@@ -42,7 +41,6 @@ namespace Scuffed {
 		case Components::CollisionComponent: return removeComponent<CollisionComponent>();
 		case Components::MovementComponent: return removeComponent<MovementComponent>();
 		case Components::MeshComponent: return removeComponent<MeshComponent>();
-		case Components::SpeedLimitComponent: return removeComponent<SpeedLimitComponent>();
 		case Components::TransformComponent: return removeComponent<TransformComponent>();
 		};
 	}
@@ -54,7 +52,6 @@ namespace Scuffed {
 		case Components::CollisionComponent: return getComponent<CollisionComponent>();
 		case Components::MovementComponent: return getComponent<MovementComponent>();
 		case Components::MeshComponent: return getComponent<MeshComponent>();
-		case Components::SpeedLimitComponent: return getComponent<SpeedLimitComponent>();
 		case Components::TransformComponent: return getComponent<TransformComponent>();
 		};
 		return nullptr;
@@ -67,7 +64,6 @@ namespace Scuffed {
 		case Components::CollisionComponent: return hasComponent<CollisionComponent>();
 		case Components::MovementComponent: return hasComponent<MovementComponent>();
 		case Components::MeshComponent: return hasComponent<MeshComponent>();
-		case Components::SpeedLimitComponent: return hasComponent<SpeedLimitComponent>();
 		case Components::TransformComponent: return hasComponent<TransformComponent>();
 		};
 		return false;

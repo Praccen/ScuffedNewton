@@ -194,7 +194,6 @@
     <ClInclude Include="Src\Components\Components.h" />
     <ClInclude Include="Src\Components\MeshComponent.h" />
     <ClInclude Include="Src\Components\MovementComponent.h" />
-    <ClInclude Include="Src\Components\SpeedLimitComponent.h" />
     <ClInclude Include="Src\Components\TransformComponent.h" />
     <ClInclude Include="Src\DataStructures\Scene.h" />
     <ClInclude Include="Src\DataTypes\Mesh.h" />
@@ -211,7 +210,6 @@
     <ClInclude Include="Src\Systems\MovementPostCollisionSystem.h" />
     <ClInclude Include="Src\Systems\MovementSystem.h" />
     <ClInclude Include="Src\Systems\OctreeAddRemoverSystem.h" />
-    <ClInclude Include="Src\Systems\SpeedLimitSystem.h" />
     <ClInclude Include="Src\Systems\Systems.h" />
     <ClInclude Include="Src\Systems\UpdateBoundingBoxSystem.h" />
     <ClInclude Include="Src\Utils\Utils.h" />
@@ -226,7 +224,6 @@
     <ClCompile Include="Src\Components\CollisionComponent.cpp" />
     <ClCompile Include="Src\Components\MeshComponent.cpp" />
     <ClCompile Include="Src\Components\MovementComponent.cpp" />
-    <ClCompile Include="Src\Components\SpeedLimitComponent.cpp" />
     <ClCompile Include="Src\Components\TransformComponent.cpp" />
     <ClCompile Include="Src\DataStructures\Scene.cpp" />
     <ClCompile Include="Src\DataTypes\Mesh.cpp" />
@@ -248,7 +245,6 @@
     <ClCompile Include="Src\Systems\MovementPostCollisionSystem.cpp" />
     <ClCompile Include="Src\Systems\MovementSystem.cpp" />
     <ClCompile Include="Src\Systems\OctreeAddRemoverSystem.cpp" />
-    <ClCompile Include="Src\Systems\SpeedLimitSystem.cpp" />
     <ClCompile Include="Src\Systems\UpdateBoundingBoxSystem.cpp" />
     <ClCompile Include="Src\Utils\Utils.cpp" />
   </ItemGroup>

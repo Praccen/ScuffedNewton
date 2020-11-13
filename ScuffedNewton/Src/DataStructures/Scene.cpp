@@ -50,6 +50,7 @@ namespace Scuffed {
 	}
 
 	void Scene::createSystems() {
+		// System updates happens in this order
 		m_systems.emplace_back();
 		m_systems.back() = SN_NEW UpdateBoundingBoxSystem();
 
@@ -68,9 +69,6 @@ namespace Scuffed {
 
 		m_systems.emplace_back();
 		m_systems.back() = SN_NEW MovementPostCollisionSystem();
-
-		m_systems.emplace_back();
-		m_systems.back() = SN_NEW SpeedLimitSystem();
 	}
 
 	void Scene::deleteSystems() {
