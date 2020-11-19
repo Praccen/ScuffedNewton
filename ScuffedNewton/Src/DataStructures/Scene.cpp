@@ -66,9 +66,6 @@ namespace Scuffed {
 		m_systems.back() = SN_NEW CollisionSystem();
 
 		static_cast<CollisionSystem*>(m_systems.back())->provideOctree(m_octree);
-
-		m_systems.emplace_back();
-		m_systems.back() = SN_NEW MovementPostCollisionSystem();
 	}
 
 	void Scene::deleteSystems() {

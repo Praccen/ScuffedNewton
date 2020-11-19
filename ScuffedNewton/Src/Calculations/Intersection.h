@@ -15,11 +15,15 @@ namespace Scuffed {
 		static float projectionOverlapTest(const glm::vec3& testVec, const std::vector<glm::vec3>& vertices1, const std::vector<glm::vec3>& vertices2, bool &invertAxis);
 		static bool SAT(Shape* shape1, Shape* shape2);
 		static std::vector<glm::vec3> getManifold(const glm::vec3& testVec, const std::vector<glm::vec3>& vertices1, const std::vector<glm::vec3>& vertices2);
-		static bool SAT(Shape* shape1, Shape* shape2, glm::vec3* intersectionAxis, float* intersectionDepth); // Allways returns the intersection axis pointing from shape2 towards shape1
+		static bool SAT(Shape* shape1, Shape* shape2, glm::vec3* intersectionAxis, float* intersectionDepth); // Always returns the intersection axis pointing from shape2 towards shape1
 		static bool SAT(Shape* shape1, Shape* shape2, std::vector<glm::vec3>& manifold);
 
 		static bool continousOverlapTest(const glm::vec3& testVec, const std::vector<glm::vec3>& vertices1, const std::vector<glm::vec3>& vertices2, const glm::vec3& relativeVel, float& timeFirst, float& timeLast, const float timeMax);
 		static float continousSAT(Shape* shape1, Shape* shape2, const glm::vec3& vel1, const glm::vec3& vel2, const float dt);
+
+
+		static glm::vec3 getIntersectionAxis(Shape* shape1, Shape* shape2); // Always returns the intersection axis pointing from shape2 towards shape1
+
 		// ---------------------
 
 		static float RayWithAabb(const glm::vec3& rayStart, const glm::vec3& rayVec, const glm::vec3& aabbPos, const glm::vec3& aabbHalfSize, glm::vec3* intersectionAxis = nullptr);

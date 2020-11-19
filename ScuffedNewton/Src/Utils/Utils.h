@@ -14,11 +14,8 @@ namespace Scuffed {
 	namespace Components {
 		enum types {
 			BoundingBoxComponent,
-			CollidableComponent,
-			CollisionComponent,
-			MovementComponent,
 			MeshComponent,
-			SpeedLimitComponent,
+			PhysicalBodyComponent,
 			TransformComponent
 		}; // Change in switch cases in entity virtual functions if this changes
 	}

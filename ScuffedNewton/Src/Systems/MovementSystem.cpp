@@ -9,7 +9,7 @@ namespace Scuffed {
 
 	MovementSystem::MovementSystem() {
 		requiredComponents["TransformComponent"] = true;
-		requiredComponents["MovementComponent"] = true;
+		requiredComponents["PhysicalBodyComponent"] = true;
 	}
 
 	void MovementSystem::update(float dt) {
@@ -17,16 +17,13 @@ namespace Scuffed {
 
 		for (auto& e : entities) {
 			TransformComponent* transform = e->getComponent<TransformComponent>();
-			MovementComponent* movement = e->getComponent<MovementComponent>();
+			PhysicalBodyComponent* movement = e->getComponent<PhysicalBodyComponent>();
 
 			// Update velocity
 			movement->velocity += (movement->constantAcceleration + movement->accelerationToAdd) * dt;
 
 			// Reset additional acceleration
 			movement->accelerationToAdd = glm::vec3(0.0f);
-
-			// Set initial value which might be changed in CollisionSystem
-			movement->updateableDt = dt;
 		}
 	}
 

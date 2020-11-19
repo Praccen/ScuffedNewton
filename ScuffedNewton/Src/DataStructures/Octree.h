@@ -2,6 +2,7 @@
 
 #include <glm/glm.hpp>
 #include <vector>
+#include <unordered_map>
 
 namespace Scuffed {
 
@@ -34,11 +35,6 @@ namespace Scuffed {
 			std::shared_ptr<Shape> shape;
 		};
 
-		struct RayIntersectionInfo {
-			float closestHit = -1.0f;
-			Entity* entity;
-		};
-
 	private:
 		struct Node {
 			std::vector<Node> childNodes;
@@ -53,21 +49,17 @@ namespace Scuffed {
 
 		Model* m_boundingBoxModel;
 
+		std::unordered_map<Entity*, std::vector<Node*>> m_entityOccurances; // Unordered map used to find which nodes an entity is in
+
 		int m_softLimitMeshes;
 		float m_minimumNodeHalfSize;
 
 		void expandBaseNode(glm::vec3 direction);
-		glm::vec3 findCornerOutside(Entity* entity, Node* testNode);
-		bool addEntityRec(Entity* newEntity, Node* currentNode);
-		bool removeEntityRec(Entity* entityToRemove, Node* currentNode);
-		void updateRec(Node* currentNode, std::vector<Entity*>* entitiesToReAdd);
-
-		void getNextContinousCollisionRec(Entity* entity, Node* currentNode, std::vector<CollisionInfo>& collisionInfo, float& collisionTime, std::vector<CollisionInfo>& zeroDistances, const float& dt = INFINITY, const bool doSimpleCollisions = false, const bool checkBackfaces = false);
-
-		void getRayIntersectionRec(Ray* ray, Node* currentNode, RayIntersectionInfo* outIntersectionData, Entity* ignoreThis, const bool doSimpleIntersections, const bool checkBackfaces);
-		
+		glm::vec3 findCornerOutside(Entity* entity, Node* testNode, float dt);
+		void addEntityRec(Entity* newEntity, Node* currentNode, float dt);
+		void removeEntityFromNode(Entity* entityToRemove, Node* node);
+				
 		int pruneTreeRec(Node* currentNode);
-		//int frustumCulledDrawRec(const Frustum& frustum, Node* currentNode);
 
 		void clean(Node* currentNode);
 
@@ -75,18 +67,15 @@ namespace Scuffed {
 		Octree(Model* boundingBoxModel = nullptr);
 		virtual ~Octree();
 
-		virtual void addEntity(Entity* newEntity);
-		virtual void addEntities(std::vector<Entity*>* newEntities);
+		virtual void addEntity(Entity* newEntity, float dt);
+		virtual void addEntities(std::vector<Entity*>* newEntities, float dt);
 
 		virtual void removeEntity(Entity* entityToRemove);
 		virtual void removeEntities(std::vector<Entity*> entitiesToRemove);
 
-		virtual void update();
+		virtual void update(float dt);
 
-		virtual void getNextContinousCollision(Entity* entity, std::vector<CollisionInfo>& outCollisionInfo, float& collisionTime, std::vector<CollisionInfo>& zeroDistances, const float& dt = INFINITY, const bool doSimpleCollisions = false, const bool checkBackfaces = false);
-		virtual void getRayIntersection(const glm::vec3& rayStart, const glm::vec3& rayDir, RayIntersectionInfo* outIntersectionData, Entity* ignoreThis = nullptr, const bool doSimpleIntersections = false, const bool checkBackfaces = false);
-
-		//int frustumCulledDraw(Camera& camera);
+		virtual void getNextContinousCollision(Entity* entity, std::vector<CollisionInfo>& outCollisionInfo, float& collisionTime, const float& dt);
 	};
 
 }

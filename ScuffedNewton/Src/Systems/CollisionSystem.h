@@ -14,17 +14,23 @@ namespace Scuffed {
 		void update(float dt);
 
 	private:
-		void performCurrentCollisions(Entity* e);
 		float getNextCollisionTime(Entity* e, std::vector<Octree::CollisionInfo>& collidingWith, const float dt);
-		void continousCollisionUpdate(Entity* e, float& dt);
-		bool handleCollisions(Entity* e, std::vector<Octree::CollisionInfo>& collisions, const float dt);
-		void gatherCollisionInformation(Entity* e, Box* boundingBox, std::vector<Octree::CollisionInfo>& collisions, glm::vec3& sumVec);
-		void updateVelocityVec(Entity* e, glm::vec3& velocity, std::vector<Octree::CollisionInfo>& collisions, glm::vec3& sumVec, const float dt);
+		void handleCollisions(Entity* e, Octree::CollisionInfo& collision, const float dt);
 		glm::vec3 surfaceFromCollision(Entity* e, Box* boundingBox, std::vector<Octree::CollisionInfo>& collisions);
 		void updateManifolds(Entity* e, Box* boundingBox, std::vector<Octree::CollisionInfo>& collisions);
 
 	private:
 		Octree* m_octree;
+	private:
+		struct UpcomingCollision {
+			float collisionTime = INFINITY;
+			Entity* entity = nullptr;
+			Octree::CollisionInfo collisionInfo;
+			bool operator<(const UpcomingCollision& other) {
+				return collisionTime < other.collisionTime;
+			}
+		};
+		
 	};
 
 }

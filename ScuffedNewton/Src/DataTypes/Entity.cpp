@@ -25,10 +25,8 @@ namespace Scuffed {
 	Component* Entity::addComponent(int componentNumber) {
 		switch (componentNumber) {
 		case Components::BoundingBoxComponent: return addComponent<BoundingBoxComponent>();
-		case Components::CollidableComponent: return addComponent<CollidableComponent>();
-		case Components::CollisionComponent: return addComponent<CollisionComponent>();
-		case Components::MovementComponent: return addComponent<MovementComponent>();
 		case Components::MeshComponent: return addComponent<MeshComponent>();
+		case Components::PhysicalBodyComponent: return addComponent<PhysicalBodyComponent>();
 		case Components::TransformComponent: return addComponent<TransformComponent>();
 		};
 		return nullptr;
@@ -37,10 +35,8 @@ namespace Scuffed {
 	void Entity::removeComponent(int componentNumber) {
 		switch (componentNumber) {
 		case Components::BoundingBoxComponent: return removeComponent<BoundingBoxComponent>();
-		case Components::CollidableComponent: return removeComponent<CollidableComponent>();
-		case Components::CollisionComponent: return removeComponent<CollisionComponent>();
-		case Components::MovementComponent: return removeComponent<MovementComponent>();
 		case Components::MeshComponent: return removeComponent<MeshComponent>();
+		case Components::PhysicalBodyComponent: return removeComponent<PhysicalBodyComponent>();
 		case Components::TransformComponent: return removeComponent<TransformComponent>();
 		};
 	}
@@ -48,10 +44,8 @@ namespace Scuffed {
 	Component* Entity::getComponent(int componentNumber) {
 		switch (componentNumber) {
 		case Components::BoundingBoxComponent: return getComponent<BoundingBoxComponent>();
-		case Components::CollidableComponent: return getComponent<CollidableComponent>();
-		case Components::CollisionComponent: return getComponent<CollisionComponent>();
-		case Components::MovementComponent: return getComponent<MovementComponent>();
 		case Components::MeshComponent: return getComponent<MeshComponent>();
+		case Components::PhysicalBodyComponent: return getComponent<PhysicalBodyComponent>();
 		case Components::TransformComponent: return getComponent<TransformComponent>();
 		};
 		return nullptr;
@@ -60,10 +54,8 @@ namespace Scuffed {
 	bool Entity::hasComponent(int componentNumber) {
 		switch (componentNumber) {
 		case Components::BoundingBoxComponent: return hasComponent<BoundingBoxComponent>();
-		case Components::CollidableComponent: return hasComponent<CollidableComponent>();
-		case Components::CollisionComponent: return hasComponent<CollisionComponent>();
-		case Components::MovementComponent: return hasComponent<MovementComponent>();
 		case Components::MeshComponent: return hasComponent<MeshComponent>();
+		case Components::PhysicalBodyComponent: return hasComponent<PhysicalBodyComponent>();
 		case Components::TransformComponent: return hasComponent<TransformComponent>();
 		};
 		return false;

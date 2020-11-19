@@ -9,7 +9,7 @@ namespace Scuffed {
 
 	OctreeAddRemoverSystem::OctreeAddRemoverSystem() {
 		requiredComponents["BoundingBoxComponent"] = true;
-		requiredComponents["CollidableComponent"] = true;
+		requiredComponents["PhysicalBodyComponent"] = true;
 
 		m_doCulling = false;
 		m_cullCamera = nullptr;
@@ -22,13 +22,13 @@ namespace Scuffed {
 
 	void OctreeAddRemoverSystem::provideOctree(Octree* octree) {
 		m_octree = octree;
-		m_octree->addEntities(&entities);
+		m_octree->addEntities(&entities, 0.f);
 	}
 
 	bool OctreeAddRemoverSystem::addEntity(Entity* entity) {
 		if (BaseSystem::addEntity(entity)) {
 			if (m_octree) {
-				m_octree->addEntity(entity);
+				m_octree->addEntity(entity, 0.f);
 				return true;
 			}
 		}
@@ -45,7 +45,7 @@ namespace Scuffed {
 
 
 	void OctreeAddRemoverSystem::update(float dt) {
-		m_octree->update();
+		m_octree->update(dt);
 	}
 
 	void OctreeAddRemoverSystem::updatePerFrame(float dt) {
