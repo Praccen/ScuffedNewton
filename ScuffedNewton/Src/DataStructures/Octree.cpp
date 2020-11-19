@@ -27,7 +27,6 @@ namespace Scuffed {
 		m_baseNode.nodeBB = SN_NEW Box(m_baseNode.halfSize, glm::vec3(0.0f));
 
 		m_baseNode.parentNode = nullptr;
-		m_baseNode.nrOfEntities = 0;
 	}
 
 	Octree::~Octree() {
@@ -46,7 +45,6 @@ namespace Scuffed {
 		newBaseNode.nodeBB = SN_NEW Box(m_baseNode.halfSize * 2.0f, baseNodeBB->getMiddle() - m_baseNode.halfSize + glm::vec3(x * m_baseNode.halfSize.x * 2.0f, y * m_baseNode.halfSize.y * 2.0f, z * m_baseNode.halfSize.z * 2.0f));
 		newBaseNode.halfSize = m_baseNode.halfSize * 2.0f;
 
-		newBaseNode.nrOfEntities = 0;
 		newBaseNode.parentNode = nullptr;
 
 		for (int i = 0; i < 2; i++) {
@@ -59,7 +57,6 @@ namespace Scuffed {
 					else {
 						tempChildNode.nodeBB = SN_NEW Box(m_baseNode.halfSize, newBaseNode.nodeBB->getMiddle() - m_baseNode.halfSize + glm::vec3(m_baseNode.halfSize.x * 2.0f * i, m_baseNode.halfSize.y * 2.0f * j, m_baseNode.halfSize.z * 2.0f * k));
 						tempChildNode.halfSize = m_baseNode.halfSize;
-						tempChildNode.nrOfEntities = 0;
 					}
 					tempChildNode.parentNode = &newBaseNode;
 					newBaseNode.childNodes.push_back(tempChildNode);
@@ -116,10 +113,9 @@ namespace Scuffed {
 			float tempCollisionTime = Intersection::continousSAT(entityBoundingBox, nodeBoundingBox, entityVel, glm::vec3(0.f), dt);
 			glm::vec3 tempVec = findCornerOutside(newEntity, currentNode, dt);
 			if (tempCollisionTime >= 0.f) {
-				if (currentNode->nrOfEntities < m_softLimitMeshes || currentNode->halfSize.x / 2.0f < m_minimumNodeHalfSize) { // Soft limit not reached or smaller nodes are not allowed
+				if (currentNode->entities.size() < m_softLimitMeshes || currentNode->halfSize.x / 2.0f < m_minimumNodeHalfSize) { // Soft limit not reached or smaller nodes are not allowed
 				// Add entity to this node
 					currentNode->entities.push_back(newEntity);
-					currentNode->nrOfEntities++;
 					m_entityOccurances[newEntity].emplace_back(currentNode); // Save this node to the list of where this entity is
 				}
 				else {
@@ -131,25 +127,25 @@ namespace Scuffed {
 								Node tempChildNode;
 								tempChildNode.nodeBB = SN_NEW Box(currentNode->halfSize / 2.0f, currentNodeBB->getMiddle() - currentNode->halfSize / 2.0f + glm::vec3(currentNode->halfSize.x * i, currentNode->halfSize.y * j, currentNode->halfSize.z * k));
 								tempChildNode.halfSize = currentNode->halfSize / 2.0f;
-								tempChildNode.nrOfEntities = 0;
 								tempChildNode.parentNode = currentNode;
 								currentNode->childNodes.push_back(tempChildNode);
 							}
 						}
 					}
 					// Re add entities in this node so it will be placed in child nodes.
-					for (int l = 0; l < currentNode->nrOfEntities; l++) {
+					for (size_t l = 0; l < currentNode->entities.size(); l++) {
 						Entity* tempEntityPointer = currentNode->entities[l];
 						addEntityRec(tempEntityPointer, currentNode, dt);
 
 						// Remove node from the entity's occurences
-						m_entityOccurances[tempEntityPointer].erase(std::find(m_entityOccurances[tempEntityPointer].begin(), m_entityOccurances[tempEntityPointer].end(), currentNode));
+						auto item = std::find(m_entityOccurances[tempEntityPointer].begin(), m_entityOccurances[tempEntityPointer].end(), currentNode);
+						if (item != m_entityOccurances[tempEntityPointer].end()) {
+							m_entityOccurances[tempEntityPointer].erase(item);
+						}
+						
 					}
 
-
 					currentNode->entities.clear();
-					currentNode->nrOfEntities = 0;
-
 
 					//Try to add the new entity to newly created child nodes.
 					addEntityRec(newEntity, currentNode, dt);
@@ -162,13 +158,12 @@ namespace Scuffed {
 		// This function does not remove the node from this entity's occurences, handle that outside of this (currently done in removeEntity for example).
 
 		// Look for entity in this node
-		for (int i = 0; i < node->nrOfEntities; i++) {
+		for (size_t i = 0; i < node->entities.size(); i++) {
 			if (node->entities[i]->getId() == entityToRemove->getId()) {
 				// Entity found - Remove it
 				node->entities[i] = node->entities.back();
 				node->entities.pop_back();
-				node->nrOfEntities--;
-				i = node->nrOfEntities;
+				break;
 			}
 		}
 	}
@@ -191,7 +186,7 @@ namespace Scuffed {
 			}
 		}
 
-		returnValue += currentNode->nrOfEntities;
+		returnValue += (int) currentNode->entities.size();
 
 		return returnValue;
 	}

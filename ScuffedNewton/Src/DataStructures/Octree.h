@@ -18,8 +18,6 @@ namespace Scuffed {
 		public:
 			CollisionInfo() {
 				intersectionAxis = { 0.0f, 0.0f, 0.0f };
-				intersectionDepth = 0.f;
-				//intersectionPosition = { 0.0f, 0.0f, 0.0f };
 				entity = nullptr;
 				shape = nullptr;
 			};
@@ -29,8 +27,6 @@ namespace Scuffed {
 			};
 
 			glm::vec3 intersectionAxis;
-			float intersectionDepth;
-			//glm::vec3 intersectionPosition;
 			Entity* entity;
 			std::shared_ptr<Shape> shape;
 		};
@@ -41,7 +37,6 @@ namespace Scuffed {
 			Node* parentNode = nullptr;
 			Box* nodeBB = nullptr;
 			glm::vec3 halfSize = glm::vec3(0.f);
-			int nrOfEntities = 0;
 			std::vector<Entity*> entities;
 		};
 
@@ -51,7 +46,7 @@ namespace Scuffed {
 
 		std::unordered_map<Entity*, std::vector<Node*>> m_entityOccurances; // Unordered map used to find which nodes an entity is in
 
-		int m_softLimitMeshes;
+		size_t m_softLimitMeshes;
 		float m_minimumNodeHalfSize;
 
 		void expandBaseNode(glm::vec3 direction);
