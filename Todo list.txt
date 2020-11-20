@@ -1,4 +1,4 @@
-Add resting through a list of current contacts between bodies.
+Add resting through a list of resting contacts between bodies.
 Add constraints (bodies with "infinite mass")
 Add mesh collisions (with narrow phase detection).
 Add angular momentum.

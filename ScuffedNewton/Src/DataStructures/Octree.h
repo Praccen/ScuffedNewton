@@ -13,24 +13,6 @@ namespace Scuffed {
 	class Ray;
 
 	class Octree {
-	public:
-		class CollisionInfo {
-		public:
-			CollisionInfo() {
-				intersectionAxis = { 0.0f, 0.0f, 0.0f };
-				entity = nullptr;
-				shape = nullptr;
-			};
-
-			virtual ~CollisionInfo() {
-
-			};
-
-			glm::vec3 intersectionAxis;
-			Entity* entity;
-			std::shared_ptr<Shape> shape;
-		};
-
 	private:
 		struct Node {
 			std::vector<Node> childNodes;
@@ -70,7 +52,7 @@ namespace Scuffed {
 
 		virtual void update(float dt);
 
-		virtual void getNextContinousCollision(Entity* entity, std::vector<CollisionInfo>& outCollisionInfo, float& collisionTime, const float& dt);
+		virtual void getNextContinousCollision(Entity* entity, std::vector<Entity*>& outCollisionEntities, float& collisionTime, const float& dt);
 	};
 
 }

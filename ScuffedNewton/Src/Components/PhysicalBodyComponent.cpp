@@ -13,7 +13,7 @@ namespace Scuffed {
 		frictionCoefficient = 0.2f;
 		collisionCoefficient = 0.5f;
 
-		weight = 1.0f;
+		mass = 1.0f;
 	}
 
 	PhysicalBodyComponent::~PhysicalBodyComponent() {

@@ -35,19 +35,19 @@ namespace Scuffed {
 
 		// ----1. Find all upcoming collisions, save time until collision and the objects colliding in a list----
 		float upcomingTime;
-		std::vector<Octree::CollisionInfo> collisionInfo;
+		std::vector<Entity*> hitEntities;
 		for (auto& e : entities) {
-			collisionInfo.clear();
+			hitEntities.clear();
 
 			// Find and save upcoming collision time
-			upcomingTime = getNextCollisionTime(e, collisionInfo, INFINITY);
+			upcomingTime = getNextCollisionTime(e, hitEntities, INFINITY);
 
-			if (upcomingTime < dt) {
-				for (size_t i = 0; i < collisionInfo.size(); i++) {
+			if (upcomingTime <= dt) {
+				for (size_t i = 0; i < hitEntities.size(); i++) {
 					collisionOrder.emplace_back();
 					collisionOrder.back().collisionTime = upcomingTime;
-					collisionOrder.back().entity = e;
-					collisionOrder.back().collisionInfo = collisionInfo[i];
+					collisionOrder.back().entity1 = e;
+					collisionOrder.back().entity2 = hitEntities[i];
 				}
 			}
 		}
@@ -70,32 +70,46 @@ namespace Scuffed {
 
 			timeProcessed = collisionOrder[0].collisionTime;
 
-			// 4. Handle collision of the two objects
-			handleCollisions(collisionOrder[0].entity, collisionOrder[0].collisionInfo, 0.0f);
+			std::vector<Entity*> entities;
+			// 4. Handle collision of all objects colliding at this time
+			for (size_t i = 0; i < collisionOrder.size() && collisionOrder[i].collisionTime == timeProcessed; i++) {
+				handleCollisions(collisionOrder[i].entity1, collisionOrder[i].entity2);
+
+				// Save entities that are colliding currently (Only one time per entity)
+				if (std::find(entities.begin(), entities.end(), collisionOrder[i].entity1) == entities.end()) {
+					entities.emplace_back(collisionOrder[i].entity1);
+				}
+				if (std::find(entities.begin(), entities.end(), collisionOrder[i].entity2) == entities.end()) {
+					entities.emplace_back(collisionOrder[i].entity2);
+				}
+			}
 
 			// 5. Remove all collisions for these objects in the list
-			Entity* entities[2];
-			entities[0] = collisionOrder[0].entity;
-			entities[1] = collisionOrder[0].collisionInfo.entity;
-
 			collisionOrder.erase(std::remove_if(collisionOrder.begin(),
 				collisionOrder.end(),
-				[&](UpcomingCollision x) {return x.entity == entities[0] || x.entity == entities[1] || x.collisionInfo.entity == entities[0] || x.collisionInfo.entity == entities[1]; }),
+				[&](UpcomingCollision x) {
+					for (size_t i = 0; i < entities.size(); i++) {
+						if (x.entity1 == entities[i] || x.entity2 == entities[i]) {
+							return true;
+						}
+					}
+					return false;
+				}),
 				collisionOrder.end());
 
 			// 6. Recheck next collision for these objects and add to the list
-			for (int i = 0; i < 2; i++) {
-				collisionInfo.clear();
+			for (size_t i = 0; i < entities.size(); i++) {
+				hitEntities.clear();
 
 				// Find and save upcoming collision time
-				float upcomingTime = getNextCollisionTime(entities[i], collisionInfo, dt) + timeProcessed;
+				float upcomingTime = getNextCollisionTime(entities[i], hitEntities, dt) + timeProcessed;
 
-				if (upcomingTime <= dt && upcomingTime > timeProcessed) { // TODO: Solve multiple collisions happening the same frame (upcomingTime > timeProcessed should not be needed)
-					for (size_t i = 0; i < collisionInfo.size(); i++) {
+				if (upcomingTime <= dt && upcomingTime > timeProcessed) { // TODO: Solve multiple collisions happening at the same time (upcomingTime > timeProcessed should not be needed)
+					for (size_t i = 0; i < hitEntities.size(); i++) {
 						collisionOrder.emplace_back();
 						collisionOrder.back().collisionTime = upcomingTime;
-						collisionOrder.back().entity = entities[i];
-						collisionOrder.back().collisionInfo = collisionInfo[i];
+						collisionOrder.back().entity1 = entities[i];
+						collisionOrder.back().entity2 = hitEntities[i];
 					}
 				}
 			}
@@ -113,18 +127,9 @@ namespace Scuffed {
 			transform->translate(phyicalComp->velocity * (dt - timeProcessed));
 			boundingBox->setBaseMatrix(transform->getMatrixWithUpdate());
 		}
-
-
-		/*for (auto& e : entities) {
-			CollisionComponent* collision = e->getComponent<CollisionComponent>();
-
-			surfaceFromCollision(e, e->getComponent<BoundingBoxComponent>()->getBoundingBox(), collision->collisions);
-
-			updateManifolds(e, e->getComponent<BoundingBoxComponent>()->getBoundingBox(), collision->collisions);
-		}*/
 	}
 
-	float CollisionSystem::getNextCollisionTime(Entity* e, std::vector<Octree::CollisionInfo>& collidingWith, const float dt) {
+	float CollisionSystem::getNextCollisionTime(Entity* e, std::vector<Entity*>& collidingWith, const float dt) {
 		float time = INFINITY;
 
 		m_octree->getNextContinousCollision(e, collidingWith, time, dt);
@@ -132,87 +137,116 @@ namespace Scuffed {
 		return time;
 	}
 
-	void CollisionSystem::handleCollisions(Entity* e, Octree::CollisionInfo& collision, const float dt) {
-		Box* boundingBox = e->getComponent<BoundingBoxComponent>()->getBoundingBox();
+	void CollisionSystem::handleCollisions(Entity* e1, Entity* e2, int recursionDepth) {
+		Box* boundingBox1 = e1->getComponent<BoundingBoxComponent>()->getBoundingBox();
+		Box* boundingBox2 = e2->getComponent<BoundingBoxComponent>()->getBoundingBox();
 
-		PhysicalBodyComponent* physObj1 = e->getComponent<PhysicalBodyComponent>();
-		PhysicalBodyComponent* physObj2 = collision.entity->getComponent<PhysicalBodyComponent>();
+		PhysicalBodyComponent* physObj1 = e1->getComponent<PhysicalBodyComponent>();
+		PhysicalBodyComponent* physObj2 = e2->getComponent<PhysicalBodyComponent>();
 
 		// Assume these entities are colliding
 		// Get intersection axis
-		collision.intersectionAxis = glm::normalize(Intersection::getIntersectionAxis(boundingBox, collision.shape.get()));
+		glm::vec3 intersectionAxis = glm::normalize(Intersection::getIntersectionAxis(boundingBox1, boundingBox2));
 		// Check that the entities are moving towards each other before going into collision response
-		if (Intersection::dot(physObj2->velocity - physObj1->velocity, collision.intersectionAxis) > 0.0) {
+		if (Intersection::dot(physObj2->velocity - physObj1->velocity, intersectionAxis) > 0.0) {
 
-			// Do collision response, effecting both entities. TODO: Add the possibility to have one object not effected
-			float v1Dot = Intersection::dot(physObj1->velocity, collision.intersectionAxis);
-			float v2Dot = Intersection::dot(physObj2->velocity, collision.intersectionAxis);
+			// Do collision response, effecting both entities. TODO: Add the possibility to have one object not effected (constraints)
+			float v1Dot = Intersection::dot(physObj1->velocity, intersectionAxis);
+			float v2Dot = Intersection::dot(physObj2->velocity, intersectionAxis);
 
 			float collisionCoefficient = std::min(physObj1->collisionCoefficient, physObj2->collisionCoefficient); // TODO: This can be calculated differently, will be based on material abilities in the future
 
-			float u1Dot = ((physObj1->weight - collisionCoefficient * physObj2->weight) / (physObj1->weight + physObj2->weight)) * v1Dot + ((1.0f + collisionCoefficient) * physObj2->weight) / (physObj1->weight + physObj2->weight) * v2Dot;
-			float u2Dot = ((physObj2->weight - collisionCoefficient * physObj1->weight) / (physObj2->weight + physObj1->weight)) * v2Dot + ((1.0f + collisionCoefficient) * physObj1->weight) / (physObj2->weight + physObj1->weight) * v1Dot;
+			float u1Dot = ((physObj1->mass - collisionCoefficient * physObj2->mass) / (physObj1->mass + physObj2->mass)) * v1Dot + ((1.0f + collisionCoefficient) * physObj2->mass) / (physObj1->mass + physObj2->mass) * v2Dot;
+			float u2Dot = ((physObj2->mass - collisionCoefficient * physObj1->mass) / (physObj2->mass + physObj1->mass)) * v2Dot + ((1.0f + collisionCoefficient) * physObj1->mass) / (physObj2->mass + physObj1->mass) * v1Dot;
 
-			glm::vec3 eN = glm::cross(glm::cross(physObj1->velocity - physObj2->velocity, collision.intersectionAxis), collision.intersectionAxis);
+			glm::vec3 eN = glm::cross(glm::cross(physObj1->velocity - physObj2->velocity, intersectionAxis), intersectionAxis);
 
-			if (glm::length2(eN) > 0.00000001) {
+			if (glm::length2(eN) > 0.00000001f) {
 				eN = glm::normalize(eN);
 			}
 
 			float frictionCoefficient = std::min(physObj1->frictionCoefficient, physObj2->frictionCoefficient); // TODO: This can be calculated differently, will be based on material abilities in the future
 
-			physObj1->velocity += (u1Dot - v1Dot) * (collision.intersectionAxis + frictionCoefficient * eN);
-			physObj2->velocity += (u2Dot - v2Dot) * (collision.intersectionAxis + frictionCoefficient * eN);
+			physObj1->velocity += (u1Dot - v1Dot) * (intersectionAxis + frictionCoefficient * eN);
+			physObj2->velocity += (u2Dot - v2Dot) * (intersectionAxis + frictionCoefficient * eN);
+
+			// Evaluate resting contacts
+			if (recursionDepth < 10) {
+				for (size_t i = 0; i < physObj1->restingContacts.size(); i++) {
+					if (Intersection::SAT(e1->getComponent<BoundingBoxComponent>()->getBoundingBox(), physObj1->restingContacts[i]->getComponent<BoundingBoxComponent>()->getBoundingBox())) {
+						handleCollisions(e1, physObj1->restingContacts[i], recursionDepth + 1); // Recursively call all resting contacts
+					}
+					else {
+						// Remove entities from resting contacts that are no longer resting
+						physObj1->restingContacts.erase(physObj1->restingContacts.begin() + i);
+						i--;
+					}
+				}
+
+				for (size_t i = 0; i < physObj2->restingContacts.size(); i++) {
+					if (Intersection::SAT(e2->getComponent<BoundingBoxComponent>()->getBoundingBox(), physObj2->restingContacts[i]->getComponent<BoundingBoxComponent>()->getBoundingBox())) {
+						handleCollisions(e2, physObj2->restingContacts[i], recursionDepth + 1); // Recursively call all resting contacts
+					}
+					else {
+						// Remove entities from resting contacts that are no longer resting
+						physObj2->restingContacts.erase(physObj2->restingContacts.begin() + i);
+						i--;
+					}
+				}
+			}
+
+			// ----Save resting contacts----
+
+			if (recursionDepth == 0) {
+				// Check so that this rest is not already saved
+				for (size_t i = 0; i < physObj1->restingContacts.size(); i++) {
+					if (physObj1->restingContacts[i] == e2) {
+						return;
+					}
+				}
+
+				glm::vec3 relVel = physObj1->velocity - physObj2->velocity;
+
+				float dotProd = Intersection::dot(relVel, intersectionAxis);
+
+				if (std::abs(dotProd) < 0.0001f) { // The two entities are staying close to each other.
+					// "Stick" the entities to each other, i.e make their velocity along the intersection axis the same
+					glm::vec3 equalizer = dotProd * 0.5f * intersectionAxis;
+					physObj1->velocity -= equalizer;
+					physObj2->velocity += equalizer;
+
+					// Add this as a resting contact for both entities
+					physObj1->restingContacts.emplace_back(e2);
+
+					physObj2->restingContacts.emplace_back(e1);
+				}
+				// -----------------------------
+			}
 		}
 	}
 
-	glm::vec3 CollisionSystem::surfaceFromCollision(Entity* e, Box* boundingBox, std::vector<Octree::CollisionInfo>& collisions) {
-		assert(false); // Not implemented
-		glm::vec3 distance(0.0f);
-		//TransformComponent* transform = e->getComponent<TransformComponent>();
+	//void CollisionSystem::updateManifolds(Entity* e, Box* boundingBox, std::vector<Octree::CollisionInfo>& collisions) {
+	//	CollisionComponent* collision = e->getComponent<CollisionComponent>();
+	//	collision->manifolds.clear();
 
-		//const size_t count = collisions.size();
-		//for (size_t i = 0; i < count; i++) {
-		//	const Octree::CollisionInfo& collisionInfo_i = collisions[i];
-		//	float depth;
-		//	glm::vec3 axis;
+	//	std::vector<glm::vec3> manifolds;
 
-		//	if (Intersection::SAT(boundingBox, collisionInfo_i.shape.get(), &axis, &depth)) {
-		//		transform->translate(axis * depth);
-		//		boundingBox->setBaseMatrix(transform->getMatrixWithUpdate());
-		//		distance += axis * depth;
-		//	}
-		//}
+	//	const size_t count = collisions.size();
+	//	for (size_t i = 0; i < count; i++) {
+	//		const Octree::CollisionInfo& collisionInfo_i = collisions[i];
+	//		manifolds.clear();
+	//		Intersection::SAT(boundingBox, collisionInfo_i.shape.get(), manifolds);
+	//		collision->manifolds.insert(collision->manifolds.end(), manifolds.begin(), manifolds.end());
+	//	}
 
-		////transform->translate(distance);
-
-
-		return distance;
-	}
-
-	void CollisionSystem::updateManifolds(Entity* e, Box* boundingBox, std::vector<Octree::CollisionInfo>& collisions) {
-		assert(false); // Not implemented
-		//CollisionComponent* collision = e->getComponent<CollisionComponent>();
-		//collision->manifolds.clear();
-
-		//std::vector<glm::vec3> manifolds;
-
-		//const size_t count = collisions.size();
-		//for (size_t i = 0; i < count; i++) {
-		//	const Octree::CollisionInfo& collisionInfo_i = collisions[i];
-		//	manifolds.clear();
-		//	Intersection::SAT(boundingBox, collisionInfo_i.shape.get(), manifolds);
-		//	collision->manifolds.insert(collision->manifolds.end(), manifolds.begin(), manifolds.end());
-		//}
-
-		//// Remove duplicate manifolds
-		//for (size_t i = 0; i < collision->manifolds.size(); i++) {
-		//	for (size_t j = i + 1; j < collision->manifolds.size(); j++) {
-		//		if (glm::length2(collision->manifolds[i] - collision->manifolds[j]) < 0.001f) {
-		//			collision->manifolds.erase(collision->manifolds.begin() + j);
-		//			j--;
-		//		}
-		//	}
-		//}
-	}
+	//	// Remove duplicate manifolds
+	//	for (size_t i = 0; i < collision->manifolds.size(); i++) {
+	//		for (size_t j = i + 1; j < collision->manifolds.size(); j++) {
+	//			if (glm::length2(collision->manifolds[i] - collision->manifolds[j]) < 0.001f) {
+	//				collision->manifolds.erase(collision->manifolds.begin() + j);
+	//				j--;
+	//			}
+	//		}
+	//	}
+	//}
 }

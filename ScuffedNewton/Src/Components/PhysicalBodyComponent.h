@@ -20,7 +20,9 @@ namespace Scuffed {
 		float frictionCoefficient;
 		float collisionCoefficient;
 
-		float weight;
+		float mass;
+
+		std::vector<Entity*> restingContacts;
 
 		static std::string ID;
 	};

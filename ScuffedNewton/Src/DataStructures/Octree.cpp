@@ -249,7 +249,7 @@ namespace Scuffed {
 		pruneTreeRec(&m_baseNode);
 	}
 
-	void Octree::getNextContinousCollision(Entity* entity, std::vector<CollisionInfo>& outCollisionInfo, float& collisionTime, const float& dt) {
+	void Octree::getNextContinousCollision(Entity* entity, std::vector<Entity*>& outCollisionEntities, float& collisionTime, const float& dt) {
 		std::vector<Node*>& nodes = m_entityOccurances[entity];
 
 		Box* entityBoundingBox = entity->getComponent<BoundingBoxComponent>()->getBoundingBox();
@@ -273,15 +273,11 @@ namespace Scuffed {
 				if (tempCollisionTime >= 0.f && tempCollisionTime < collisionTime) {
 					// Collide with bounding box
 					collisionTime = tempCollisionTime;
-					outCollisionInfo.clear();
-					outCollisionInfo.emplace_back();
-					outCollisionInfo.back().entity = e;
-					outCollisionInfo.back().shape = std::make_shared<Box>(*otherBoundingBox);
+					outCollisionEntities.clear();
+					outCollisionEntities.emplace_back(e);
 				}
 				else if (tempCollisionTime == collisionTime) {
-					outCollisionInfo.emplace_back();
-					outCollisionInfo.back().entity = e;
-					outCollisionInfo.back().shape = std::make_shared<Box>(*otherBoundingBox);
+					outCollisionEntities.emplace_back(e);
 				}
 
 				// Mesh collisions
