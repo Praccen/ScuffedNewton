@@ -479,7 +479,7 @@ namespace Scuffed {
 	glm::vec3 Intersection::getIntersectionAxis(Shape* shape1, Shape* shape2) {
 		// Always returns the intersection axis pointing from shape2 towards shape1
 		bool invertAxis = false;
-		glm::vec3 intersectionAxis;
+		glm::vec3 intersectionAxis(0.0f);
 		float depth = INFINITY;
 
 		const std::vector<glm::vec3>& s1Norms = shape1->getNormals();
@@ -488,6 +488,7 @@ namespace Scuffed {
 			// Save smallest 
 			if (intersection < depth) {
 				intersectionAxis = it;
+				depth = intersection;
 				if (invertAxis) {
 					intersectionAxis = -intersectionAxis;
 				}
@@ -500,6 +501,7 @@ namespace Scuffed {
 			// Save smallest 
 			if (intersection < depth) {
 				intersectionAxis = it;
+				depth = intersection;
 				if (invertAxis) {
 					intersectionAxis = -intersectionAxis;
 				}
@@ -523,6 +525,7 @@ namespace Scuffed {
 						// Save smallest 
 						if (intersection < depth) {
 							intersectionAxis = testVec;
+							depth = intersection;
 							if (invertAxis) {
 								intersectionAxis = -intersectionAxis;
 							}

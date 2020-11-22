@@ -23,7 +23,7 @@ namespace Scuffed {
 		m_softLimitMeshes = 4;
 		m_minimumNodeHalfSize = 4.0f;
 
-		m_baseNode.halfSize = glm::vec3(20.0f, 20.0f, 20.0f);
+		m_baseNode.halfSize = glm::vec3(20.0f, 20.0f, 20.0f); // TODO: Increase this when sure that expansion is working properly to increase performance!
 		m_baseNode.nodeBB = SN_NEW Box(m_baseNode.halfSize, glm::vec3(0.0f));
 
 		m_baseNode.parentNode = nullptr;
@@ -270,7 +270,7 @@ namespace Scuffed {
 
 				tempCollisionTime = Intersection::continousSAT(entityBoundingBox, otherBoundingBox, physicalComp->velocity, otherPhysicalComp->velocity, dt);
 
-				if (tempCollisionTime >= 0.f && tempCollisionTime < collisionTime) {
+				if (tempCollisionTime > 0.f && tempCollisionTime < collisionTime) {
 					// Collide with bounding box
 					collisionTime = tempCollisionTime;
 					outCollisionEntities.clear();

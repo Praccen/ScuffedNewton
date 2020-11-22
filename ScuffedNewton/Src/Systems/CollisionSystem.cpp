@@ -33,14 +33,24 @@ namespace Scuffed {
 		// ======================== Collision Update ======================================
 		std::vector<UpcomingCollision> collisionOrder;
 
-		// ----1. Find all upcoming collisions, save time until collision and the objects colliding in a list----
+		// 1. Handle resting contacts
+		for (auto& e : entities) {
+			PhysicalBodyComponent* physObj = e->getComponent<PhysicalBodyComponent>();
+			for (size_t i = 0; i < physObj->restingContacts.size(); i++) {
+				if (Intersection::SAT(e->getComponent<BoundingBoxComponent>()->getBoundingBox(), physObj->restingContacts[i]->getComponent<BoundingBoxComponent>()->getBoundingBox())) {
+					handleCollisions(e, physObj->restingContacts[i], 0);
+				}
+			}
+		}
+
+		// ----2. Find all upcoming collisions, save time until collision and the objects colliding in a list----
 		float upcomingTime;
 		std::vector<Entity*> hitEntities;
 		for (auto& e : entities) {
 			hitEntities.clear();
 
 			// Find and save upcoming collision time
-			upcomingTime = getNextCollisionTime(e, hitEntities, INFINITY);
+			upcomingTime = getNextCollisionTime(e, hitEntities, dt);
 
 			if (upcomingTime <= dt) {
 				for (size_t i = 0; i < hitEntities.size(); i++) {
@@ -54,11 +64,11 @@ namespace Scuffed {
 		// ------------------------------------------------------------------------------------------------------
 
 		float timeProcessed = 0.f;
-		// 2. Sort the list by time
+		// 3. Sort the list by time
 		std::sort(collisionOrder.begin(), collisionOrder.end());
 
 		while (collisionOrder.size() > 0 && collisionOrder[0].collisionTime <= dt) {
-			// 3. Advance all objects until collision
+			// 4. Advance all objects until collision
 			for (auto& e : entities) {
 				Box* boundingBox = e->getComponent<BoundingBoxComponent>()->getBoundingBox();
 				PhysicalBodyComponent* phyicalComp = e->getComponent<PhysicalBodyComponent>();
@@ -71,7 +81,7 @@ namespace Scuffed {
 			timeProcessed = collisionOrder[0].collisionTime;
 
 			std::vector<Entity*> entities;
-			// 4. Handle collision of all objects colliding at this time
+			// 5. Handle collision of all objects colliding at this time
 			for (size_t i = 0; i < collisionOrder.size() && collisionOrder[i].collisionTime == timeProcessed; i++) {
 				handleCollisions(collisionOrder[i].entity1, collisionOrder[i].entity2);
 
@@ -84,7 +94,7 @@ namespace Scuffed {
 				}
 			}
 
-			// 5. Remove all collisions for these objects in the list
+			// 6. Remove all collisions for these objects in the list
 			collisionOrder.erase(std::remove_if(collisionOrder.begin(),
 				collisionOrder.end(),
 				[&](UpcomingCollision x) {
@@ -97,14 +107,14 @@ namespace Scuffed {
 				}),
 				collisionOrder.end());
 
-			// 6. Recheck next collision for these objects and add to the list
+			// 7. Recheck next collision for these objects and add to the list. TODO: Update the entities in the octree with the new velocities
 			for (size_t i = 0; i < entities.size(); i++) {
 				hitEntities.clear();
 
 				// Find and save upcoming collision time
 				float upcomingTime = getNextCollisionTime(entities[i], hitEntities, dt) + timeProcessed;
 
-				if (upcomingTime <= dt && upcomingTime > timeProcessed) { // TODO: Solve multiple collisions happening at the same time (upcomingTime > timeProcessed should not be needed)
+				if (upcomingTime <= dt) { // TODO: Solve multiple collisions happening at the same time (upcomingTime > timeProcessed should not be needed)
 					for (size_t i = 0; i < hitEntities.size(); i++) {
 						collisionOrder.emplace_back();
 						collisionOrder.back().collisionTime = upcomingTime;
@@ -115,10 +125,10 @@ namespace Scuffed {
 			}
 
 			std::sort(collisionOrder.begin(), collisionOrder.end());
-			// 7. Repeat 2-6 until no time or no collisions remain
+			// 8. Repeat 3-7 until no time or no collisions remain
 		}
 
-		// 8. Advance all objects if dt has not been reached
+		// 9. Advance all objects if dt has not been reached
 		for (auto& e : entities) {
 			Box* boundingBox = e->getComponent<BoundingBoxComponent>()->getBoundingBox();
 			PhysicalBodyComponent* phyicalComp = e->getComponent<PhysicalBodyComponent>();
@@ -148,7 +158,7 @@ namespace Scuffed {
 		// Get intersection axis
 		glm::vec3 intersectionAxis = glm::normalize(Intersection::getIntersectionAxis(boundingBox1, boundingBox2));
 		// Check that the entities are moving towards each other before going into collision response
-		if (Intersection::dot(physObj2->velocity - physObj1->velocity, intersectionAxis) > 0.0) {
+		if (Intersection::dot(physObj2->velocity - physObj1->velocity, intersectionAxis) >= 0.0) {
 
 			// Do collision response, effecting both entities. TODO: Add the possibility to have one object not effected (constraints)
 			float v1Dot = Intersection::dot(physObj1->velocity, intersectionAxis);
@@ -173,56 +183,56 @@ namespace Scuffed {
 			// Evaluate resting contacts
 			if (recursionDepth < 10) {
 				for (size_t i = 0; i < physObj1->restingContacts.size(); i++) {
-					if (Intersection::SAT(e1->getComponent<BoundingBoxComponent>()->getBoundingBox(), physObj1->restingContacts[i]->getComponent<BoundingBoxComponent>()->getBoundingBox())) {
-						handleCollisions(e1, physObj1->restingContacts[i], recursionDepth + 1); // Recursively call all resting contacts
-					}
-					else {
-						// Remove entities from resting contacts that are no longer resting
-						physObj1->restingContacts.erase(physObj1->restingContacts.begin() + i);
-						i--;
+					if (physObj1->restingContacts[i] != e2 && Intersection::SAT(e1->getComponent<BoundingBoxComponent>()->getBoundingBox(), physObj1->restingContacts[i]->getComponent<BoundingBoxComponent>()->getBoundingBox())) {
+						handleCollisions(e1, physObj1->restingContacts[i], recursionDepth + 1); // Recursively call all (other) resting contacts
 					}
 				}
 
 				for (size_t i = 0; i < physObj2->restingContacts.size(); i++) {
-					if (Intersection::SAT(e2->getComponent<BoundingBoxComponent>()->getBoundingBox(), physObj2->restingContacts[i]->getComponent<BoundingBoxComponent>()->getBoundingBox())) {
-						handleCollisions(e2, physObj2->restingContacts[i], recursionDepth + 1); // Recursively call all resting contacts
-					}
-					else {
-						// Remove entities from resting contacts that are no longer resting
-						physObj2->restingContacts.erase(physObj2->restingContacts.begin() + i);
-						i--;
+					if (physObj2->restingContacts[i] != e1 && Intersection::SAT(e2->getComponent<BoundingBoxComponent>()->getBoundingBox(), physObj2->restingContacts[i]->getComponent<BoundingBoxComponent>()->getBoundingBox())) {
+						handleCollisions(e2, physObj2->restingContacts[i], recursionDepth + 1); // Recursively call all (other) resting contacts
 					}
 				}
 			}
 
-			// ----Save resting contacts----
+		}
 
-			if (recursionDepth == 0) {
-				// Check so that this rest is not already saved
-				for (size_t i = 0; i < physObj1->restingContacts.size(); i++) {
-					if (physObj1->restingContacts[i] == e2) {
-						return;
-					}
-				}
+		// ----Save resting contacts----
+		auto found1 = std::find(physObj1->restingContacts.begin(), physObj1->restingContacts.end(), e2);
+		auto found2 = std::find(physObj2->restingContacts.begin(), physObj2->restingContacts.end(), e1);
 
-				glm::vec3 relVel = physObj1->velocity - physObj2->velocity;
+		float dotProd1 = Intersection::dot(physObj1->velocity, intersectionAxis);
+		float dotProd2 = Intersection::dot(physObj2->velocity, intersectionAxis);
 
-				float dotProd = Intersection::dot(relVel, intersectionAxis);
+		if (std::abs(dotProd1 - dotProd2) < 0.1f) { // The two entities are staying close to each other.
+			// "Stick" the entities to each other, i.e make their velocity along the intersection axis the same (as the slowest one along the intersection axis)
+			if (std::abs(dotProd1) < std::abs(dotProd2)) {
+				physObj2->velocity += (dotProd1 - dotProd2) * intersectionAxis;
+			}
+			else {
+				physObj1->velocity += (dotProd1 - dotProd2) * intersectionAxis;
+			}
 
-				if (std::abs(dotProd) < 0.0001f) { // The two entities are staying close to each other.
-					// "Stick" the entities to each other, i.e make their velocity along the intersection axis the same
-					glm::vec3 equalizer = dotProd * 0.5f * intersectionAxis;
-					physObj1->velocity -= equalizer;
-					physObj2->velocity += equalizer;
+			// Add this as a resting contact for both entities
+			if (found1 == physObj1->restingContacts.end()) {
+				physObj1->restingContacts.emplace_back(e2);
+			}
 
-					// Add this as a resting contact for both entities
-					physObj1->restingContacts.emplace_back(e2);
-
-					physObj2->restingContacts.emplace_back(e1);
-				}
-				// -----------------------------
+			if (found2 == physObj2->restingContacts.end()) {
+				physObj2->restingContacts.emplace_back(e1);
 			}
 		}
+		else if (recursionDepth == 0) {
+			// Remove from resting
+			if (found1 != physObj1->restingContacts.end()) {
+				physObj1->restingContacts.erase(found1);
+			}
+
+			if (found2 != physObj2->restingContacts.end()) {
+				physObj2->restingContacts.erase(found2);
+			}
+		}
+		// -----------------------------
 	}
 
 	//void CollisionSystem::updateManifolds(Entity* e, Box* boundingBox, std::vector<Octree::CollisionInfo>& collisions) {
