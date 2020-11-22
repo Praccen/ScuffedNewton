@@ -31,7 +31,7 @@ namespace Scuffed {
 
 	void CollisionSystem::update(float dt) {
 		// ======================== Collision Update ======================================
-		std::vector<UpcomingCollision> collisionOrder;
+		m_collisionOrder.clear();
 
 		// 1. Handle resting contacts
 		for (auto& e : entities) {
@@ -54,10 +54,10 @@ namespace Scuffed {
 
 			if (upcomingTime <= dt) {
 				for (size_t i = 0; i < hitEntities.size(); i++) {
-					collisionOrder.emplace_back();
-					collisionOrder.back().collisionTime = upcomingTime;
-					collisionOrder.back().entity1 = e;
-					collisionOrder.back().entity2 = hitEntities[i];
+					m_collisionOrder.emplace_back();
+					m_collisionOrder.back().collisionTime = upcomingTime;
+					m_collisionOrder.back().entity1 = e;
+					m_collisionOrder.back().entity2 = hitEntities[i];
 				}
 			}
 		}
@@ -65,47 +65,45 @@ namespace Scuffed {
 
 		float timeProcessed = 0.f;
 		// 3. Sort the list by time
-		std::sort(collisionOrder.begin(), collisionOrder.end());
+		std::sort(m_collisionOrder.begin(), m_collisionOrder.end());
 
-		while (collisionOrder.size() > 0 && collisionOrder[0].collisionTime <= dt) {
+		while (m_collisionOrder.size() > 0 && m_collisionOrder[0].collisionTime <= dt) {
 			// 4. Advance all objects until collision
 			for (auto& e : entities) {
 				Box* boundingBox = e->getComponent<BoundingBoxComponent>()->getBoundingBox();
 				PhysicalBodyComponent* phyicalComp = e->getComponent<PhysicalBodyComponent>();
 				TransformComponent* transform = e->getComponent<TransformComponent>();
 
-				transform->translate(phyicalComp->velocity * (collisionOrder[0].collisionTime - timeProcessed));
+				transform->translate(phyicalComp->velocity * (m_collisionOrder[0].collisionTime - timeProcessed));
 				boundingBox->setBaseMatrix(transform->getMatrixWithUpdate());
 			}
 
-			timeProcessed = collisionOrder[0].collisionTime;
+			timeProcessed = m_collisionOrder[0].collisionTime;
 
 			std::vector<Entity*> entities;
 			// 5. Handle collision of all objects colliding at this time
-			for (size_t i = 0; i < collisionOrder.size() && collisionOrder[i].collisionTime == timeProcessed; i++) {
-				handleCollisions(collisionOrder[i].entity1, collisionOrder[i].entity2);
+			for (size_t i = 0; i < m_collisionOrder.size() && m_collisionOrder[i].collisionTime == timeProcessed; i++) {
+				handleCollisions(m_collisionOrder[i].entity1, m_collisionOrder[i].entity2);
 
 				// Save entities that are colliding currently (Only one time per entity)
-				if (std::find(entities.begin(), entities.end(), collisionOrder[i].entity1) == entities.end()) {
-					entities.emplace_back(collisionOrder[i].entity1);
+				if (std::find(entities.begin(), entities.end(), m_collisionOrder[i].entity1) == entities.end()) {
+					entities.emplace_back(m_collisionOrder[i].entity1);
 				}
-				if (std::find(entities.begin(), entities.end(), collisionOrder[i].entity2) == entities.end()) {
-					entities.emplace_back(collisionOrder[i].entity2);
+				if (std::find(entities.begin(), entities.end(), m_collisionOrder[i].entity2) == entities.end()) {
+					entities.emplace_back(m_collisionOrder[i].entity2);
 				}
 			}
 
 			// 6. Remove all collisions for these objects in the list
-			collisionOrder.erase(std::remove_if(collisionOrder.begin(),
-				collisionOrder.end(),
-				[&](UpcomingCollision x) {
-					for (size_t i = 0; i < entities.size(); i++) {
-						if (x.entity1 == entities[i] || x.entity2 == entities[i]) {
-							return true;
-						}
+			for (size_t i = 0; i < m_collisionOrder.size(); i++) {
+				for (size_t j = 0; j < entities.size(); j++) {
+					if (m_collisionOrder[i].entity1 == entities[j] || m_collisionOrder[i].entity2 == entities[j]) {
+						m_collisionOrder.erase(m_collisionOrder.begin() + i);
+						i--;
+						j = entities.size();
 					}
-					return false;
-				}),
-				collisionOrder.end());
+				}
+			}
 
 			// 7. Recheck next collision for these objects and add to the list. TODO: Update the entities in the octree with the new velocities
 			for (size_t i = 0; i < entities.size(); i++) {
@@ -116,15 +114,15 @@ namespace Scuffed {
 
 				if (upcomingTime <= dt) { // TODO: Solve multiple collisions happening at the same time (upcomingTime > timeProcessed should not be needed)
 					for (size_t i = 0; i < hitEntities.size(); i++) {
-						collisionOrder.emplace_back();
-						collisionOrder.back().collisionTime = upcomingTime;
-						collisionOrder.back().entity1 = entities[i];
-						collisionOrder.back().entity2 = hitEntities[i];
+						m_collisionOrder.emplace_back();
+						m_collisionOrder.back().collisionTime = upcomingTime;
+						m_collisionOrder.back().entity1 = entities[i];
+						m_collisionOrder.back().entity2 = hitEntities[i];
 					}
 				}
 			}
 
-			std::sort(collisionOrder.begin(), collisionOrder.end());
+			std::sort(m_collisionOrder.begin(), m_collisionOrder.end());
 			// 8. Repeat 3-7 until no time or no collisions remain
 		}
 
@@ -158,7 +156,7 @@ namespace Scuffed {
 		// Get intersection axis
 		glm::vec3 intersectionAxis = glm::normalize(Intersection::getIntersectionAxis(boundingBox1, boundingBox2));
 		// Check that the entities are moving towards each other before going into collision response
-		if (Intersection::dot(physObj2->velocity - physObj1->velocity, intersectionAxis) >= 0.0) {
+		if (Intersection::dot(physObj2->velocity - physObj1->velocity, intersectionAxis) > 0.0) {
 
 			// Do collision response, effecting both entities. TODO: Add the possibility to have one object not effected (constraints)
 			float v1Dot = Intersection::dot(physObj1->velocity, intersectionAxis);
@@ -181,7 +179,7 @@ namespace Scuffed {
 			physObj2->velocity += (u2Dot - v2Dot) * (intersectionAxis + frictionCoefficient * eN);
 
 			// Evaluate resting contacts
-			if (recursionDepth < 10) {
+			if (recursionDepth < 3) {
 				for (size_t i = 0; i < physObj1->restingContacts.size(); i++) {
 					if (physObj1->restingContacts[i] != e2 && Intersection::SAT(e1->getComponent<BoundingBoxComponent>()->getBoundingBox(), physObj1->restingContacts[i]->getComponent<BoundingBoxComponent>()->getBoundingBox())) {
 						handleCollisions(e1, physObj1->restingContacts[i], recursionDepth + 1); // Recursively call all (other) resting contacts
@@ -196,6 +194,22 @@ namespace Scuffed {
 			}
 
 		}
+		else if (Intersection::dot(physObj2->velocity - physObj1->velocity, intersectionAxis) == 0.0) {
+			// Evaluate resting contacts
+			if (recursionDepth < 5) {
+				for (size_t i = 0; i < physObj1->restingContacts.size(); i++) {
+					if (physObj1->restingContacts[i] != e2 && Intersection::SAT(e1->getComponent<BoundingBoxComponent>()->getBoundingBox(), physObj1->restingContacts[i]->getComponent<BoundingBoxComponent>()->getBoundingBox())) {
+						handleCollisions(e1, physObj1->restingContacts[i], recursionDepth + 1); // Recursively call all (other) resting contacts
+					}
+				}
+
+				for (size_t i = 0; i < physObj2->restingContacts.size(); i++) {
+					if (physObj2->restingContacts[i] != e1 && Intersection::SAT(e2->getComponent<BoundingBoxComponent>()->getBoundingBox(), physObj2->restingContacts[i]->getComponent<BoundingBoxComponent>()->getBoundingBox())) {
+						handleCollisions(e2, physObj2->restingContacts[i], recursionDepth + 1); // Recursively call all (other) resting contacts
+					}
+				}
+			}
+		}
 
 		// ----Save resting contacts----
 		auto found1 = std::find(physObj1->restingContacts.begin(), physObj1->restingContacts.end(), e2);
@@ -205,12 +219,21 @@ namespace Scuffed {
 		float dotProd2 = Intersection::dot(physObj2->velocity, intersectionAxis);
 
 		if (std::abs(dotProd1 - dotProd2) < 0.1f) { // The two entities are staying close to each other.
-			// "Stick" the entities to each other, i.e make their velocity along the intersection axis the same (as the slowest one along the intersection axis)
-			if (std::abs(dotProd1) < std::abs(dotProd2)) {
+			// "Stick" the entities to each other, i.e make their velocity along the intersection axis the same (as the heaviest one along the intersection axis)
+			if (physObj1->mass > physObj2->mass) {
 				physObj2->velocity += (dotProd1 - dotProd2) * intersectionAxis;
 			}
-			else {
+			else if (physObj1->mass < physObj2->mass) {
 				physObj1->velocity += (dotProd1 - dotProd2) * intersectionAxis;
+			}
+			else {
+				// Same mass, use the slowest speed
+				if (std::abs(dotProd1) < std::abs(dotProd2)) {
+					physObj2->velocity += (dotProd1 - dotProd2) * intersectionAxis;
+				}
+				else {
+					physObj1->velocity += (dotProd1 - dotProd2) * intersectionAxis;
+				}
 			}
 
 			// Add this as a resting contact for both entities

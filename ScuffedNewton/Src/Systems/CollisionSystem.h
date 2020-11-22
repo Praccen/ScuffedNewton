@@ -20,7 +20,7 @@ namespace Scuffed {
 
 	private:
 		Octree* m_octree;
-	private:
+		
 		struct UpcomingCollision {
 			float collisionTime = INFINITY;
 			Entity* entity1 = nullptr;
@@ -30,6 +30,7 @@ namespace Scuffed {
 			}
 		};
 		
+		std::vector<UpcomingCollision> m_collisionOrder;
 	};
 
 }

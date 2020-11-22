@@ -19,6 +19,10 @@ namespace Scuffed {
 			TransformComponent* transform = e->getComponent<TransformComponent>();
 			PhysicalBodyComponent* movement = e->getComponent<PhysicalBodyComponent>();
 
+			if (glm::length2(movement->velocity) < 0.00001f) {
+				movement->velocity = { 0.f, 0.f, 0.f };
+			}
+
 			// Update velocity
 			movement->velocity += (movement->constantAcceleration + movement->accelerationToAdd) * dt;
 
