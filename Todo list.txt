@@ -2,3 +2,4 @@ Add constraints (bodies with "infinite mass")
 Add mesh collisions (with narrow phase detection).
 Add friction over time for resting contacts
 Add angular momentum.
+Add materials with different collision and friction coefficients
