@@ -14,6 +14,7 @@ namespace Scuffed {
 		collisionCoefficient = 0.5f;
 
 		mass = 1.0f;
+		isConstraint = false;
 	}
 
 	PhysicalBodyComponent::~PhysicalBodyComponent() {

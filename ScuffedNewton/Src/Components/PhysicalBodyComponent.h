@@ -21,6 +21,7 @@ namespace Scuffed {
 		float collisionCoefficient;
 
 		float mass;
+		bool isConstraint;
 
 		std::vector<Entity*> restingContacts;
 

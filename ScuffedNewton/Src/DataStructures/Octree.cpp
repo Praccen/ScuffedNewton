@@ -258,15 +258,21 @@ namespace Scuffed {
 		float tempCollisionTime;
 
 		for (size_t i = 0; i < nodes.size(); i++) {
-			//Check against entities
+			// Check against entities
 			for (auto& e : nodes[i]->entities) {
-				//Don't let an entity collide with itself
+				// Don't let an entity collide with itself
 				if (entity->getId() == e->getId()) {
 					continue;
 				}
 
-				Box* otherBoundingBox = e->getComponent<BoundingBoxComponent>()->getBoundingBox();
 				PhysicalBodyComponent* otherPhysicalComp = e->getComponent<PhysicalBodyComponent>();
+
+				// Don't let two constraints collide as it will have no effect
+				if (physicalComp->isConstraint && otherPhysicalComp->isConstraint) {
+					continue;
+				}
+
+				Box* otherBoundingBox = e->getComponent<BoundingBoxComponent>()->getBoundingBox();
 
 				tempCollisionTime = Intersection::continousSAT(entityBoundingBox, otherBoundingBox, physicalComp->velocity, otherPhysicalComp->velocity, dt);
 
