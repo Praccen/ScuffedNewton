@@ -187,6 +187,7 @@
     <ClInclude Include="Src\Shapes\Box.h" />
     <ClInclude Include="Src\Shapes\Ray.h" />
     <ClInclude Include="Src\Shapes\Shape.h" />
+    <ClInclude Include="Src\Shapes\Shapes.h" />
     <ClInclude Include="Src\Shapes\Triangle.h" />
     <ClInclude Include="Src\Components\BoundingBoxComponent.h" />
     <ClInclude Include="Src\Components\Component.h" />

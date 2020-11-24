@@ -5,7 +5,10 @@
 
 #include "Intersection.h"
 
-#include "../Shapes/Shape.h"
+#include "../Shapes/Shapes.h"
+#include "../Components/Components.h"
+#include "../DataTypes/Entity.h"
+#include "../DataTypes/Mesh.h"
 
 namespace Scuffed {
 
@@ -15,6 +18,44 @@ namespace Scuffed {
 #else
 		return glm::dot(v1, v2);
 #endif
+	}
+
+	float Intersection::getCollisionTime(Entity& e1, Entity& e2, const float timeMax) {
+		// Entities will at least have physicalBodyComponents and boundingBoxComponents
+		PhysicalBodyComponent* e1Phys = e1.getComponent<PhysicalBodyComponent>();
+		PhysicalBodyComponent* e2Phys = e2.getComponent<PhysicalBodyComponent>();
+
+		BoundingBoxComponent* e1BoundingBox = e1.getComponent<BoundingBoxComponent>();
+		BoundingBoxComponent* e2BoundingBox = e2.getComponent<BoundingBoxComponent>();
+
+		float boxesTime = continousSAT(e1BoundingBox->getBoundingBox(), e2BoundingBox->getBoundingBox(), e1Phys->velocity, e2Phys->velocity, timeMax);
+
+		if (boxesTime < 0.0f) {
+			return -1.0f;
+		}
+
+		// Check for meshes
+		MeshComponent* e1Mesh = e1.getComponent<MeshComponent>();
+		MeshComponent* e2Mesh = e2.getComponent<MeshComponent>();
+
+		if (e1Mesh && e1Mesh->useMeshCollision && e2Mesh && e2Mesh->useMeshCollision) {
+			// e1Mesh - e2Mesh collision
+			return getMeshMeshCollisionTime(e1, e2, timeMax);
+		}
+		else if (e1Mesh && e1Mesh->useMeshCollision && !e2Mesh) {
+			// e1Mesh - e2Box collision
+			return getMeshBoxCollisionTime(e1, e2, timeMax);
+		}
+		else if (!e1Mesh && e2Mesh && e2Mesh->useMeshCollision) {
+			// e1Box - e2Mesh collision
+			return getMeshBoxCollisionTime(e2, e1, timeMax);
+		}
+		else {
+			// e1Box - e2Box collision
+			return boxesTime;
+		}
+
+		return -1.0f;
 	}
 
 	float Intersection::projectionOverlapTest(const glm::vec3& testVec, const std::vector<glm::vec3>& vertices1, const std::vector<glm::vec3>& vertices2, bool& invertAxis) {
@@ -434,7 +475,7 @@ namespace Scuffed {
 		return true;
 	}
 
-	float Intersection::continousSAT(Shape* shape1, Shape* shape2, const glm::vec3& vel1, const glm::vec3& vel2, const float dt) {
+	float Intersection::continousSAT(Shape* shape1, Shape* shape2, const glm::vec3& vel1, const glm::vec3& vel2, const float timeMax) {
 
 		// Treat shape1 as stationary and shape2 as moving
 		glm::vec3 relativeVel = vel2 - vel1;
@@ -444,14 +485,14 @@ namespace Scuffed {
 
 		const std::vector<glm::vec3>& s1Norms = shape1->getNormals();
 		for (const auto& it : s1Norms) {
-			if (!continousOverlapTest(it, shape1->getVertices(), shape2->getVertices(), relativeVel, timeFirst, timeLast, dt)) {
+			if (!continousOverlapTest(it, shape1->getVertices(), shape2->getVertices(), relativeVel, timeFirst, timeLast, timeMax)) {
 				return -1.0f;
 			}
 		}
 
 		const std::vector<glm::vec3>& s2Norms = shape2->getNormals();
 		for (const auto& it : s2Norms) {
-			if (!continousOverlapTest(it, shape1->getVertices(), shape2->getVertices(), relativeVel, timeFirst, timeLast, dt)) {
+			if (!continousOverlapTest(it, shape1->getVertices(), shape2->getVertices(), relativeVel, timeFirst, timeLast, timeMax)) {
 				return -1.0f;
 			}
 		}
@@ -466,7 +507,7 @@ namespace Scuffed {
 			for (const auto& e2 : s2Edges) {
 				if (e1 != e2 && e1 != -e2) {
 					testVec = glm::normalize(glm::cross(e1, e2));
-					if (!continousOverlapTest(testVec, shape1->getVertices(), shape2->getVertices(), relativeVel, timeFirst, timeLast, dt)) {
+					if (!continousOverlapTest(testVec, shape1->getVertices(), shape2->getVertices(), relativeVel, timeFirst, timeLast, timeMax)) {
 						return -1.0f;
 					}
 				}
@@ -641,25 +682,171 @@ namespace Scuffed {
 		return distanceToPlane;
 	}
 
-	bool Intersection::FrustumPlaneWithAabb(const glm::vec3& planeNormal, const float planeDistance, const glm::vec3* aabbCorners) {
-		// Find point on positive side of plane
-		for (short i = 0; i < 8; i++) {
-			if ((glm::dot(aabbCorners[i], planeNormal) + planeDistance) < 0.0f) {
-				return true;
+	float Intersection::getMeshBoxCollisionTime(Entity& meshE, Entity& boxE, const float timeMax) {
+		PhysicalBodyComponent* meshPhys = meshE.getComponent<PhysicalBodyComponent>();
+		PhysicalBodyComponent* boxPhys = boxE.getComponent<PhysicalBodyComponent>();
+
+		MeshComponent* mesh = meshE.getComponent<MeshComponent>();
+		BoundingBoxComponent* box = boxE.getComponent<BoundingBoxComponent>();
+
+		TransformComponent* transform = meshE.getComponent<TransformComponent>();
+
+		glm::mat4 transformMatrix(1.0f);
+		if (transform) {
+			transformMatrix = transform->getMatrixWithUpdate();
+		}
+
+		box->getBoundingBox()->setMatrix(glm::inverse(transformMatrix));
+
+		//Convert velocities to local space for mesh
+		glm::vec3 zeroPoint = glm::inverse(transformMatrix) * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+		glm::vec3 newEntityVel = glm::inverse(transformMatrix) * glm::vec4(boxPhys->velocity, 1.0f);
+		newEntityVel = newEntityVel - zeroPoint;
+		glm::vec3 otherEntityVel = glm::inverse(transformMatrix) * glm::vec4(meshPhys->velocity, 1.0f);
+		otherEntityVel = otherEntityVel - zeroPoint;
+
+		// Get nodes to test continous collision against from narrow phase octree in mesh
+		std::vector<Mesh::OctNode*> nodes;
+		mesh->mesh->getCollidingNodesContinous(nodes, box->getBoundingBox(), newEntityVel, otherEntityVel, timeMax);
+
+		// Triangle to set mesh data to avoid creating new shapes for each triangle in mesh
+		Triangle triangle(glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(0.0f));
+
+		float time = INFINITY;
+
+		for (unsigned int i = 0; i < nodes.size(); i++) {
+			int numTriangles = nodes[i]->nrOfTriangles;
+			bool hasIndices = mesh->mesh->getNumberOfIndices() > 0;
+			bool hasVertices = mesh->mesh->getNumberOfVertices() > 0;
+
+			for (int j = 0; j < numTriangles; j++) {
+				if (hasIndices) { // Has indices
+					triangle.setData(mesh->mesh->getVertexPosition(mesh->mesh->getVertexIndex(nodes[i]->triangles[j])), mesh->mesh->getVertexPosition(mesh->mesh->getVertexIndex(nodes[i]->triangles[j] + 1)), mesh->mesh->getVertexPosition(mesh->mesh->getVertexIndex(nodes[i]->triangles[j] + 2)));
+				}
+				else if (hasVertices) {
+					triangle.setData(mesh->mesh->getVertexPosition(nodes[i]->triangles[j]), mesh->mesh->getVertexPosition(nodes[i]->triangles[j] + 1), mesh->mesh->getVertexPosition(nodes[i]->triangles[j] + 2));
+				}
+
+				float newTime = Intersection::continousSAT(box->getBoundingBox(), &triangle, newEntityVel, otherEntityVel, std::min(time, timeMax));
+
+				if (newTime > 0.f) {
+					time = newTime;
+				}
 			}
 		}
-		return false;
+		box->getBoundingBox()->setMatrix(glm::mat4(1.0f)); //Reset bounding box matrix to identity
+		return time;
 	}
 
-	//bool Intersection::FrustumWithAabb(const Frustum& frustum, const glm::vec3* aabbCorners) {
-	//	for (int i = 0; i < 6; i++) {
-	//		if (!FrustumPlaneWithAabb(glm::vec3(frustum.planes[i].x, frustum.planes[i].y, frustum.planes[i].z), frustum.planes[i].w, aabbCorners)) {
-	//			//Aabb is on the wrong side of a plane - it is outside the frustum.
-	//			return false;
-	//		}
-	//	}
-	//	return true;
-	//}
+	float Intersection::getMeshMeshCollisionTime(Entity& e1, Entity& e2, const float timeMax) {
+		// Entities will at least have physicalBodyComponents and boundingBoxComponents
+		PhysicalBodyComponent* e1Phys = e1.getComponent<PhysicalBodyComponent>();
+		PhysicalBodyComponent* e2Phys = e2.getComponent<PhysicalBodyComponent>();
+
+		BoundingBoxComponent* e1Box = e1.getComponent<BoundingBoxComponent>();
+		BoundingBoxComponent* e2Box = e2.getComponent<BoundingBoxComponent>();
+
+		// Check for meshes
+		MeshComponent* e1Mesh = e1.getComponent<MeshComponent>();
+		MeshComponent* e2Mesh = e2.getComponent<MeshComponent>();
+
+		TransformComponent* e1Transform = e1.getComponent<TransformComponent>();
+		TransformComponent* e2Transform = e2.getComponent<TransformComponent>();
+
+		// ----Nodes for mesh1----
+		glm::mat4 transformMatrix1(1.0f);
+		if (e1Transform) {
+			transformMatrix1 = e1Transform->getMatrixWithUpdate();
+		}
+
+		e2Box->getBoundingBox()->setMatrix(glm::inverse(transformMatrix1));
+
+		//Convert velocities to local space for mesh
+		glm::vec3 zeroPoint = glm::inverse(transformMatrix1) * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+		glm::vec3 newEntityVel = glm::inverse(transformMatrix1) * glm::vec4(e2Phys->velocity, 1.0f);
+		newEntityVel = newEntityVel - zeroPoint;
+		glm::vec3 otherEntityVel = glm::inverse(transformMatrix1) * glm::vec4(e1Phys->velocity, 1.0f);
+		otherEntityVel = otherEntityVel - zeroPoint;
+
+		// Get nodes to test continous collision against from narrow phase octree in mesh
+		std::vector<Mesh::OctNode*> nodes1;
+		e1Mesh->mesh->getCollidingNodesContinous(nodes1, e2Box->getBoundingBox(), newEntityVel, otherEntityVel, timeMax);
+
+		e2Box->getBoundingBox()->setMatrix(glm::mat4(1.0f)); //Reset bounding box matrix to identity
+		// -----------------------
+
+		// ----Nodes for mesh2----
+		glm::mat4 transformMatrix2 (1.0f);
+		if (e2Transform) {
+			transformMatrix2 = e2Transform->getMatrixWithUpdate();
+		}
+
+		e1Box->getBoundingBox()->setMatrix(glm::inverse(transformMatrix2));
+
+		//Convert velocities to local space for mesh
+		zeroPoint = glm::inverse(transformMatrix2) * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+		newEntityVel = glm::inverse(transformMatrix2) * glm::vec4(e1Phys->velocity, 1.0f);
+		newEntityVel = newEntityVel - zeroPoint;
+		otherEntityVel = glm::inverse(transformMatrix2) * glm::vec4(e2Phys->velocity, 1.0f);
+		otherEntityVel = otherEntityVel - zeroPoint;
+
+		// Get nodes to test continous collision against from narrow phase octree in mesh
+		std::vector<Mesh::OctNode*> nodes2;
+		e2Mesh->mesh->getCollidingNodesContinous(nodes2, e1Box->getBoundingBox(), newEntityVel, otherEntityVel, timeMax);
+
+		e1Box->getBoundingBox()->setMatrix(glm::mat4(1.0f)); //Reset bounding box matrix to identity
+		// -----------------------
+
+		float time = INFINITY;
+
+		// Triangle to set mesh data to avoid creating new shapes for each triangle in mesh
+		Triangle triangle1(glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(0.0f));
+		triangle1.setBaseMatrix(transformMatrix1);
+		Triangle triangle2(glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(0.0f));
+		triangle2.setBaseMatrix(transformMatrix2);
+
+		bool hasIndices1 = e1Mesh ->mesh->getNumberOfIndices() > 0;
+		bool hasVertices1 = e1Mesh->mesh->getNumberOfVertices() > 0;
+		bool hasIndices2 = e2Mesh->mesh->getNumberOfIndices() > 0;
+		bool hasVertices2 = e2Mesh->mesh->getNumberOfVertices() > 0;
+
+		for (size_t i = 0; i < nodes1.size(); i++) {
+			nodes1[i]->nodeBB->setBaseMatrix(transformMatrix1);
+			nodes1[i]->nodeBB->setMatrix(glm::inverse(transformMatrix2)); // Local space for mesh2
+			for (size_t j = 0; j < nodes2.size(); j++) {
+				float tempTime = Intersection::continousSAT(nodes1[i]->nodeBB, nodes2[j]->nodeBB, newEntityVel, otherEntityVel, std::min(time, timeMax));
+				if (tempTime >= 0.0f) {
+					for (int k = 0; k < nodes1[i]->nrOfTriangles; k++) {
+						if (hasIndices1) { // Has indices
+							triangle1.setData(e1Mesh->mesh->getVertexPosition(e1Mesh->mesh->getVertexIndex(nodes1[i]->triangles[k])), e1Mesh->mesh->getVertexPosition(e1Mesh->mesh->getVertexIndex(nodes1[i]->triangles[k] + 1)), e1Mesh->mesh->getVertexPosition(e1Mesh->mesh->getVertexIndex(nodes1[i]->triangles[k] + 2)));
+						}
+						else if (hasVertices1) {
+							triangle1.setData(e1Mesh->mesh->getVertexPosition(nodes1[i]->triangles[k]), e1Mesh->mesh->getVertexPosition(nodes1[i]->triangles[k] + 1), e1Mesh->mesh->getVertexPosition(nodes1[i]->triangles[k] + 2));
+						}
+
+						for (int l = 0; l < nodes2[j]->nrOfTriangles; l++) {
+							if (hasIndices2) { // Has indices
+								triangle2.setData(e2Mesh->mesh->getVertexPosition(e2Mesh->mesh->getVertexIndex(nodes2[j]->triangles[l])), e2Mesh->mesh->getVertexPosition(e2Mesh->mesh->getVertexIndex(nodes2[j]->triangles[l] + 1)), e2Mesh->mesh->getVertexPosition(e2Mesh->mesh->getVertexIndex(nodes2[j]->triangles[l] + 2)));
+							}
+							else if (hasVertices2) {
+								triangle2.setData(e2Mesh->mesh->getVertexPosition(nodes2[j]->triangles[l]), e2Mesh->mesh->getVertexPosition(nodes2[j]->triangles[l] + 1), e2Mesh->mesh->getVertexPosition(nodes2[j]->triangles[l] + 2));
+							}
+
+							float newTime = Intersection::continousSAT(&triangle1, &triangle2, e1Phys->velocity, e2Phys->velocity, std::min(time, timeMax));
+
+							if (newTime >= 0.f) {
+								time = newTime;
+							}
+						}
+					}
+				}
+			}
+			nodes1[i]->nodeBB->setBaseMatrix(glm::mat4(1.0f));
+			nodes1[i]->nodeBB->setMatrix(glm::mat4(1.0f));
+		}
+
+		return time;
+	}
 
 	glm::vec3 Intersection::PointProjectedOnPlane(const glm::vec3& point, const glm::vec3& planeNormal, const float planeDistance) {
 		const glm::vec3 pointOnPlane = planeNormal * planeDistance;

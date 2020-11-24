@@ -14,6 +14,7 @@ namespace Scuffed {
 		virtual void notifyChange();
 
 		Mesh* mesh = nullptr;
+		bool useMeshCollision = true;
 
 		static std::string ID;
 		

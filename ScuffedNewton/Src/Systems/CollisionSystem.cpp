@@ -50,16 +50,18 @@ namespace Scuffed {
 		for (auto& e : entities) {
 			hitEntities.clear();
 
-			// Find and save upcoming collision time
-			upcomingTime = getNextCollisionTime(e, hitEntities, dt);
+			if (!e->getComponent<PhysicalBodyComponent>()->isConstraint) { // Don't check for constraints since these will be collided with anyway
+				// Find and save upcoming collision time
+				upcomingTime = getNextCollisionTime(e, hitEntities, dt);
 
-			// TODO: add something to avoid duplicates
-			if (upcomingTime <= dt) {
-				for (size_t i = 0; i < hitEntities.size(); i++) {
-					m_collisionOrder.emplace_back();
-					m_collisionOrder.back().collisionTime = upcomingTime;
-					m_collisionOrder.back().entity1 = e;
-					m_collisionOrder.back().entity2 = hitEntities[i];
+				// TODO: add something to avoid duplicates
+				if (upcomingTime <= dt) {
+					for (size_t i = 0; i < hitEntities.size(); i++) {
+						m_collisionOrder.emplace_back();
+						m_collisionOrder.back().collisionTime = upcomingTime;
+						m_collisionOrder.back().entity1 = e;
+						m_collisionOrder.back().entity2 = hitEntities[i];
+					}
 				}
 			}
 		}

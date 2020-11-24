@@ -40,8 +40,9 @@ namespace Scuffed {
 			std::vector<int> triangles;
 		};
 
-		void getTrianglesForCollisionTesting(std::vector<int>& triangles, Shape* shape);
-		void getTrianglesForContinousCollisionTesting(std::vector<int>& triangles, Shape* shape, glm::vec3 &shapeVel, glm::vec3 &meshVel, const float maxTime);
+		OctNode* getOctreeBaseNode();
+
+		void getCollidingNodesContinous(std::vector<OctNode*>& nodes, Box* box, glm::vec3& boxVel, glm::vec3& meshVel, const float maxTime);
 
 	private:
 		// ----Narrow phase octree----
@@ -51,13 +52,13 @@ namespace Scuffed {
 		
 		void setUpOctree();
 		void addTrianglesToOctree(std::vector<int> trianglesToAdd);
-		bool addTriangleRec(int triangle, OctNode* node);
+		void addTriangleRec(int triangle, OctNode* node);
 		void expandBaseNode(glm::vec3 direction);
+		bool isIntersecting(int triangle, OctNode* node);
 		glm::vec3 findCornerOutside(int triangle, OctNode* testNode);
 		void clean(OctNode* node);
 
-		void collisionTrianglesRec(std::vector<int> &triangles, Shape* shape, OctNode* node);
-		void continousCollisionTrianglesRec(std::vector<int>& triangles, Shape* shape, glm::vec3& shapeVel, glm::vec3& meshVel, OctNode* node, const float maxTime);
+		void getCollidingNodesContinousRec(std::vector<OctNode*>& nodes, Box* box, glm::vec3& boxVel, glm::vec3& meshVel, OctNode* node, const float maxTime);
 		// ---------------------------
 	};
 }

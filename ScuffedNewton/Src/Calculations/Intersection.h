@@ -11,6 +11,8 @@ namespace Scuffed {
 	public:
 		static float dot(const glm::vec3& v1, const glm::vec3& v2);
 
+		static float getCollisionTime(Entity& e1, Entity& e2, const float timeMax);
+
 		// ----SAT functions----
 		static float projectionOverlapTest(const glm::vec3& testVec, const std::vector<glm::vec3>& vertices1, const std::vector<glm::vec3>& vertices2, bool &invertAxis);
 		static bool SAT(Shape* shape1, Shape* shape2);
@@ -19,7 +21,7 @@ namespace Scuffed {
 		static bool SAT(Shape* shape1, Shape* shape2, std::vector<glm::vec3>& manifold);
 
 		static bool continousOverlapTest(const glm::vec3& testVec, const std::vector<glm::vec3>& vertices1, const std::vector<glm::vec3>& vertices2, const glm::vec3& relativeVel, float& timeFirst, float& timeLast, const float timeMax);
-		static float continousSAT(Shape* shape1, Shape* shape2, const glm::vec3& vel1, const glm::vec3& vel2, const float dt);
+		static float continousSAT(Shape* shape1, Shape* shape2, const glm::vec3& vel1, const glm::vec3& vel2, const float timeMax);
 
 
 		static glm::vec3 getIntersectionAxis(Shape* shape1, Shape* shape2); // Always returns the intersection axis pointing from shape2 towards shape1
@@ -35,8 +37,8 @@ namespace Scuffed {
 		Intersection() {};
 		~Intersection() {};
 
-		static bool FrustumPlaneWithAabb(const glm::vec3& planeNormal, const float planeDistance, const glm::vec3* aabbCorners);
-		//static bool FrustumWithAabb(const Frustum& frustum, const glm::vec3* aabbCorners);
+		static float getMeshBoxCollisionTime(Entity& meshE, Entity& boxE, const float timeMax);
+		static float getMeshMeshCollisionTime(Entity& e1, Entity& e2, const float timeMax);
 
 		static glm::vec3 PointProjectedOnPlane(const glm::vec3& point, const glm::vec3& planeNormal, const float planeDistance);
 

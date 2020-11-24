@@ -82,14 +82,12 @@ namespace Scuffed {
 		return m_nrOfIndices;
 	}
 
-	void Mesh::getTrianglesForCollisionTesting(std::vector<int> &triangles, Shape* shape) {
-		//triangles = m_baseNode.triangles;
-		collisionTrianglesRec(triangles, shape, &m_baseNode);
+	Mesh::OctNode* Mesh::getOctreeBaseNode() {
+		return &m_baseNode;
 	}
 
-	void Mesh::getTrianglesForContinousCollisionTesting(std::vector<int>& triangles, Shape* shape, glm::vec3& shapeVel, glm::vec3& meshVel, const float maxTime) {
-		//triangles = m_baseNode.triangles;
-		continousCollisionTrianglesRec(triangles, shape, shapeVel, meshVel, &m_baseNode, maxTime);
+	void Mesh::getCollidingNodesContinous(std::vector<OctNode*>& nodes, Box* box, glm::vec3& boxVel, glm::vec3& meshVel, const float maxTime) {
+		getCollidingNodesContinousRec(nodes, box, boxVel, meshVel, &m_baseNode, maxTime);
 	}
 
 	void Mesh::setUpOctree() {
@@ -142,28 +140,25 @@ namespace Scuffed {
 		addTrianglesToOctree(trianglesToAdd);
 	}
 
-	bool Mesh::addTriangleRec(int triangle, OctNode* currentNode) {
-		bool entityAdded = false;
+	void Mesh::addTriangleRec(int triangle, OctNode* currentNode) {
+		if (!currentNode->parentNode) { // Base node
+			glm::vec3 isInsideVec = findCornerOutside(triangle, currentNode);
 
-		glm::vec3 isInsideVec = findCornerOutside(triangle, currentNode);
-		if (glm::length(isInsideVec) < 1.0f) {
-			//The current node does contain the whole triangle. Keep going deeper or add to this node if no smaller nodes are allowed
+			if (glm::length(isInsideVec) > 0.0f) {
+				//Expand base node
+				expandBaseNode(isInsideVec);
+				//Try to add triangle to new base node
+				addTriangleRec(triangle, &m_baseNode);
+				return;
+			}
+		}
+
+		
+		if (isIntersecting(triangle, currentNode)) {
 			if (currentNode->childNodes.size() > 0) { //Not leaf node
 				//Recursively call children
 				for (unsigned int i = 0; i < currentNode->childNodes.size(); i++) {
-					entityAdded = addTriangleRec(triangle, &currentNode->childNodes[i]);
-
-					if (entityAdded) {
-						//Triangle was added to child node. Break loop. No need to try the rest of the children
-						i = (unsigned int)currentNode->childNodes.size();
-					}
-				}
-
-				if (!entityAdded) { //Triangle did not fit in any child node
-					//Add triangle to this node
-					currentNode->triangles.push_back(triangle);
-					currentNode->nrOfTriangles++;
-					entityAdded = true;
+					addTriangleRec(triangle, &currentNode->childNodes[i]);
 				}
 			}
 			else { //Is leaf node
@@ -171,7 +166,6 @@ namespace Scuffed {
 					//Add triangle to this node
 					currentNode->triangles.push_back(triangle);
 					currentNode->nrOfTriangles++;
-					entityAdded = true;
 				}
 				else {
 					//Create more children
@@ -188,30 +182,20 @@ namespace Scuffed {
 
 								//Try to put triangles that was in this leaf node in the new child nodes.
 								for (int l = 0; l < currentNode->nrOfTriangles; l++) {
-									if (addTriangleRec(currentNode->triangles[l], &currentNode->childNodes.back())) {
-										//Triangle was successfully added to child. Remove it from this node.
-										currentNode->triangles.erase(currentNode->triangles.begin() + l);
-										currentNode->nrOfTriangles--;
-										l--;
-									}
+									addTriangleRec(currentNode->triangles[l], &currentNode->childNodes.back());
 								}
 							}
 						}
 					}
 
+					currentNode->triangles.clear();
+					currentNode->nrOfTriangles = 0;
+
 					//Try to add the triangle to newly created child nodes. It gets placed in current node within recursion if the children can not contain it.
-					entityAdded = addTriangleRec(triangle, currentNode);
+					addTriangleRec(triangle, currentNode);
 				}
 			}
 		}
-		else if (!currentNode->parentNode) { //This is base node
-			//Expand base node
-			expandBaseNode(isInsideVec);
-			//Try to add triangle to new base node
-			addTriangleRec(triangle, &m_baseNode);
-		}
-
-		return entityAdded;
 	}
 
 	void Mesh::addTrianglesToOctree(std::vector<int> trianglesToAdd) {
@@ -258,6 +242,28 @@ namespace Scuffed {
 		m_baseNode = newBaseNode;
 	}
 
+	bool Mesh::isIntersecting(int triangle, OctNode* node) {
+		glm::vec3 testNodeHalfSize = node->halfSize;
+
+		for (int i = 0; i < 3; i++) {
+			glm::vec3 distanceVec(0.f);
+			if (m_nrOfIndices > 0) { // Has indices
+				distanceVec = getVertexPosition(m_indices[triangle + i]) - node->nodeBB->getMiddle();
+			}
+			else {
+				distanceVec = getVertexPosition(triangle + i) - node->nodeBB->getMiddle();
+			}
+
+			if (std::abs(distanceVec.x) <= testNodeHalfSize.x &&
+				std::abs(distanceVec.y) <= testNodeHalfSize.y &&
+				std::abs(distanceVec.z) <= testNodeHalfSize.z) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	glm::vec3 Mesh::findCornerOutside(int triangle, OctNode* testNode) {
 		//Find if any corner of a triangle is outside of node. Returns a vector towards the outside corner if one is found. Otherwise a 0.0f vec is returned.
 		glm::vec3 directionVec(0.0f, 0.0f, 0.0f);
@@ -295,26 +301,19 @@ namespace Scuffed {
 		}
 	}
 
-	void Mesh::collisionTrianglesRec(std::vector<int>& triangles, Shape* shape, OctNode* node) {
-		if (Intersection::SAT(node->nodeBB, shape)) {
-			triangles.insert(triangles.end(), node->triangles.begin(), node->triangles.end());
+	void Mesh::getCollidingNodesContinousRec(std::vector<OctNode*>& nodes, Box* box, glm::vec3& boxVel, glm::vec3& meshVel, OctNode* node, const float maxTime) {
+		if (Intersection::continousSAT(box, node->nodeBB, boxVel, meshVel, maxTime) >= 0.f) {
 
 			int nrOfChildNodes = node->childNodes.size();
-			for (int i = 0; i < nrOfChildNodes; i++) {
-				collisionTrianglesRec(triangles, shape, &node->childNodes[i]);
+
+			if (nrOfChildNodes > 0) {
+				for (int i = 0; i < nrOfChildNodes; i++) {
+					getCollidingNodesContinousRec(nodes, box, boxVel, meshVel, &node->childNodes[i], maxTime);
+				}
+			}
+			else { // Leaf node
+				nodes.emplace_back(node);
 			}
 		}
 	}
-
-	void Mesh::continousCollisionTrianglesRec(std::vector<int>& triangles, Shape* shape, glm::vec3& shapeVel, glm::vec3& meshVel, OctNode* node, const float maxTime) {
-		if (Intersection::continousSAT(shape, node->nodeBB, shapeVel, meshVel, maxTime) >= 0.f) {
-			triangles.insert(triangles.end(), node->triangles.begin(), node->triangles.end());
-
-			int nrOfChildNodes = node->childNodes.size();
-			for (int i = 0; i < nrOfChildNodes; i++) {
-				continousCollisionTrianglesRec(triangles, shape, shapeVel, meshVel, &node->childNodes[i], maxTime);
-			}
-		}
-	}
-
 }

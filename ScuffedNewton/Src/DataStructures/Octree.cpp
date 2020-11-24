@@ -97,22 +97,20 @@ namespace Scuffed {
 	}
 
 	void Octree::addEntityRec(Entity* newEntity, Node* currentNode, float dt) {
-		if (currentNode->childNodes.size() > 0) { // Not leaf node
-			// Recursively call children
-			for (unsigned int i = 0; i < currentNode->childNodes.size(); i++) {
-				addEntityRec(newEntity, &currentNode->childNodes[i], dt);
+		Box* nodeBoundingBox = currentNode->nodeBB;
+		Box* entityBoundingBox = newEntity->getComponent<BoundingBoxComponent>()->getBoundingBox();
+		glm::vec3& entityVel = newEntity->getComponent<PhysicalBodyComponent>()->velocity;
+
+		float tempCollisionTime = Intersection::continousSAT(entityBoundingBox, nodeBoundingBox, entityVel, glm::vec3(0.f), dt);
+
+		if (tempCollisionTime >= 0.f) { // See if entity will be in this node during this frame
+			if (currentNode->childNodes.size() > 0) { // Not leaf node
+				// Recursively call children
+				for (unsigned int i = 0; i < currentNode->childNodes.size(); i++) {
+					addEntityRec(newEntity, &currentNode->childNodes[i], dt);
+				}
 			}
-		}
-		else { // Is leaf node
-
-			Box* nodeBoundingBox = currentNode->nodeBB;
-			Box* entityBoundingBox = newEntity->getComponent<BoundingBoxComponent>()->getBoundingBox();
-			glm::vec3& entityVel = newEntity->getComponent<PhysicalBodyComponent>()->velocity;
-
-			// See if entity will be in this node during this frame
-			float tempCollisionTime = Intersection::continousSAT(entityBoundingBox, nodeBoundingBox, entityVel, glm::vec3(0.f), dt);
-			glm::vec3 tempVec = findCornerOutside(newEntity, currentNode, dt);
-			if (tempCollisionTime >= 0.f) {
+			else { // Is leaf node
 				if (currentNode->entities.size() < m_softLimitMeshes || currentNode->halfSize.x / 2.0f < m_minimumNodeHalfSize) { // Soft limit not reached or smaller nodes are not allowed
 				// Add entity to this node
 					currentNode->entities.push_back(newEntity);
@@ -142,7 +140,7 @@ namespace Scuffed {
 						if (item != m_entityOccurances[tempEntityPointer].end()) {
 							m_entityOccurances[tempEntityPointer].erase(item);
 						}
-						
+
 					}
 
 					currentNode->entities.clear();
@@ -186,7 +184,7 @@ namespace Scuffed {
 			}
 		}
 
-		returnValue += (int) currentNode->entities.size();
+		returnValue += (int)currentNode->entities.size();
 
 		return returnValue;
 	}
@@ -272,12 +270,9 @@ namespace Scuffed {
 					continue;
 				}
 
-				Box* otherBoundingBox = e->getComponent<BoundingBoxComponent>()->getBoundingBox();
-
-				tempCollisionTime = Intersection::continousSAT(entityBoundingBox, otherBoundingBox, physicalComp->velocity, otherPhysicalComp->velocity, dt);
+				tempCollisionTime = Intersection::getCollisionTime(*entity, *e, std::min(collisionTime, dt));
 
 				if (tempCollisionTime > 0.f && tempCollisionTime < collisionTime) {
-					// Collide with bounding box
 					collisionTime = tempCollisionTime;
 					outCollisionEntities.clear();
 					outCollisionEntities.emplace_back(e);
@@ -285,98 +280,6 @@ namespace Scuffed {
 				else if (tempCollisionTime == collisionTime) {
 					outCollisionEntities.emplace_back(e);
 				}
-
-				// Mesh collisions
-				//const MeshComponent* mesh = e->getComponent<MeshComponent>();
-				//TransformComponent* transform = e->getComponent<TransformComponent>();
-				//const CollidableComponent* collidable = e->getComponent<CollidableComponent>();
-
-				//if (mesh && !(doSimpleCollisions && collidable->allowSimpleCollision)) {
-				//	// Entity has a model. Check collision with meshes
-				//	glm::mat4 transformMatrix(1.0f);
-				//	if (transform) {
-				//		transformMatrix = transform->getMatrixWithUpdate();
-				//	}
-
-				//	entityBoundingBox->setMatrix(glm::inverse(transformMatrix));
-
-				//	//Convert velocities to local space for mesh
-				//	glm::vec3 zeroPoint = glm::inverse(transformMatrix) * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-				//	glm::vec3 newEntityVel = glm::inverse(transformMatrix) * glm::vec4(entityVel, 1.0f);
-				//	newEntityVel = newEntityVel - zeroPoint;
-				//	otherEntityVel = glm::inverse(transformMatrix) * glm::vec4(otherEntityVel, 1.0f);
-				//	otherEntityVel = otherEntityVel - zeroPoint;
-				//	//glm::vec3 newEntityVel = entityVel;
-
-				//	// Get triangles to test continous collision against from narrow phase octree in mesh
-				//	std::vector<int> triangles;
-				//	mesh->mesh->getTrianglesForContinousCollisionTesting(triangles, entityBoundingBox, newEntityVel, otherEntityVel, dt);
-
-				//	// Triangle to set mesh data to avoid creating new shapes for each triangle in mesh
-				//	Triangle triangle(glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(0.0f));
-
-				//	//for (unsigned int j = 0; j < model->getModel()->getNumberOfMeshes(); j++) {
-				//	int numTriangles = triangles.size();
-				//	bool hasIndices = mesh->mesh->getNumberOfIndices() > 0;
-				//	bool hasVertices = mesh->mesh->getNumberOfVertices() > 0;
-
-				//	for (int j = 0; j < numTriangles; j++) {
-				//		if (hasIndices) { // Has indices
-				//			triangle.setData(mesh->mesh->getVertexPosition(mesh->mesh->getVertexIndex(triangles[j])), mesh->mesh->getVertexPosition(mesh->mesh->getVertexIndex(triangles[j] + 1)), mesh->mesh->getVertexPosition(mesh->mesh->getVertexIndex(triangles[j] + 2)));
-				//		}
-				//		else if (hasVertices) {
-				//			triangle.setData(mesh->mesh->getVertexPosition(triangles[j]), mesh->mesh->getVertexPosition(triangles[j] + 1), mesh->mesh->getVertexPosition(triangles[j] + 2));
-				//		}
-				//		//triangle.setBaseMatrix(transformMatrix);
-
-				//		float time = Intersection::continousSAT(entityBoundingBox, &triangle, newEntityVel, otherEntityVel, dt);
-
-				//		if (time > 0.f && time < collisionTime) {
-				//			collisionInfo.clear();
-				//			collisionTime = time;
-				//			collisionInfo.emplace_back();
-				//			collisionInfo.back().entity = e;
-				//			collisionInfo.back().shape = std::make_shared<Triangle>(triangle);
-				//			collisionInfo.back().shape->setBaseMatrix(transformMatrix);
-				//		}
-				//		else if (time == collisionTime) {
-				//			collisionInfo.emplace_back();
-				//			collisionInfo.back().entity = e;
-				//			collisionInfo.back().shape = std::make_shared<Triangle>(triangle);
-				//			collisionInfo.back().shape->setBaseMatrix(transformMatrix);
-				//		}
-				//		else if (time == 0.f) {
-				//			zeroDistances.emplace_back();
-				//			zeroDistances.back().entity = e;
-				//			zeroDistances.back().shape = std::make_shared<Triangle>(triangle);
-				//			zeroDistances.back().shape->setBaseMatrix(transformMatrix);
-				//		}
-				//	}
-				//	//}
-
-				//	entityBoundingBox->setMatrix(glm::mat4(1.0f)); //Reset bounding box matrix to identity
-				//}
-				//else { // No model or simple collision opportunity
-				//	if (tempCollisionTime > 0.f && tempCollisionTime < collisionTime) {
-				//		// Collide with bounding box
-				//		collisionTime = tempCollisionTime;
-				//		collisionInfo.clear();
-				//		collisionInfo.emplace_back();
-				//		collisionInfo.back().entity = e;
-				//		collisionInfo.back().shape = std::make_shared<Box>(*otherBoundingBox);
-				//	}
-				//	else if (tempCollisionTime == collisionTime) {
-				//		collisionInfo.emplace_back();
-				//		collisionInfo.back().entity = e;
-				//		collisionInfo.back().shape = std::make_shared<Box>(*otherBoundingBox);
-				//	}
-				//	else if (tempCollisionTime == 0.f) {
-				//		zeroDistances.emplace_back();
-				//		zeroDistances.back().entity = e;
-				//		zeroDistances.back().shape = std::make_shared<Box>(*otherBoundingBox);
-				//	}
-				//}
-
 			}
 		}
 	}
