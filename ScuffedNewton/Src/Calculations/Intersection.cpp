@@ -801,9 +801,9 @@ namespace Scuffed {
 
 		// Triangle to set mesh data to avoid creating new shapes for each triangle in mesh
 		Triangle triangle1(glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(0.0f));
-		triangle1.setBaseMatrix(transformMatrix1);
 		Triangle triangle2(glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(0.0f));
 		triangle2.setBaseMatrix(transformMatrix2);
+		triangle2.setMatrix(glm::inverse(transformMatrix1));
 
 		bool hasIndices1 = e1Mesh ->mesh->getNumberOfIndices() > 0;
 		bool hasVertices1 = e1Mesh->mesh->getNumberOfVertices() > 0;
