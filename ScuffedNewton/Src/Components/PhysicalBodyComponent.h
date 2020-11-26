@@ -1,12 +1,10 @@
 #pragma once
 
 #include "Component.h"
-#include "../DataStructures/Octree.h"
 #include <glm/gtc/quaternion.hpp>
-
+#include "../Calculations/Intersection.h"
 
 namespace Scuffed {
-
 	class PhysicalBodyComponent : public Component {
 	public:
 		PhysicalBodyComponent();
@@ -23,7 +21,7 @@ namespace Scuffed {
 		float mass;
 		bool isConstraint;
 
-		std::vector<Entity*> restingContacts;
+		std::vector<Intersection::CollisionTimeInfo> restingContacts;
 
 		static std::string ID;
 	};

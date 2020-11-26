@@ -3,6 +3,7 @@
 #include <glm/glm.hpp>
 #include <vector>
 #include <unordered_map>
+#include "../Calculations/Intersection.h"
 
 namespace Scuffed {
 
@@ -52,7 +53,7 @@ namespace Scuffed {
 
 		virtual void update(float dt);
 
-		virtual void getNextContinousCollision(Entity* entity, std::vector<Entity*>& outCollisionEntities, float& collisionTime, const float& dt);
+		virtual void getNextContinousCollision(Entity* entity, const float& dt, std::vector<Intersection::CollisionTimeInfo>& outInfo);
 	};
 
 }

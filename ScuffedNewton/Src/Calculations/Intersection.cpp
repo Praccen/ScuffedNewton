@@ -20,7 +20,7 @@ namespace Scuffed {
 #endif
 	}
 
-	float Intersection::getCollisionTime(Entity& e1, Entity& e2, const float timeMax) {
+	void Intersection::getCollisionTime(Entity& e1, Entity& e2, const float timeMax, CollisionTimeInfo& outInfo) {
 		// Entities will at least have physicalBodyComponents and boundingBoxComponents
 		PhysicalBodyComponent* e1Phys = e1.getComponent<PhysicalBodyComponent>();
 		PhysicalBodyComponent* e2Phys = e2.getComponent<PhysicalBodyComponent>();
@@ -31,7 +31,8 @@ namespace Scuffed {
 		float boxesTime = continousSAT(e1BoundingBox->getBoundingBox(), e2BoundingBox->getBoundingBox(), e1Phys->velocity, e2Phys->velocity, timeMax);
 
 		if (boxesTime < 0.0f) {
-			return -1.0f;
+			outInfo.time = -1.0f;
+			return;
 		}
 
 		// Check for meshes
@@ -40,22 +41,152 @@ namespace Scuffed {
 
 		if (e1Mesh && e1Mesh->useMeshCollision && e2Mesh && e2Mesh->useMeshCollision) {
 			// e1Mesh - e2Mesh collision
-			return getMeshMeshCollisionTime(e1, e2, timeMax);
+			getMeshMeshCollisionTime(e1, e2, timeMax, outInfo);
 		}
-		else if (e1Mesh && e1Mesh->useMeshCollision && !e2Mesh) {
+		else if (e1Mesh && e1Mesh->useMeshCollision) {
 			// e1Mesh - e2Box collision
-			return getMeshBoxCollisionTime(e1, e2, timeMax);
+			getMeshBoxCollisionTime(e1, e2, timeMax, outInfo);
 		}
-		else if (!e1Mesh && e2Mesh && e2Mesh->useMeshCollision) {
+		else if (e2Mesh && e2Mesh->useMeshCollision) {
 			// e1Box - e2Mesh collision
-			return getMeshBoxCollisionTime(e2, e1, timeMax);
+			getMeshBoxCollisionTime(e2, e1, timeMax, outInfo);
 		}
 		else {
 			// e1Box - e2Box collision
-			return boxesTime;
+			outInfo.time = boxesTime;
+			outInfo.entity1 = &e1;
+			outInfo.entity2 = &e2;
+			outInfo.triangleIndices.clear();
+		}
+	}
+
+	bool Intersection::isColliding(CollisionTimeInfo& info) {
+		bool returnValue = false;
+		TransformComponent* e1Transform = info.entity1->getComponent<TransformComponent>();
+		TransformComponent* e2Transform = info.entity1->getComponent<TransformComponent>();
+
+		glm::mat4 transformMatrix1(1.0f);
+		if (e1Transform) {
+			transformMatrix1 = e1Transform->getMatrixWithUpdate();
 		}
 
-		return -1.0f;
+		glm::mat4 transformMatrix2(1.0f);
+		if (e2Transform) {
+			transformMatrix2 = e2Transform->getMatrixWithUpdate();
+		}
+
+		if (info.triangleIndices.size() > 0 && info.triangleIndices[0].first >= 0 && info.triangleIndices[0].second >= 0) {
+			// Triangle-triangle 
+			MeshComponent* e1Mesh = info.entity1->getComponent<MeshComponent>();
+			MeshComponent* e2Mesh = info.entity2->getComponent<MeshComponent>();
+
+			Triangle triangle1(glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(0.0f));
+			Triangle triangle2(glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(0.0f));
+			triangle2.setBaseMatrix(transformMatrix2);
+			triangle2.setMatrix(glm::inverse(transformMatrix1));
+
+			if (e1Mesh->mesh->getNumberOfIndices() > 0) { // Has indices
+				triangle1.setData(e1Mesh->mesh->getVertexPosition(e1Mesh->mesh->getVertexIndex(info.triangleIndices[0].first)), e1Mesh->mesh->getVertexPosition(e1Mesh->mesh->getVertexIndex(info.triangleIndices[0].first + 1)), e1Mesh->mesh->getVertexPosition(e1Mesh->mesh->getVertexIndex(info.triangleIndices[0].first + 2)));
+			}
+			else if (e1Mesh->mesh->getNumberOfVertices() > 0) {
+				triangle1.setData(e1Mesh->mesh->getVertexPosition(info.triangleIndices[0].first), e1Mesh->mesh->getVertexPosition(info.triangleIndices[0].first + 1), e1Mesh->mesh->getVertexPosition(info.triangleIndices[0].first + 2));
+			}
+
+			if (e2Mesh->mesh->getNumberOfIndices() > 0) { // Has indices
+				triangle2.setData(e2Mesh->mesh->getVertexPosition(e2Mesh->mesh->getVertexIndex(info.triangleIndices[0].second)), e2Mesh->mesh->getVertexPosition(e2Mesh->mesh->getVertexIndex(info.triangleIndices[0].second + 1)), e2Mesh->mesh->getVertexPosition(e2Mesh->mesh->getVertexIndex(info.triangleIndices[0].second + 2)));
+			}
+			else if (e2Mesh->mesh->getNumberOfVertices() > 0) {
+				triangle2.setData(e2Mesh->mesh->getVertexPosition(info.triangleIndices[0].second), e2Mesh->mesh->getVertexPosition(info.triangleIndices[0].second + 1), e2Mesh->mesh->getVertexPosition(info.triangleIndices[0].second + 2));
+			}
+
+			returnValue = continousSAT(&triangle1, &triangle2, glm::vec3(0.0f), glm::vec3(0.0f), 0.0f) == 0.0f;
+		}
+		else if (info.triangleIndices.size() > 0 && info.triangleIndices[0].first >= 0 && info.triangleIndices[0].second == -1) { // If one is -1 it will always be second (entity2)
+			// Triangle-box
+			MeshComponent* e1Mesh = info.entity1->getComponent<MeshComponent>();
+			Triangle triangle1(glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(0.0f));
+			if (e1Mesh->mesh->getNumberOfIndices() > 0) { // Has indices
+				triangle1.setData(e1Mesh->mesh->getVertexPosition(e1Mesh->mesh->getVertexIndex(info.triangleIndices[0].first)), e1Mesh->mesh->getVertexPosition(e1Mesh->mesh->getVertexIndex(info.triangleIndices[0].first + 1)), e1Mesh->mesh->getVertexPosition(e1Mesh->mesh->getVertexIndex(info.triangleIndices[0].first + 2)));
+			}
+			else if (e1Mesh->mesh->getNumberOfVertices() > 0) {
+				triangle1.setData(e1Mesh->mesh->getVertexPosition(info.triangleIndices[0].first), e1Mesh->mesh->getVertexPosition(info.triangleIndices[0].first + 1), e1Mesh->mesh->getVertexPosition(info.triangleIndices[0].first + 2));
+			}
+			Box* e2Box = info.entity2->getComponent<BoundingBoxComponent>()->getBoundingBox();
+			e2Box->setMatrix(glm::inverse(transformMatrix1));
+			returnValue = continousSAT(&triangle1, e2Box, glm::vec3(0.0f), glm::vec3(0.0f), 0.0f) == 0.0f;
+			e2Box->setMatrix(glm::mat4(1.f));
+		}
+		else {
+			// Box-box
+			// TODO: Investigate why continousSAT is more stable than SAT
+			returnValue = continousSAT(info.entity1->getComponent<BoundingBoxComponent>()->getBoundingBox(), info.entity2->getComponent<BoundingBoxComponent>()->getBoundingBox(), glm::vec3(0.0f), glm::vec3(0.0f), 0.0f) == 0.0f;
+		}
+
+		return returnValue;
+	}
+
+	glm::vec3 Intersection::getIntersectionAxis(CollisionTimeInfo& info) {
+		glm::vec3 returnValue(0.f);
+		TransformComponent* e1Transform = info.entity1->getComponent<TransformComponent>();
+		TransformComponent* e2Transform = info.entity1->getComponent<TransformComponent>();
+
+		glm::mat4 transformMatrix1(1.0f);
+		if (e1Transform) {
+			transformMatrix1 = e1Transform->getMatrixWithUpdate();
+		}
+
+		glm::mat4 transformMatrix2(1.0f);
+		if (e2Transform) {
+			transformMatrix2 = e2Transform->getMatrixWithUpdate();
+		}
+
+		if (info.triangleIndices.size() > 0 && info.triangleIndices[0].first >= 0 && info.triangleIndices[0].second >= 0) {
+			// Triangle-triangle 
+			MeshComponent* e1Mesh = info.entity1->getComponent<MeshComponent>();
+			MeshComponent* e2Mesh = info.entity2->getComponent<MeshComponent>();
+
+			Triangle triangle1(glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(0.0f));
+			Triangle triangle2(glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(0.0f));
+			triangle1.setBaseMatrix(transformMatrix1);
+			triangle2.setBaseMatrix(transformMatrix2);
+
+
+			if (e1Mesh->mesh->getNumberOfIndices() > 0) { // Has indices
+				triangle1.setData(e1Mesh->mesh->getVertexPosition(e1Mesh->mesh->getVertexIndex(info.triangleIndices[0].first)), e1Mesh->mesh->getVertexPosition(e1Mesh->mesh->getVertexIndex(info.triangleIndices[0].first + 1)), e1Mesh->mesh->getVertexPosition(e1Mesh->mesh->getVertexIndex(info.triangleIndices[0].first + 2)));
+			}
+			else if (e1Mesh->mesh->getNumberOfVertices() > 0) {
+				triangle1.setData(e1Mesh->mesh->getVertexPosition(info.triangleIndices[0].first), e1Mesh->mesh->getVertexPosition(info.triangleIndices[0].first + 1), e1Mesh->mesh->getVertexPosition(info.triangleIndices[0].first + 2));
+			}
+
+			if (e2Mesh->mesh->getNumberOfIndices() > 0) { // Has indices
+				triangle2.setData(e2Mesh->mesh->getVertexPosition(e2Mesh->mesh->getVertexIndex(info.triangleIndices[0].second)), e2Mesh->mesh->getVertexPosition(e2Mesh->mesh->getVertexIndex(info.triangleIndices[0].second + 1)), e2Mesh->mesh->getVertexPosition(e2Mesh->mesh->getVertexIndex(info.triangleIndices[0].second + 2)));
+			}
+			else if (e2Mesh->mesh->getNumberOfVertices() > 0) {
+				triangle2.setData(e2Mesh->mesh->getVertexPosition(info.triangleIndices[0].second), e2Mesh->mesh->getVertexPosition(info.triangleIndices[0].second + 1), e2Mesh->mesh->getVertexPosition(info.triangleIndices[0].second + 2));
+			}
+
+			returnValue = getIntersectionAxis(&triangle1, &triangle2);
+		}
+		else if (info.triangleIndices.size() > 0 && info.triangleIndices[0].first >= 0 && info.triangleIndices[0].second == -1) { // If one is -1 it will always be second (entity2)
+			// Triangle-box
+			MeshComponent* e1Mesh = info.entity1->getComponent<MeshComponent>();
+			Triangle triangle1(glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(0.0f));
+			triangle1.setBaseMatrix(transformMatrix1);
+			if (e1Mesh->mesh->getNumberOfIndices() > 0) { // Has indices
+				triangle1.setData(e1Mesh->mesh->getVertexPosition(e1Mesh->mesh->getVertexIndex(info.triangleIndices[0].first)), e1Mesh->mesh->getVertexPosition(e1Mesh->mesh->getVertexIndex(info.triangleIndices[0].first + 1)), e1Mesh->mesh->getVertexPosition(e1Mesh->mesh->getVertexIndex(info.triangleIndices[0].first + 2)));
+			}
+			else if (e1Mesh->mesh->getNumberOfVertices() > 0) {
+				triangle1.setData(e1Mesh->mesh->getVertexPosition(info.triangleIndices[0].first), e1Mesh->mesh->getVertexPosition(info.triangleIndices[0].first + 1), e1Mesh->mesh->getVertexPosition(info.triangleIndices[0].first + 2));
+			}
+			Box* e2Box = info.entity2->getComponent<BoundingBoxComponent>()->getBoundingBox();
+			returnValue = getIntersectionAxis(&triangle1, e2Box);
+		}
+		else {
+			// Box-box
+			returnValue = getIntersectionAxis(info.entity1->getComponent<BoundingBoxComponent>()->getBoundingBox(), info.entity2->getComponent<BoundingBoxComponent>()->getBoundingBox());
+		}
+
+		return returnValue;
 	}
 
 	float Intersection::projectionOverlapTest(const glm::vec3& testVec, const std::vector<glm::vec3>& vertices1, const std::vector<glm::vec3>& vertices2, bool& invertAxis) {
@@ -682,7 +813,10 @@ namespace Scuffed {
 		return distanceToPlane;
 	}
 
-	float Intersection::getMeshBoxCollisionTime(Entity& meshE, Entity& boxE, const float timeMax) {
+	void Intersection::getMeshBoxCollisionTime(Entity& meshE, Entity& boxE, const float timeMax, CollisionTimeInfo& outInfo) {
+		outInfo.entity1 = &meshE;
+		outInfo.entity2 = &boxE;
+
 		PhysicalBodyComponent* meshPhys = meshE.getComponent<PhysicalBodyComponent>();
 		PhysicalBodyComponent* boxPhys = boxE.getComponent<PhysicalBodyComponent>();
 
@@ -700,21 +834,21 @@ namespace Scuffed {
 
 		//Convert velocities to local space for mesh
 		glm::vec3 zeroPoint = glm::inverse(transformMatrix) * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-		glm::vec3 newEntityVel = glm::inverse(transformMatrix) * glm::vec4(boxPhys->velocity, 1.0f);
-		newEntityVel = newEntityVel - zeroPoint;
-		glm::vec3 otherEntityVel = glm::inverse(transformMatrix) * glm::vec4(meshPhys->velocity, 1.0f);
-		otherEntityVel = otherEntityVel - zeroPoint;
+		glm::vec3 boxVel = glm::inverse(transformMatrix) * glm::vec4(boxPhys->velocity, 1.0f);
+		boxVel = boxVel - zeroPoint;
+		glm::vec3 meshVel = glm::inverse(transformMatrix) * glm::vec4(meshPhys->velocity, 1.0f);
+		meshVel = meshVel - zeroPoint;
 
 		// Get nodes to test continous collision against from narrow phase octree in mesh
 		std::vector<Mesh::OctNode*> nodes;
-		mesh->mesh->getCollidingNodesContinous(nodes, box->getBoundingBox(), newEntityVel, otherEntityVel, timeMax);
+		mesh->mesh->getCollidingNodesContinous(nodes, box->getBoundingBox(), boxVel, meshVel, timeMax);
 
 		// Triangle to set mesh data to avoid creating new shapes for each triangle in mesh
 		Triangle triangle(glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(0.0f));
 
 		float time = INFINITY;
 
-		for (unsigned int i = 0; i < nodes.size(); i++) {
+		for (size_t i = 0; i < nodes.size(); i++) {
 			int numTriangles = nodes[i]->nrOfTriangles;
 			bool hasIndices = mesh->mesh->getNumberOfIndices() > 0;
 			bool hasVertices = mesh->mesh->getNumberOfVertices() > 0;
@@ -727,18 +861,26 @@ namespace Scuffed {
 					triangle.setData(mesh->mesh->getVertexPosition(nodes[i]->triangles[j]), mesh->mesh->getVertexPosition(nodes[i]->triangles[j] + 1), mesh->mesh->getVertexPosition(nodes[i]->triangles[j] + 2));
 				}
 
-				float newTime = Intersection::continousSAT(box->getBoundingBox(), &triangle, newEntityVel, otherEntityVel, std::min(time, timeMax));
+				float newTime = Intersection::continousSAT(box->getBoundingBox(), &triangle, boxVel, meshVel, std::min(time, timeMax));
 
-				if (newTime > 0.f) {
+				if (newTime > 0.f && newTime < time) {
 					time = newTime;
+					outInfo.triangleIndices.clear();
+					outInfo.triangleIndices.emplace_back(std::pair<int, int>(nodes[i]->triangles[j], -1));
+				}
+				else if (newTime == time) {
+					outInfo.triangleIndices.emplace_back(std::pair<int, int>(nodes[i]->triangles[j], -1));
 				}
 			}
 		}
 		box->getBoundingBox()->setMatrix(glm::mat4(1.0f)); //Reset bounding box matrix to identity
-		return time;
+		outInfo.time = time;
 	}
 
-	float Intersection::getMeshMeshCollisionTime(Entity& e1, Entity& e2, const float timeMax) {
+	void Intersection::getMeshMeshCollisionTime(Entity& e1, Entity& e2, const float timeMax, CollisionTimeInfo& outInfo) {
+		outInfo.entity1 = &e1;
+		outInfo.entity2 = &e2;
+
 		// Entities will at least have physicalBodyComponents and boundingBoxComponents
 		PhysicalBodyComponent* e1Phys = e1.getComponent<PhysicalBodyComponent>();
 		PhysicalBodyComponent* e2Phys = e2.getComponent<PhysicalBodyComponent>();
@@ -834,8 +976,13 @@ namespace Scuffed {
 
 							float newTime = Intersection::continousSAT(&triangle1, &triangle2, e1Phys->velocity, e2Phys->velocity, std::min(time, timeMax));
 
-							if (newTime >= 0.f) {
+							if (newTime > 0.f && newTime < time) {
 								time = newTime;
+								outInfo.triangleIndices.clear();
+								outInfo.triangleIndices.emplace_back(std::pair<int, int>(nodes1[i]->triangles[k], nodes2[j]->triangles[l]));
+							}
+							else if (newTime == time) {
+								outInfo.triangleIndices.emplace_back(std::pair<int, int>(nodes1[i]->triangles[k], nodes2[j]->triangles[l]));
 							}
 						}
 					}
@@ -844,8 +991,6 @@ namespace Scuffed {
 			nodes1[i]->nodeBB->setBaseMatrix(glm::mat4(1.0f));
 			nodes1[i]->nodeBB->setMatrix(glm::mat4(1.0f));
 		}
-
-		return time;
 	}
 
 	glm::vec3 Intersection::PointProjectedOnPlane(const glm::vec3& point, const glm::vec3& planeNormal, const float planeDistance) {

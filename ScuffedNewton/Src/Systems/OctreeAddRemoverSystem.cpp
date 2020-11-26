@@ -2,7 +2,7 @@
 #include "OctreeAddRemoverSystem.h"
 
 #include "../DataTypes/Entity.h"
-
+#include "../DataStructures/Octree.h"
 #include "../components/Components.h"
 
 namespace Scuffed {

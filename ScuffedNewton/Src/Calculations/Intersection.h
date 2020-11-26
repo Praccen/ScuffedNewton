@@ -6,16 +6,31 @@
 namespace Scuffed {
 
 	class Shape;
+	class Entity;
 
 	class Intersection {
 	public:
+		struct CollisionTimeInfo {
+			float time = -1.0f;
+			Entity* entity1 = nullptr;
+			Entity* entity2 = nullptr;
+			std::vector<std::pair<int, int>> triangleIndices; // Will be empty if mesh collisions aren't used or -1 if not used one one of the meshes
+
+			bool operator<(const CollisionTimeInfo& other) {
+				return time < other.time;
+			}
+		};
+
+	public:
 		static float dot(const glm::vec3& v1, const glm::vec3& v2);
 
-		static float getCollisionTime(Entity& e1, Entity& e2, const float timeMax);
+		static void getCollisionTime(Entity& e1, Entity& e2, const float timeMax, CollisionTimeInfo& outInfo);
+		static bool isColliding(CollisionTimeInfo& info);
+		static glm::vec3 getIntersectionAxis(CollisionTimeInfo& info); // Always returns the intersection axis pointing from shape2 towards shape1
 
 		// ----SAT functions----
 		static float projectionOverlapTest(const glm::vec3& testVec, const std::vector<glm::vec3>& vertices1, const std::vector<glm::vec3>& vertices2, bool &invertAxis);
-		static bool SAT(Shape* shape1, Shape* shape2);
+		static bool SAT(Shape* shape1, Shape* shape2); // TODO: Gives wrong result, investigate why
 		static std::vector<glm::vec3> getManifold(const glm::vec3& testVec, const std::vector<glm::vec3>& vertices1, const std::vector<glm::vec3>& vertices2);
 		static bool SAT(Shape* shape1, Shape* shape2, glm::vec3* intersectionAxis, float* intersectionDepth); // Always returns the intersection axis pointing from shape2 towards shape1
 		static bool SAT(Shape* shape1, Shape* shape2, std::vector<glm::vec3>& manifold);
@@ -37,8 +52,8 @@ namespace Scuffed {
 		Intersection() {};
 		~Intersection() {};
 
-		static float getMeshBoxCollisionTime(Entity& meshE, Entity& boxE, const float timeMax);
-		static float getMeshMeshCollisionTime(Entity& e1, Entity& e2, const float timeMax);
+		static void getMeshBoxCollisionTime(Entity& meshE, Entity& boxE, const float timeMax, CollisionTimeInfo& outInfo);
+		static void getMeshMeshCollisionTime(Entity& e1, Entity& e2, const float timeMax, CollisionTimeInfo& outInfo);
 
 		static glm::vec3 PointProjectedOnPlane(const glm::vec3& point, const glm::vec3& planeNormal, const float planeDistance);
 

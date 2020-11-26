@@ -23,7 +23,7 @@ namespace Scuffed {
 		m_softLimitMeshes = 4;
 		m_minimumNodeHalfSize = 4.0f;
 
-		m_baseNode.halfSize = glm::vec3(20.0f, 20.0f, 20.0f); // TODO: Increase this when sure that expansion is working properly to increase performance!
+		m_baseNode.halfSize = glm::vec3(1000.0f, 1000.0f, 1000.0f); // TODO: Increase this when sure that expansion is working properly to increase performance!
 		m_baseNode.nodeBB = SN_NEW Box(m_baseNode.halfSize, glm::vec3(0.0f));
 
 		m_baseNode.parentNode = nullptr;
@@ -247,13 +247,14 @@ namespace Scuffed {
 		pruneTreeRec(&m_baseNode);
 	}
 
-	void Octree::getNextContinousCollision(Entity* entity, std::vector<Entity*>& outCollisionEntities, float& collisionTime, const float& dt) {
+	void Octree::getNextContinousCollision(Entity* entity, const float& dt, std::vector<Intersection::CollisionTimeInfo>& outInfo) {
+		float collisionTime = INFINITY;
 		std::vector<Node*>& nodes = m_entityOccurances[entity];
 
 		Box* entityBoundingBox = entity->getComponent<BoundingBoxComponent>()->getBoundingBox();
 		PhysicalBodyComponent* physicalComp = entity->getComponent<PhysicalBodyComponent>();
 
-		float tempCollisionTime;
+		Intersection::CollisionTimeInfo tempTimeInfo;
 
 		for (size_t i = 0; i < nodes.size(); i++) {
 			// Check against entities
@@ -270,15 +271,15 @@ namespace Scuffed {
 					continue;
 				}
 
-				tempCollisionTime = Intersection::getCollisionTime(*entity, *e, std::min(collisionTime, dt));
+				Intersection::getCollisionTime(*entity, *e, std::min(collisionTime, dt), tempTimeInfo);
 
-				if (tempCollisionTime > 0.f && tempCollisionTime < collisionTime) {
-					collisionTime = tempCollisionTime;
-					outCollisionEntities.clear();
-					outCollisionEntities.emplace_back(e);
+				if (tempTimeInfo.time > 0.f && tempTimeInfo.time < collisionTime) {
+					collisionTime = tempTimeInfo.time;
+					outInfo.clear();
+					outInfo.emplace_back(tempTimeInfo);
 				}
-				else if (tempCollisionTime == collisionTime) {
-					outCollisionEntities.emplace_back(e);
+				else if (tempTimeInfo.time == collisionTime) {
+					outInfo.emplace_back(tempTimeInfo);
 				}
 			}
 		}
