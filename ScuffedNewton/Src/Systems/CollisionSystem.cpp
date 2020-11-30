@@ -38,7 +38,6 @@ namespace Scuffed {
 			PhysicalBodyComponent* physObj = e->getComponent<PhysicalBodyComponent>();
 			for (size_t i = 0; i < physObj->restingContacts.size(); i++) {
 				if (Intersection::isColliding(physObj->restingContacts[i])) {
-					// TODO: Calculate friction over time using dt
 					handleCollisions(physObj->restingContacts[i]);
 				}
 			}
@@ -229,16 +228,56 @@ namespace Scuffed {
 		int found2 = -1;
 
 		for (size_t i = 0; i < physObj1->restingContacts.size(); i++) {
-			if (physObj1->restingContacts[i].entity1 == collisionInfo.entity2 || physObj1->restingContacts[i].entity2 == collisionInfo.entity2) {
-				found1 = i;
-				break;
+			if (physObj1->restingContacts[i].entity1 == collisionInfo.entity2) {
+				if (physObj1->restingContacts[i].triangleIndices.size() == 0 && collisionInfo.triangleIndices.size() == 0) {
+					found1 = i;
+					break;
+				}
+				else if (physObj1->restingContacts[i].triangleIndices.size() > 0 && collisionInfo.triangleIndices.size() > 0) {
+					if (physObj1->restingContacts[i].triangleIndices[0].first == collisionInfo.triangleIndices[0].second && physObj1->restingContacts[i].triangleIndices[0].second == physObj1->restingContacts[i].triangleIndices[0].first) {
+						found1 = i;
+						break;
+					}
+				}
+			}
+			else if (physObj1->restingContacts[i].entity2 == collisionInfo.entity2) {
+				if (physObj1->restingContacts[i].triangleIndices.size() == 0 && collisionInfo.triangleIndices.size() == 0) {
+					found1 = i;
+					break;
+				}
+				else if (physObj1->restingContacts[i].triangleIndices.size() > 0 && collisionInfo.triangleIndices.size() > 0) {
+					if (physObj1->restingContacts[i].triangleIndices[0].second == collisionInfo.triangleIndices[0].second && physObj1->restingContacts[i].triangleIndices[0].first == physObj1->restingContacts[i].triangleIndices[0].first) {
+						found1 = i;
+						break;
+					}
+				}
 			}
 		}
 
 		for (size_t i = 0; i < physObj2->restingContacts.size(); i++) {
-			if (physObj2->restingContacts[i].entity1 == collisionInfo.entity1 || physObj2->restingContacts[i].entity2 == collisionInfo.entity1) {
-				found2 = i;
-				break;
+			if (physObj2->restingContacts[i].entity1 == collisionInfo.entity1) {
+				if (physObj2->restingContacts[i].triangleIndices.size() == 0 && collisionInfo.triangleIndices.size() == 0) {
+					found2 = i;
+					break;
+				}
+				else if (physObj2->restingContacts[i].triangleIndices.size() > 0 && collisionInfo.triangleIndices.size() > 0) {
+					if (physObj2->restingContacts[i].triangleIndices[0].first == collisionInfo.triangleIndices[0].first && physObj2->restingContacts[i].triangleIndices[0].second == physObj2->restingContacts[i].triangleIndices[0].second) {
+						found2 = i;
+						break;
+					}
+				}
+			}
+			else if (physObj2->restingContacts[i].entity2 == collisionInfo.entity1) {
+				if (physObj2->restingContacts[i].triangleIndices.size() == 0 && collisionInfo.triangleIndices.size() == 0) {
+					found2 = i;
+					break;
+				}
+				else if (physObj2->restingContacts[i].triangleIndices.size() > 0 && collisionInfo.triangleIndices.size() > 0) {
+					if (physObj2->restingContacts[i].triangleIndices[0].second == collisionInfo.triangleIndices[0].first && physObj2->restingContacts[i].triangleIndices[0].first == physObj2->restingContacts[i].triangleIndices[0].second) {
+						found2 = i;
+						break;
+					}
+				}
 			}
 		}
 
@@ -264,7 +303,6 @@ namespace Scuffed {
 			}
 
 			// Add this as a resting contact for both entities
-			// TODO: Investigate why entities sometimes gets themselves as resting
 			if (found1 == -1) {
 				physObj1->restingContacts.emplace_back(collisionInfo);
 			}

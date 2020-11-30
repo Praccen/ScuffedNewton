@@ -1,5 +1,5 @@
-Add mesh collisions (with narrow phase detection).
-Add friction over time for resting contacts
+Fix resting for mesh collisions
+Fix collisions with triangle edges when moving over multiple coplanar triangles.
 Add angular momentum.
 Add springs
 Add explosions
