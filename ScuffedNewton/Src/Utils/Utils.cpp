@@ -6,6 +6,7 @@ namespace Scuffed {
 
 	Utils::Utils() {
 		m_entityIdCounter = 0;
+		epsilon = 0.00001f;
 	}
 
 	Utils::~Utils() {

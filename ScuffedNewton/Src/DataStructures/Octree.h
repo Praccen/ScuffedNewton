@@ -29,7 +29,7 @@ namespace Scuffed {
 
 		std::unordered_map<Entity*, std::vector<Node*>> m_entityOccurances; // Unordered map used to find which nodes an entity is in
 
-		size_t m_softLimitMeshes;
+		size_t m_softLimitEntities;
 		float m_minimumNodeHalfSize;
 
 		void expandBaseNode(glm::vec3 direction);

@@ -1,6 +1,7 @@
-Fix resting for mesh collisions
+Fix stacking.
 Fix collisions with triangle edges when moving over multiple coplanar triangles.
+Add static friction.
 Add angular momentum.
-Add springs
-Add explosions
-Add materials with different collision and friction coefficients
+Add springs.
+Add explosions.
+Add materials with different collision and friction coefficients.

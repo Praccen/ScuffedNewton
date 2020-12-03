@@ -16,8 +16,8 @@ namespace Scuffed {
 		m_indices = nullptr;
 		m_nrOfIndices = 0;
 
-		m_softLimitTriangles = 10;
-		m_minimumNodeHalfSize = 1.0f;
+		m_softLimitTriangles = 40;
+		m_minimumNodeHalfSize = 0.05f;
 	}
 
 	Mesh::~Mesh() {

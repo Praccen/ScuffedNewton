@@ -20,10 +20,10 @@ namespace Scuffed {
 		// All entities in the octree must have a BoundingBoxComponent and a PhysicalBodyComponent (since OctreeAddRemoverSystem only accepts these entities)
 
 		m_boundingBoxModel = boundingBoxModel;
-		m_softLimitMeshes = 4;
-		m_minimumNodeHalfSize = 4.0f;
+		m_softLimitEntities = 10;
+		m_minimumNodeHalfSize = 6.0f;
 
-		m_baseNode.halfSize = glm::vec3(1000.0f, 1000.0f, 1000.0f); // TODO: Increase this when sure that expansion is working properly to increase performance!
+		m_baseNode.halfSize = glm::vec3(1000.0f, 1000.0f, 1000.0f);
 		m_baseNode.nodeBB = SN_NEW Box(m_baseNode.halfSize, glm::vec3(0.0f));
 
 		m_baseNode.parentNode = nullptr;
@@ -111,7 +111,7 @@ namespace Scuffed {
 				}
 			}
 			else { // Is leaf node
-				if (currentNode->entities.size() < m_softLimitMeshes || currentNode->halfSize.x / 2.0f < m_minimumNodeHalfSize) { // Soft limit not reached or smaller nodes are not allowed
+				if (currentNode->entities.size() < m_softLimitEntities || currentNode->halfSize.x / 2.0f < m_minimumNodeHalfSize) { // Soft limit not reached or smaller nodes are not allowed
 				// Add entity to this node
 					currentNode->entities.push_back(newEntity);
 					m_entityOccurances[newEntity].emplace_back(currentNode); // Save this node to the list of where this entity is
@@ -237,7 +237,7 @@ namespace Scuffed {
 
 	void Octree::update(float dt) {
 		std::for_each(m_entityOccurances.begin(), m_entityOccurances.end(), [&](std::pair<Entity*, std::vector<Node*> > element) {
-			if (element.first->getComponent<BoundingBoxComponent>()->getBoundingBox()->getChange() || element.first->getComponent<PhysicalBodyComponent>()->velocity.length() != 0.f) {
+			if (element.first->getComponent<BoundingBoxComponent>()->getBoundingBox()->getChange() || glm::length2(element.first->getComponent<PhysicalBodyComponent>()->velocity) > Utils::instance()->epsilon) {
 				// Update this element by removing and re-adding
 				removeEntity(element.first);
 				addEntity(element.first, dt);

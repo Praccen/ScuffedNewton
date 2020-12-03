@@ -28,6 +28,8 @@ namespace Scuffed {
 		static Utils* instance();
 
 		int GetEntityIdCounter(bool increase = false);
+
+		float epsilon;
 	private:
 		int m_entityIdCounter;
 	};

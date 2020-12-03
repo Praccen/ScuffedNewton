@@ -28,7 +28,7 @@ namespace Scuffed {
 		void init();
 		void updateVertices();
 		void updateNormals();
-		void setUpdatesNeeded();
+		void setUpdatesNeeded(bool hasChanged);
 
 	private:
 		std::vector<glm::vec3> m_originalVertices; // Not effected by matrices
