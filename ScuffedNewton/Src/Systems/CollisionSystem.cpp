@@ -33,12 +33,13 @@ namespace Scuffed {
 		// ======================== Collision Update ======================================
 		m_collisionOrder.clear();
 
+		std::vector<Entity*> temp;
 		// 1. Handle resting contacts
 		for (auto& e : entities) {
 			PhysicalBodyComponent* physObj = e->getComponent<PhysicalBodyComponent>();
 			for (size_t i = 0; i < physObj->restingContacts.size(); i++) {
 				if (Intersection::isColliding(physObj->restingContacts[i])) {
-					handleCollisions(physObj->restingContacts[i], 0);
+					handleCollisions(physObj->restingContacts[i], temp, 0);
 				}
 			}
 		}
@@ -47,8 +48,9 @@ namespace Scuffed {
 		std::vector<Intersection::CollisionTimeInfo> collisions;
 		for (auto& e : entities) {
 			collisions.clear();
+			PhysicalBodyComponent* physComp = e->getComponent<PhysicalBodyComponent>();
 
-			if (!e->getComponent<PhysicalBodyComponent>()->isConstraint && glm::length2(e->getComponent<PhysicalBodyComponent>()->velocity) > Utils::instance()->epsilon) { // Don't check for constraints since these will be collided with anyway && only check if moving
+			if (!physComp->isConstraint && glm::length2(physComp->velocity) > Utils::instance()->epsilon) { // Don't check for constraints since these will be collided with anyway && only check if moving
 				// Find and save upcoming collision time
 				m_octree->getNextContinousCollision(e, dt, collisions);
 
@@ -94,15 +96,7 @@ namespace Scuffed {
 			std::vector<Entity*> collidingEntities;
 			// 5. Handle collision of all objects colliding at this time
 			for (size_t i = 0; i < m_collisionOrder.size() && m_collisionOrder[i].time == timeProcessed; i++) {
-				handleCollisions(m_collisionOrder[i]);
-
-				// Save entities that are colliding currently (Only one time per entity)
-				if (std::find(collidingEntities.begin(), collidingEntities.end(), m_collisionOrder[i].entity1) == collidingEntities.end()) {
-					collidingEntities.emplace_back(m_collisionOrder[i].entity1);
-				}
-				if (std::find(collidingEntities.begin(), collidingEntities.end(), m_collisionOrder[i].entity2) == collidingEntities.end()) {
-					collidingEntities.emplace_back(m_collisionOrder[i].entity2);
-				}
+				handleCollisions(m_collisionOrder[i], collidingEntities);
 			}
 
 			// 6. Remove all collisions for these objects in the list
@@ -116,16 +110,20 @@ namespace Scuffed {
 				}
 			}
 
-			// 7. Recheck next collision for these objects and add to the list. TODO: Update the entities in the octree with the new velocities
+			// Update the entities in the octree with the new velocities
+			m_octree->update(dt - timeProcessed);
+
+			// 7. Recheck next collision for these objects and add to the list.
 			for (size_t i = 0; i < collidingEntities.size(); i++) {
-				if (!collidingEntities[i]->getComponent<PhysicalBodyComponent>()->isConstraint) { // Don't check for constraints since these will be collided with anyway
+				PhysicalBodyComponent* physComp = collidingEntities[i]->getComponent<PhysicalBodyComponent>();
+				if (!physComp->isConstraint&& glm::length2(physComp->velocity) > Utils::instance()->epsilon) { // Don't check for constraints since these will be collided with anyway && only check if moving
 					collisions.clear();
 
 					// Find and save upcoming collision time
-					m_octree->getNextContinousCollision(collidingEntities[i], dt, collisions);
+					m_octree->getNextContinousCollision(collidingEntities[i], (dt - timeProcessed), collisions);
 
 					// Split collision info so that every colliding triangle pair etc have their own collision info
-					if (collisions.size() > 0 && collisions[0].time + timeProcessed <= dt) {
+					if (collisions.size() > 0) {
 						for (size_t j = 0; j < collisions.size(); j++) {
 							collisions[j].time += timeProcessed;
 							// TODO: add something to avoid duplicates
@@ -162,7 +160,7 @@ namespace Scuffed {
 		}
 	}
 
-	void CollisionSystem::handleCollisions(Intersection::CollisionTimeInfo& collisionInfo, int recursionDepth) {
+	void CollisionSystem::handleCollisions(Intersection::CollisionTimeInfo& collisionInfo, std::vector<Entity*> &collidingEntities, int recursionDepth) {
 
 		if (collisionInfo.entity1 == collisionInfo.entity2) { // Don't allow entity to collide with itself
 			return;
@@ -215,7 +213,7 @@ namespace Scuffed {
 						if (physObj1->restingContacts[i].entity1 != collisionInfo.entity2 &&
 							physObj1->restingContacts[i].entity2 != collisionInfo.entity2 &&
 							Intersection::isColliding(physObj1->restingContacts[i])) {
-							handleCollisions(physObj1->restingContacts[i], recursionDepth + 1); // Recursively call all (other) resting contacts
+							handleCollisions(physObj1->restingContacts[i], collidingEntities, recursionDepth + 1); // Recursively call all (other) resting contacts
 						}
 					}
 				}
@@ -225,10 +223,18 @@ namespace Scuffed {
 						if (physObj2->restingContacts[i].entity1 != collisionInfo.entity1 &&
 							physObj2->restingContacts[i].entity2 != collisionInfo.entity1 &&
 							Intersection::isColliding(physObj2->restingContacts[i])) {
-							handleCollisions(physObj2->restingContacts[i], recursionDepth + 1); // Recursively call all (other) resting contacts
+							handleCollisions(physObj2->restingContacts[i], collidingEntities, recursionDepth + 1); // Recursively call all (other) resting contacts
 						}
 					}
 				}
+			}
+
+
+			if (std::find(collidingEntities.begin(), collidingEntities.end(), collisionInfo.entity1) == collidingEntities.end()) {
+				collidingEntities.emplace_back(collisionInfo.entity1);
+			}
+			if (std::find(collidingEntities.begin(), collidingEntities.end(), collisionInfo.entity2) == collidingEntities.end()) {
+				collidingEntities.emplace_back(collisionInfo.entity2);
 			}
 		}
 

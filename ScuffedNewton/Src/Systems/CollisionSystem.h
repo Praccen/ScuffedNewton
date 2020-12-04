@@ -16,7 +16,7 @@ namespace Scuffed {
 		void update(float dt);
 
 	private:
-		void handleCollisions(Intersection::CollisionTimeInfo& collisionInfo, int recursionDepth = 0);
+		void handleCollisions(Intersection::CollisionTimeInfo& collisionInfo, std::vector<Entity*> &collidingEntities, int recursionDepth = 0);
 		//void updateManifolds(Entity* e, Box* boundingBox, std::vector<Octree::CollisionInfo>& collisions);
 
 	private:
