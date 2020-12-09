@@ -1,5 +1,5 @@
 Fix stacking.
-Fix collisions with triangle edges when moving over multiple coplanar triangles.
+Fix friction in collisions.
 Add static friction.
 Add angular momentum.
 Add springs.

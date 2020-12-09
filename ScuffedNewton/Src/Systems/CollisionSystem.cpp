@@ -82,21 +82,34 @@ namespace Scuffed {
 		while (m_collisionOrder.size() > 0 && m_collisionOrder[0].time <= dt) {
 			// 4. Advance all objects until collision
 			for (auto& e : entities) {
-				PhysicalBodyComponent* phyicalComp = e->getComponent<PhysicalBodyComponent>();
-				if (glm::length2(phyicalComp->velocity) > Utils::instance()->epsilon) { // Do not update transform if static, as updating the transform will promt a resorting of the octree
-					Box* boundingBox = e->getComponent<BoundingBoxComponent>()->getBoundingBox();
-					TransformComponent* transform = e->getComponent<TransformComponent>();
-					transform->translate(phyicalComp->velocity * (m_collisionOrder[0].time - timeProcessed));
-					boundingBox->setBaseMatrix(transform->getMatrixWithUpdate());
-				}
+				PhysicalBodyComponent* physicalComp = e->getComponent<PhysicalBodyComponent>();
+				moveObject(e, physicalComp->velocity, (m_collisionOrder[0].time - timeProcessed));
 			}
 
 			timeProcessed = m_collisionOrder[0].time;
 
 			std::vector<Entity*> collidingEntities;
+			glm::vec3 previousVelocities[2];
 			// 5. Handle collision of all objects colliding at this time
 			for (size_t i = 0; i < m_collisionOrder.size() && m_collisionOrder[i].time == timeProcessed; i++) {
+				previousVelocities[0] = m_collisionOrder[i].entity1->getComponent<PhysicalBodyComponent>()->velocity;
+				previousVelocities[1] = m_collisionOrder[i].entity2->getComponent<PhysicalBodyComponent>()->velocity;
+
+				for (int j = 0; j < 2; j++) {
+					if (glm::length2(previousVelocities[j]) > Utils::instance()->epsilon) {
+						previousVelocities[j] = glm::normalize(previousVelocities[j]);
+					}
+				}
+
+				// Move a bit longer to force detection of correct intersection axis
+				moveObject(m_collisionOrder[i].entity1, previousVelocities[0], 0.001f);
+				moveObject(m_collisionOrder[i].entity2, previousVelocities[1], 0.001f);
+
 				handleCollisions(m_collisionOrder[i], collidingEntities);
+
+				// Move back again
+				moveObject(m_collisionOrder[i].entity1, previousVelocities[0], -0.001f);
+				moveObject(m_collisionOrder[i].entity2, previousVelocities[1], -0.001f);
 			}
 
 			// 6. Remove all collisions for these objects in the list
@@ -116,7 +129,7 @@ namespace Scuffed {
 			// 7. Recheck next collision for these objects and add to the list.
 			for (size_t i = 0; i < collidingEntities.size(); i++) {
 				PhysicalBodyComponent* physComp = collidingEntities[i]->getComponent<PhysicalBodyComponent>();
-				if (!physComp->isConstraint&& glm::length2(physComp->velocity) > Utils::instance()->epsilon) { // Don't check for constraints since these will be collided with anyway && only check if moving
+				if (!physComp->isConstraint && glm::length2(physComp->velocity) > Utils::instance()->epsilon) { // Don't check for constraints since these will be collided with anyway && only check if moving
 					collisions.clear();
 
 					// Find and save upcoming collision time
@@ -149,18 +162,12 @@ namespace Scuffed {
 
 		// 9. Advance all objects if dt has not been reached
 		for (auto& e : entities) {
-			
-			PhysicalBodyComponent* phyicalComp = e->getComponent<PhysicalBodyComponent>();
-			if (glm::length2(phyicalComp->velocity) > Utils::instance()->epsilon) { // Do not update transform if static, as updating the transform will promt a resorting of the octree
-				Box* boundingBox = e->getComponent<BoundingBoxComponent>()->getBoundingBox(); 
-				TransformComponent* transform = e->getComponent<TransformComponent>();
-				transform->translate(phyicalComp->velocity* (dt - timeProcessed));
-				boundingBox->setBaseMatrix(transform->getMatrixWithUpdate());
-			}
+			PhysicalBodyComponent* physicalComp = e->getComponent<PhysicalBodyComponent>();
+			moveObject(e, physicalComp->velocity, (dt - timeProcessed));
 		}
 	}
 
-	void CollisionSystem::handleCollisions(Intersection::CollisionTimeInfo& collisionInfo, std::vector<Entity*> &collidingEntities, int recursionDepth) {
+	void CollisionSystem::handleCollisions(Intersection::CollisionTimeInfo& collisionInfo, std::vector<Entity*>& collidingEntities, int recursionDepth) {
 
 		if (collisionInfo.entity1 == collisionInfo.entity2) { // Don't allow entity to collide with itself
 			return;
@@ -337,6 +344,15 @@ namespace Scuffed {
 			}
 		}
 		// -------------------------------
+	}
+
+	void CollisionSystem::moveObject(Entity* e, glm::vec3& velocity, float dt) {
+		if (glm::length2(velocity) > Utils::instance()->epsilon) { // Do not update transform if static, as updating the transform will promt a resorting of the octree
+			Box* boundingBox = e->getComponent<BoundingBoxComponent>()->getBoundingBox();
+			TransformComponent* transform = e->getComponent<TransformComponent>();
+			transform->translate(velocity * dt);
+			boundingBox->setBaseMatrix(transform->getMatrixWithUpdate());
+		}
 	}
 
 	//void CollisionSystem::updateManifolds(Entity* e, Box* boundingBox, std::vector<Octree::CollisionInfo>& collisions) {
