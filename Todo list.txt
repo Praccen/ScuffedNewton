@@ -1,7 +1,6 @@
 Fix stacking.
 Fix friction in collisions.
-Add static friction.
 Add angular momentum.
 Add springs.
 Add explosions.
-Add materials with different collision and friction coefficients.
+Add materials with different collision and friction (dynamic and static) coefficients.

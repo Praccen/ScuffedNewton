@@ -273,13 +273,15 @@ namespace Scuffed {
 
 				Intersection::getCollisionTime(*entity, *e, std::min(collisionTime, dt), tempTimeInfo);
 
-				if (tempTimeInfo.time > 0.f && tempTimeInfo.time < collisionTime) {
-					collisionTime = tempTimeInfo.time;
-					outInfo.clear();
-					outInfo.emplace_back(tempTimeInfo);
-				}
-				else if (tempTimeInfo.time == collisionTime) {
-					outInfo.emplace_back(tempTimeInfo);
+				if (tempTimeInfo.time <= dt) {
+					if (tempTimeInfo.time > 0.f && tempTimeInfo.time < collisionTime) {
+						collisionTime = tempTimeInfo.time;
+						outInfo.clear();
+						outInfo.emplace_back(tempTimeInfo);
+					}
+					else if (tempTimeInfo.time == collisionTime) {
+						outInfo.emplace_back(tempTimeInfo);
+					}
 				}
 			}
 		}

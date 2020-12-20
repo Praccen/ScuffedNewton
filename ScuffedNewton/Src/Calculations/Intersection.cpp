@@ -99,7 +99,7 @@ namespace Scuffed {
 				triangle2.setData(e2Mesh->mesh->getVertexPosition(info.triangleIndices[0].second), e2Mesh->mesh->getVertexPosition(info.triangleIndices[0].second + 1), e2Mesh->mesh->getVertexPosition(info.triangleIndices[0].second + 2));
 			}
 
-			returnValue = continousSAT(&triangle1, &triangle2, glm::vec3(0.0f), glm::vec3(0.0f), 0.0f) == 0.0f;
+			returnValue = SAT(&triangle1, &triangle2);
 		}
 		else if (info.triangleIndices.size() > 0 && info.triangleIndices[0].first >= 0 && info.triangleIndices[0].second == -1) { // If one is -1 it will always be second (entity2)
 			// Triangle-box
@@ -113,13 +113,12 @@ namespace Scuffed {
 			}
 			Box* e2Box = info.entity2->getComponent<BoundingBoxComponent>()->getBoundingBox();
 			e2Box->setMatrix(glm::inverse(transformMatrix1));
-			returnValue = continousSAT(&triangle1, e2Box, glm::vec3(0.0f), glm::vec3(0.0f), 0.0f) == 0.0f;
+			returnValue = SAT(&triangle1, e2Box);
 			e2Box->setMatrix(glm::mat4(1.f));
 		}
 		else {
 			// Box-box
-			// TODO: Investigate why continousSAT is more stable than SAT
-			returnValue = continousSAT(info.entity1->getComponent<BoundingBoxComponent>()->getBoundingBox(), info.entity2->getComponent<BoundingBoxComponent>()->getBoundingBox(), glm::vec3(0.0f), glm::vec3(0.0f), 0.0f) == 0.0f;
+			returnValue = SAT(info.entity1->getComponent<BoundingBoxComponent>()->getBoundingBox(), info.entity2->getComponent<BoundingBoxComponent>()->getBoundingBox());
 		}
 
 		return returnValue;
@@ -254,10 +253,13 @@ namespace Scuffed {
 		for (const auto& e1 : s1Edges) {
 			for (const auto& e2 : s2Edges) {
 				if (e1 != e2 && e1 != -e2) {
-					testVec = glm::normalize(glm::cross(e1, e2));
-					float intersection = projectionOverlapTest(testVec, shape1->getVertices(), shape2->getVertices(), invertAxis);
-					if (intersection < 0.f) {
-						return false;
+					testVec = glm::cross(e1, e2);
+					if (glm::length2(testVec) > Utils::instance()->epsilon) {
+						testVec = glm::normalize(testVec);
+						float intersection = projectionOverlapTest(testVec, shape1->getVertices(), shape2->getVertices(), invertAxis);
+						if (intersection < 0.f) {
+							return false;
+						}
 					}
 				}
 			}
@@ -436,18 +438,21 @@ namespace Scuffed {
 		for (const auto& e1 : s1Edges) {
 			for (const auto& e2 : s2Edges) {
 				if (e1 != e2 && e1 != -e2) {
-					testVec = glm::normalize(glm::cross(e1, e2));
-					float intersection = projectionOverlapTest(testVec, shape1->getVertices(), shape2->getVertices(), invertAxis);
-					if (intersection < 0.f) {
-						return false;
-					}
-					else {
-						// Save smallest 
-						if (intersection < intersectionDepth) {
-							intersectionDepth = intersection;
-							intersectionAxis = testVec;
-							if (invertAxis) {
-								intersectionAxis = -intersectionAxis;
+					testVec = glm::cross(e1, e2);
+					if (glm::length2(testVec) > Utils::instance()->epsilon) {
+						testVec = glm::normalize(glm::cross(e1, e2));
+						float intersection = projectionOverlapTest(testVec, shape1->getVertices(), shape2->getVertices(), invertAxis);
+						if (intersection < 0.f) {
+							return false;
+						}
+						else {
+							// Save smallest 
+							if (intersection < intersectionDepth) {
+								intersectionDepth = intersection;
+								intersectionAxis = testVec;
+								if (invertAxis) {
+									intersectionAxis = -intersectionAxis;
+								}
 							}
 						}
 					}
@@ -510,7 +515,7 @@ namespace Scuffed {
 			for (const auto& e2 : s2Edges) {
 				if (e1 != e2 && e1 != -e2) {
 					testVec = glm::cross(e1, e2);
-					if (glm::length2(testVec) > 0.f) {
+					if (glm::length2(testVec) > Utils::instance()->epsilon) {
 						testVec = glm::normalize(testVec);
 
 						float intersection = projectionOverlapTest(testVec, shape1->getVertices(), shape2->getVertices(), invertAxis);
@@ -690,7 +695,7 @@ namespace Scuffed {
 			for (const auto& e2 : s2Edges) {
 				if (e1 != e2 && e1 != -e2) {
 					testVec = glm::cross(e1, e2);
-					if (glm::length2(testVec) > 0.f) {
+					if (glm::length2(testVec) > Utils::instance()->epsilon) {
 						testVec = glm::normalize(testVec);
 
 						float intersection = projectionOverlapTest(testVec, shape1->getVertices(), shape2->getVertices(), invertAxis);

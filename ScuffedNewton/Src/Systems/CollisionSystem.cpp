@@ -30,6 +30,10 @@ namespace Scuffed {
 	}
 
 	void CollisionSystem::update(float dt) {
+		continousCollisions(dt);
+	}
+
+	void CollisionSystem::continousCollisions(float dt) {
 		// ======================== Collision Update ======================================
 		m_collisionOrder.clear();
 
@@ -38,8 +42,11 @@ namespace Scuffed {
 		for (auto& e : entities) {
 			PhysicalBodyComponent* physObj = e->getComponent<PhysicalBodyComponent>();
 			for (size_t i = 0; i < physObj->restingContacts.size(); i++) {
-				if (Intersection::isColliding(physObj->restingContacts[i])) {
+				if (Intersection::isColliding(physObj->restingContacts[i])) { // TODO: This fails sometimes
 					handleCollisions(physObj->restingContacts[i], temp, 0);
+				}
+				else {
+					physObj->restingContacts.erase(physObj->restingContacts.begin() + i);
 				}
 			}
 		}
@@ -55,18 +62,21 @@ namespace Scuffed {
 				m_octree->getNextContinousCollision(e, dt, collisions);
 
 				// Split collision info so that every colliding triangle pair etc have their own collision info
-				if (collisions.size() > 0 && collisions[0].time <= dt) {
-					for (size_t i = 0; i < collisions.size(); i++) {
-						// TODO: add something to avoid duplicates
-						if (collisions[i].triangleIndices.size() > 0) {
-							for (size_t j = 0; j < collisions[i].triangleIndices.size(); j++) {
-								m_collisionOrder.emplace_back(collisions[i]);
-								std::pair<int, int> tempIndices = m_collisionOrder.back().triangleIndices[j];
-								m_collisionOrder.back().triangleIndices.clear();
-								m_collisionOrder.back().triangleIndices.emplace_back(tempIndices);
+				for (size_t i = 0; i < collisions.size(); i++) {
+					if (collisions[i].triangleIndices.size() > 0) {
+						for (size_t j = 0; j < collisions[i].triangleIndices.size(); j++) {
+							Scuffed::Intersection::CollisionTimeInfo temp;
+							temp = collisions[i];
+							std::pair<int, int> tempIndices = collisions[i].triangleIndices[j];
+							temp.triangleIndices.clear();
+							temp.triangleIndices.emplace_back(tempIndices);
+							if (findMatchingCollision(m_collisionOrder, temp) == -1) { // Avoid duplicates
+								m_collisionOrder.emplace_back(temp);
 							}
 						}
-						else {
+					}
+					else {
+						if (findMatchingCollision(m_collisionOrder, collisions[i]) == -1) { // Avoid duplicates
 							m_collisionOrder.emplace_back(collisions[i]);
 						}
 					}
@@ -136,19 +146,22 @@ namespace Scuffed {
 					m_octree->getNextContinousCollision(collidingEntities[i], (dt - timeProcessed), collisions);
 
 					// Split collision info so that every colliding triangle pair etc have their own collision info
-					if (collisions.size() > 0) {
-						for (size_t j = 0; j < collisions.size(); j++) {
-							collisions[j].time += timeProcessed;
-							// TODO: add something to avoid duplicates
-							if (collisions[j].triangleIndices.size() > 0) {
-								for (size_t k = 0; k < collisions[j].triangleIndices.size(); k++) {
-									m_collisionOrder.emplace_back(collisions[j]);
-									std::pair<int, int> tempIndices = m_collisionOrder.back().triangleIndices[k];
-									m_collisionOrder.back().triangleIndices.clear();
-									m_collisionOrder.back().triangleIndices.emplace_back(tempIndices);
+					for (size_t j = 0; j < collisions.size(); j++) {
+						collisions[j].time += timeProcessed;
+						if (collisions[j].triangleIndices.size() > 0) {
+							for (size_t k = 0; k < collisions[j].triangleIndices.size(); k++) {
+								Intersection::CollisionTimeInfo temp;
+								temp = collisions[j];
+								std::pair<int, int> tempIndices = collisions[j].triangleIndices[k];
+								temp.triangleIndices.clear();
+								temp.triangleIndices.emplace_back(tempIndices);
+								if (findMatchingCollision(m_collisionOrder, temp) == -1) { // Avoid duplicates
+									m_collisionOrder.emplace_back(temp);
 								}
 							}
-							else {
+						}
+						else {
+							if (findMatchingCollision(m_collisionOrder, collisions[j]) == -1) { // Avoid duplicates
 								m_collisionOrder.emplace_back(collisions[j]);
 							}
 						}
@@ -182,54 +195,63 @@ namespace Scuffed {
 		// Check that the entities are moving towards each other before going into collision response
 		if (Intersection::dot(physObj2->velocity - physObj1->velocity, intersectionAxis) >= 0.0) {
 			// Do collision response, effecting both entities.
-			float collisionCoefficient = std::min(physObj1->collisionCoefficient, physObj2->collisionCoefficient); // TODO: This can be calculated differently, will be based on material abilities in the future
 
 			glm::vec3 eN = glm::cross(glm::cross(physObj1->velocity - physObj2->velocity, intersectionAxis), intersectionAxis);
 
-			if (glm::length2(eN) > 0.00000001f) {
+			if (glm::length2(eN) > Utils::instance()->epsilon) {
 				eN = glm::normalize(eN);
 			}
 
+			float collisionCoefficient = std::min(physObj1->collisionCoefficient, physObj2->collisionCoefficient); // TODO: This can be calculated differently, will be based on material abilities in the future
 			float frictionCoefficient = std::max(physObj1->frictionCoefficient, physObj2->frictionCoefficient); // TODO: This can be calculated differently, will be based on material abilities in the future
 
 			if (!physObj1->isConstraint && !physObj2->isConstraint) {
 				float v1Dot = Intersection::dot(physObj1->velocity, intersectionAxis);
 				float v2Dot = Intersection::dot(physObj2->velocity, intersectionAxis);
+				float tangentVel1 = Intersection::dot(physObj1->velocity, eN);
+				float tangentVel2 = Intersection::dot(physObj2->velocity, eN);
 				float u1Dot = ((physObj1->mass - collisionCoefficient * physObj2->mass) / (physObj1->mass + physObj2->mass)) * v1Dot + ((1.0f + collisionCoefficient) * physObj2->mass) / (physObj1->mass + physObj2->mass) * v2Dot;
 				float u2Dot = ((physObj2->mass - collisionCoefficient * physObj1->mass) / (physObj2->mass + physObj1->mass)) * v2Dot + ((1.0f + collisionCoefficient) * physObj1->mass) / (physObj2->mass + physObj1->mass) * v1Dot;
 
-				physObj1->velocity += (u1Dot - v1Dot) * (intersectionAxis + frictionCoefficient * eN);
-				physObj2->velocity += (u2Dot - v2Dot) * (intersectionAxis + frictionCoefficient * eN);
+				float frictionMagnitude1 = -1.0f * (((u1Dot - v1Dot) * frictionCoefficient) < 0.0f) * std::min(std::abs(tangentVel1), std::abs((u1Dot - v1Dot) * frictionCoefficient));
+				float frictionMagnitude2 = -1.0f * (((u2Dot - v2Dot) * frictionCoefficient) < 0.0f) * std::min(std::abs(tangentVel2), std::abs((u2Dot - v2Dot) * frictionCoefficient));
+
+				physObj1->velocity += (u1Dot - v1Dot) * (intersectionAxis) + frictionMagnitude1 * eN;
+				physObj2->velocity += (u2Dot - v2Dot) * (intersectionAxis) + frictionMagnitude2 * eN;
 			}
 			else if (physObj1->isConstraint) {
 				float v2Dot = Intersection::dot(physObj2->velocity - physObj1->velocity, intersectionAxis);
-				physObj2->velocity -= v2Dot * (1.0f + collisionCoefficient) * (intersectionAxis + frictionCoefficient * eN);
+				float relativeTangentVel = Intersection::dot(physObj2->velocity - physObj1->velocity, eN);
+				float frictionMagnitude = std::min(relativeTangentVel * frictionCoefficient, v2Dot * (1.0f + collisionCoefficient) + frictionCoefficient);
+				//float uDot = v2Dot * (1.0f + collisionCoefficient) + frictionCoefficient;
+				physObj2->velocity -= v2Dot * (1.0f + collisionCoefficient) * (intersectionAxis) + frictionMagnitude * eN;
 			}
 			else if (physObj2->isConstraint) {
 				float v1Dot = Intersection::dot(physObj1->velocity - physObj2->velocity, intersectionAxis);
-				physObj1->velocity -= v1Dot * (1.0f + collisionCoefficient) * (intersectionAxis + frictionCoefficient * eN);
+				float relativeTangentVel = Intersection::dot(physObj1->velocity - physObj2->velocity, eN);
+				float frictionMagnitude = std::min(relativeTangentVel * frictionCoefficient, v1Dot * (1.0f + collisionCoefficient) + frictionCoefficient);
+				//float uDot = v1Dot * (1.0f + collisionCoefficient) + frictionCoefficient;
+				physObj1->velocity -= v1Dot * (1.0f + collisionCoefficient) * (intersectionAxis) + frictionMagnitude * eN;
 			}
 			else {
 				assert(false); // This should not happen since the octree should not detect two constraints colliding
 			}
 
 			// Evaluate resting contacts
-			if (recursionDepth < 1) {
+			if (recursionDepth < 3) {
 				if (!physObj1->isConstraint) {
 					for (size_t i = 0; i < physObj1->restingContacts.size(); i++) {
 						if (physObj1->restingContacts[i].entity1 != collisionInfo.entity2 &&
-							physObj1->restingContacts[i].entity2 != collisionInfo.entity2 &&
-							Intersection::isColliding(physObj1->restingContacts[i])) {
+							physObj1->restingContacts[i].entity2 != collisionInfo.entity2) {
 							handleCollisions(physObj1->restingContacts[i], collidingEntities, recursionDepth + 1); // Recursively call all (other) resting contacts
 						}
 					}
 				}
 
-				if (!physObj1->isConstraint) {
+				if (!physObj2->isConstraint) {
 					for (size_t i = 0; i < physObj2->restingContacts.size(); i++) {
 						if (physObj2->restingContacts[i].entity1 != collisionInfo.entity1 &&
-							physObj2->restingContacts[i].entity2 != collisionInfo.entity1 &&
-							Intersection::isColliding(physObj2->restingContacts[i])) {
+							physObj2->restingContacts[i].entity2 != collisionInfo.entity1) {
 							handleCollisions(physObj2->restingContacts[i], collidingEntities, recursionDepth + 1); // Recursively call all (other) resting contacts
 						}
 					}
@@ -246,72 +268,15 @@ namespace Scuffed {
 		}
 
 		// ----Handle resting contacts----
-		int found1 = -1;
-		int found2 = -1;
-
-		for (size_t i = 0; i < physObj1->restingContacts.size(); i++) {
-			if (physObj1->restingContacts[i].entity1 == collisionInfo.entity2) {
-				if (physObj1->restingContacts[i].triangleIndices.size() == 0 && collisionInfo.triangleIndices.size() == 0) {
-					found1 = i;
-					break;
-				}
-				else if (physObj1->restingContacts[i].triangleIndices.size() > 0 && collisionInfo.triangleIndices.size() > 0) {
-					if (physObj1->restingContacts[i].triangleIndices[0].first == collisionInfo.triangleIndices[0].second && physObj1->restingContacts[i].triangleIndices[0].second == physObj1->restingContacts[i].triangleIndices[0].first) {
-						found1 = i;
-						break;
-					}
-				}
-			}
-			else if (physObj1->restingContacts[i].entity2 == collisionInfo.entity2) {
-				if (physObj1->restingContacts[i].triangleIndices.size() == 0 && collisionInfo.triangleIndices.size() == 0) {
-					found1 = i;
-					break;
-				}
-				else if (physObj1->restingContacts[i].triangleIndices.size() > 0 && collisionInfo.triangleIndices.size() > 0) {
-					if (physObj1->restingContacts[i].triangleIndices[0].second == collisionInfo.triangleIndices[0].second && physObj1->restingContacts[i].triangleIndices[0].first == physObj1->restingContacts[i].triangleIndices[0].first) {
-						found1 = i;
-						break;
-					}
-				}
-			}
-		}
-
-		for (size_t i = 0; i < physObj2->restingContacts.size(); i++) {
-			if (physObj2->restingContacts[i].entity1 == collisionInfo.entity1) {
-				if (physObj2->restingContacts[i].triangleIndices.size() == 0 && collisionInfo.triangleIndices.size() == 0) {
-					found2 = i;
-					break;
-				}
-				else if (physObj2->restingContacts[i].triangleIndices.size() > 0 && collisionInfo.triangleIndices.size() > 0) {
-					if (physObj2->restingContacts[i].triangleIndices[0].first == collisionInfo.triangleIndices[0].first && physObj2->restingContacts[i].triangleIndices[0].second == physObj2->restingContacts[i].triangleIndices[0].second) {
-						found2 = i;
-						break;
-					}
-				}
-			}
-			else if (physObj2->restingContacts[i].entity2 == collisionInfo.entity1) {
-				if (physObj2->restingContacts[i].triangleIndices.size() == 0 && collisionInfo.triangleIndices.size() == 0) {
-					found2 = i;
-					break;
-				}
-				else if (physObj2->restingContacts[i].triangleIndices.size() > 0 && collisionInfo.triangleIndices.size() > 0) {
-					if (physObj2->restingContacts[i].triangleIndices[0].second == collisionInfo.triangleIndices[0].first && physObj2->restingContacts[i].triangleIndices[0].first == physObj2->restingContacts[i].triangleIndices[0].second) {
-						found2 = i;
-						break;
-					}
-				}
-			}
-		}
-
 		float dotProd1 = Intersection::dot(physObj1->velocity, intersectionAxis);
 		float dotProd2 = Intersection::dot(physObj2->velocity, intersectionAxis);
 
-		if (std::abs(dotProd1 - dotProd2) < 0.1f) { // The two entities are staying close to each other.
+		if ((dotProd1 - dotProd2) < 0.1f) { // The two entities are staying close to each other.
 			// "Stick" the entities to each other, i.e make their velocity along the intersection axis the same (as the heaviest one along the intersection axis)
-			if (physObj1->isConstraint || (physObj1->mass > physObj2->mass)) {
+			if (physObj1->isConstraint || ((physObj1->mass > physObj2->mass) && !physObj2->isConstraint)) {
 				physObj2->velocity += (dotProd1 - dotProd2) * intersectionAxis;
 			}
-			else if (physObj2->isConstraint || (physObj1->mass < physObj2->mass)) {
+			else if (physObj2->isConstraint || ((physObj1->mass < physObj2->mass) && !physObj1->isConstraint)) {
 				physObj1->velocity += (dotProd1 - dotProd2) * intersectionAxis;
 			}
 			else {
@@ -324,6 +289,9 @@ namespace Scuffed {
 				}
 			}
 
+			int found1 = findMatchingCollision(physObj1->restingContacts, collisionInfo);
+			int found2 = findMatchingCollision(physObj2->restingContacts, collisionInfo);
+
 			// Add this as a resting contact for both entities
 			if (found1 == -1) {
 				physObj1->restingContacts.emplace_back(collisionInfo);
@@ -331,16 +299,6 @@ namespace Scuffed {
 
 			if (found2 == -1) {
 				physObj2->restingContacts.emplace_back(collisionInfo);
-			}
-		}
-		else {
-			// Remove from resting
-			if (found1 >= 0) {
-				physObj1->restingContacts.erase(physObj1->restingContacts.begin() + found1);
-			}
-
-			if (found2 >= 0) {
-				physObj2->restingContacts.erase(physObj2->restingContacts.begin() + found2);
 			}
 		}
 		// -------------------------------
@@ -353,6 +311,32 @@ namespace Scuffed {
 			transform->translate(velocity * dt);
 			boundingBox->setBaseMatrix(transform->getMatrixWithUpdate());
 		}
+	}
+
+	int CollisionSystem::findMatchingCollision(std::vector<Intersection::CollisionTimeInfo>& list, Intersection::CollisionTimeInfo& search) {
+		for (size_t i = 0; i < list.size(); i++) {
+			if (list[i].entity1 == search.entity2 && list[i].entity2 == search.entity1) {
+				if (list[i].triangleIndices.size() == 0 && search.triangleIndices.size() == 0) {
+					return i;
+				}
+				else if (list[i].triangleIndices.size() > 0 && search.triangleIndices.size() > 0) {
+					if (list[i].triangleIndices[0].first == search.triangleIndices[0].second && list[i].triangleIndices[0].second == search.triangleIndices[0].first) {
+						return i;
+					}
+				}
+			}
+			else if (list[i].entity1 == search.entity1 && list[i].entity2 == search.entity2) {
+				if (list[i].triangleIndices.size() == 0 && search.triangleIndices.size() == 0) {
+					return i;
+				}
+				else if (list[i].triangleIndices.size() > 0 && search.triangleIndices.size() > 0) {
+					if (list[i].triangleIndices[0].first == search.triangleIndices[0].first && list[i].triangleIndices[0].second == search.triangleIndices[0].second) {
+						return i;
+					}
+				}
+			}
+		}
+		return -1;
 	}
 
 	//void CollisionSystem::updateManifolds(Entity* e, Box* boundingBox, std::vector<Octree::CollisionInfo>& collisions) {
