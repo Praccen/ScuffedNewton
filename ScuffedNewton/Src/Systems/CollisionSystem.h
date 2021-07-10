@@ -18,7 +18,8 @@ namespace Scuffed {
 	private:
 		void continousCollisions(float dt);
 
-		void handleCollisions(Intersection::CollisionTimeInfo& collisionInfo, std::vector<Entity*> &collidingEntities, int recursionDepth = 0);
+		void handleCollisions(Intersection::CollisionTimeInfo& collisionInfo, std::vector<Entity*> &collidingEntities);
+		void handleRecursiveCollision(Intersection::CollisionTimeInfo& collisionInfo, std::vector<Entity*>& collidingEntities, Entity* startingEntity);
 		void moveObject(Entity* e, glm::vec3 &velocity, float dt);
 		int findMatchingCollision(std::vector<Intersection::CollisionTimeInfo>& list, Intersection::CollisionTimeInfo& search);
 		//void updateManifolds(Entity* e, Box* boundingBox, std::vector<Octree::CollisionInfo>& collisions);
